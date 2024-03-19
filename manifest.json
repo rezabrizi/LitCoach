@@ -1,0 +1,25 @@
+{
+    "manifest_version": 3,
+    "name": "LitCoach",
+    "version": "1.0",
+    "description": "Guide and provide feedback for LeetCode problems",
+    "permissions": ["activeTab", "storage"],
+    "content_scripts": [
+      {
+        "matches": ["https://leetcode.com/problems/*"],
+        "js": ["contentScript.js"]
+      }
+    ],
+    "action": {
+      "default_popup": "popup.html",
+      "default_icon": {
+        "24": "images/icon24.png",
+        "48": "images/icon48.png"
+      }
+    },
+    "icons": {
+      "24": "images/icon24.png",
+      "48": "images/icon48.png"
+    }
+  }
+  
