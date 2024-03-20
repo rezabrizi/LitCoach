@@ -6,7 +6,7 @@
     "permissions": ["activeTab", "storage"],
     "content_scripts": [
       {
-        "matches": ["https://leetcode.com/problems/*"],
+        "matches": ["https://leetcode.com/problems/*/"],
         "js": ["contentScript.js"]
       }
     ],
