@@ -1,43 +1,17 @@
-// Function to extract problem statement
+
+
+
 function getProblemDescription() {
-    const metaTag = document.querySelector('meta[name="description"]');
+    const problemDescriptionElement= document.querySelector('meta[name="description"]');
+    if (!problemDescriptionElement)
+    {
+        console.error('Problem description not found');
+    }
     return metaTag ? metaTag.content : '';
 }
 
-
-function waitForElement(selector, callback) {
-    const intervalTime = 100; // Interval check time in milliseconds
-    const timeout = 5000; // Timeout in milliseconds
-    let elapsedTime = 0;
-
-    const interval = setInterval(() => {
-        const element = document.querySelector(selector);
-        if (element) {
-            clearInterval(interval);
-            callback(element);
-        } else if (elapsedTime > timeout) {
-            clearInterval(interval);
-            console.error('Element not found:', selector);
-        }
-        elapsedTime += intervalTime;
-    }, intervalTime);
-}
-
-function setupObserver(codeContainer) {
-    const observer = new MutationObserver((mutations) => {
-        // Extract code whenever a mutation is detected
-        const allCode = extractAllCode();
-        console.log(allCode); // Logs the current state of the code in the editor
-    });
-
-    const config = { childList: true, subtree: true };
-    observer.observe(codeContainer, config);
-
-    return observer;
-}
-
-function extractAllCode() {
-    // Adjusted selector to ensure it selects the intended container
+function getUserCode() {
+    // There should be a better way of doign this query selector but for now this is fine
     const codeContainer = document.querySelector('.view-lines.monaco-mouse-cursor-text');
     let allCode = '';
 
@@ -50,6 +24,40 @@ function extractAllCode() {
 
     return allCode.trim();
 }
+
+
+function waitForElement (selector, callback) {
+    const intervalTime = 100; 
+    const timeOut = 5000; 
+    let elpasedTime = 0; 
+
+    const interval = setInterval(()=>{
+        const element = document.querySelector(selector);
+        if (element){
+            clearInterval(interval); 
+            callback(element);
+        } 
+        else if (elpasedTime > timeOut){
+            clearInterval(interval);
+            console.error('Element not found: ', selector);
+        }
+        elpasedTime += intervalTime; 
+    }, intervalTime); 
+}
+
+function setupCodeEditorObserver(codeContainerElement) {
+    const observer = new MutationObserver((mutations) => {
+        const allCode = extractAllCode();
+        console.log(allCode); 
+    });
+
+    const config = { childList: true, subtree: true };
+    observer.observe(codeContainerElement, config);
+
+    return observer;
+}
+
+
 
 // Usage
 waitForElement('.view-lines.monaco-mouse-cursor-text', (element) => {
