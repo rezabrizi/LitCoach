@@ -1,47 +1,76 @@
 function injectCSS() {
     const styleSheet = document.createElement('link');
-    styleSheet.href = chrome.runtime.getURL('sidebar.css'); // Adjust the path if your CSS file is in a subdirectory
+    styleSheet.href = chrome.runtime.getURL('sidebar.css');
     styleSheet.type = 'text/css';
     styleSheet.rel = 'stylesheet';
     document.head.appendChild(styleSheet);
 }
 
+function setupToggleButtons() {
+    document.querySelectorAll('.toggle-button').forEach(button => {
+        button.addEventListener('click', function() {
+            this.classList.toggle('active'); // Toggle the 'active' class on click
+            // Correct the logic here if needed based on the CSS
+            // If the CSS takes care of the active/inactive states' styles,
+            // you might not need to manipulate styles here.
+        });
+    });
+}
+
+
 function injectSidebar() {
-    // Sidebar HTML
+    // Inject CSS
     injectCSS();
 
-    // Sidebar HTML (Simplified for brevity)
+    // Sidebar HTML with toggle buttons
     const sidebar = document.createElement('div');
     sidebar.id = 'my-extension-sidebar';
     sidebar.innerHTML = `
+        <select id="my-extension-coach-type">
+            <option value="guide">Guide</option>
+            <option value="feedback" selected>Feedback</option>
+        </select>
+        <div id="my-extension-criteria" class="criteria-container">
+            <button class="toggle-button" id="time-complexity-toggle">Time Complexity</button>
+            <button class="toggle-button" id="space-complexity-toggle">Space Complexity</button>
+            <button class="toggle-button" id="code-conciseness-toggle">Code Conciseness</button>
+        </div>
         <button id="my-extension-coach">Get Coach Feedback</button>
         <textarea id="my-extension-coach-feedback" readonly></textarea>
     `;
 
     document.body.appendChild(sidebar);
 
-
     // Adjusting the page layout to accommodate the sidebar
-    const mainContent = document.querySelector('#__next'); // Adjust this selector based on your inspection
+    const mainContent = document.querySelector('#__next');
     if (mainContent) {
-        mainContent.style.marginRight = "400px"; // Adjust the margin to make room for the sidebar
+        mainContent.style.marginRight = "400px";
     } else {
-        // Fallback if no specific main container is identified, or for pages with flexible layouts
         document.body.style.marginRight = "400px";
     }
 
-    // Add event listener to the button
-    document.getElementById('my-extension-coach').addEventListener('click', function() {
-        captureProblemContext().then(async (problemContext)=> {
-            try {
-                const feedback = await getFeeback(problemContext); 
-                document.getElementById('my-extension-coach-feedback').value = feedback;
-            } catch (error){
-                console.error("Error getting feedback: ", error); 
-                document.getElementById('my-extension-coach-feedback').value = "Error getting feedback.";
+    // Setup toggle button functionality
+    setupToggleButtons();
 
+    // Add event listener to the coach feedback button
+    document.getElementById('my-extension-coach').addEventListener('click', function() {
+        captureProblemContext().then(async (problemData) => {
+            let problemContext = {
+                ...problemData,
+                coachType: document.getElementById('my-extension-coach-type').value,
+                criteria: {
+                    timeComplexity: document.getElementById('time-complexity-toggle').classList.contains('active'),
+                    spaceComplexity: document.getElementById('space-complexity-toggle').classList.contains('active'),
+                    codeConciseness: document.getElementById('code-conciseness-toggle').classList.contains('active'),
+                }
+            };
+            try {
+                const feedback = await getFeedback(problemContext);
+                document.getElementById('my-extension-coach-feedback').value = feedback;
+            } catch (error) {
+                console.error("Error getting feedback: ", error);
+                document.getElementById('my-extension-coach-feedback').value = "Error getting feedback.";
             }
-            
         }).catch(error => {
             console.error("Error capturing problem context:", error);
         });

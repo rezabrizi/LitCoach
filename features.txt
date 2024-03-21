@@ -1,0 +1,4 @@
+LitCoach will provide feedback or guide to the user based on the current leetcode problem they are on
+
+- User will have an option: feedback or guide
+- Judgement: Time complexity Efficiency, space complexity Efficiency and Code conciseness
