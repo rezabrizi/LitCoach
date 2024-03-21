@@ -32,15 +32,42 @@ function injectSidebar() {
 
     // Add event listener to the button
     document.getElementById('my-extension-coach').addEventListener('click', function() {
-        captureProblemContext().then(problemContext => {
-            console.log('Problem:', problemContext.problem);
-            console.log('User Code:', problemContext.userCode);
-            const feedback = "YOU CAN'T SOLVE THE PROBLEM BECAUSE YOU ARE A FUCKING DUMBASS!";
-            document.getElementById('my-extension-coach-feedback').value = feedback;
+        captureProblemContext().then(async (problemContext)=> {
+            try {
+                const feedback = await getFeeback(problemContext); 
+                document.getElementById('my-extension-coach-feedback').value = feedback;
+            } catch (error){
+                console.error("Error getting feedback: ", error); 
+                document.getElementById('my-extension-coach-feedback').value = "Error getting feedback.";
+
+            }
+            
         }).catch(error => {
             console.error("Error capturing problem context:", error);
         });
     });
+}
+
+async function getFeeback(problemContext){
+    try{
+        const response = await fetch('http://127.0.0.1:5000/api/feedback', {
+            method: 'POST', 
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(problemContext),
+        });
+
+        if(!response.ok){
+            throw new Error('Network response was not ok');
+        }
+
+        const data = await response.json(); 
+        return data.feedback; 
+    } catch (error){
+        console.error('Error fetching feedback: ', error);
+        throw error; 
+    }
 }
 
 // Function to capture the problem context (problem description and user code)
