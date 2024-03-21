@@ -9,10 +9,7 @@ function injectCSS() {
 function setupToggleButtons() {
     document.querySelectorAll('.toggle-button').forEach(button => {
         button.addEventListener('click', function() {
-            this.classList.toggle('active'); // Toggle the 'active' class on click
-            // Correct the logic here if needed based on the CSS
-            // If the CSS takes care of the active/inactive states' styles,
-            // you might not need to manipulate styles here.
+            this.classList.toggle('active');
         });
     });
 }
@@ -77,7 +74,7 @@ function injectSidebar() {
     });
 }
 
-async function getFeeback(problemContext){
+async function getFeedback(problemContext){
     try{
         const response = await fetch('http://127.0.0.1:5000/api/feedback', {
             method: 'POST', 

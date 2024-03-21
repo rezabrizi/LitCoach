@@ -17,6 +17,16 @@
     box-sizing: border-box;
 }
 
+#my-extension-coach-type {
+    width: 80%; /* Adjust width to fit within the sidebar */
+    padding: 10px;
+    margin-bottom: 20px; /* Space before the criteria-container */
+    background-color: #2C2C2C; /* Matching the toggle buttons */
+    color: white;
+    border: 1px solid #555; /* Subtle border */
+    border-radius: 5px;
+}
+
 #my-extension-coach {
     background-color: #4CAF50; /* Green background */
     color: white;
@@ -43,4 +53,31 @@
     border-radius: 4px;
     resize: none; /* Prevent resizing */
     overflow-y: auto; /* Enable scrolling for overflow */
+}
+
+.toggle-button {
+    background-color: #2C2C2C; /* Initial background color */
+    color: #FFFFFF; /* Text color */
+    padding: 5px 10px; /* Smaller padding to reduce size */
+    border: 2px solid #2C2C2C; /* Border color */
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s, border-color 0.3s; /* Smooth transition for hover and active state */
+    margin: 5px; /* Increase space between buttons */
+    font-size: 12px; /* Smaller font size */
+}
+
+.toggle-button:hover,
+.toggle-button.active {
+    background-color: #4CAF50; /* Green background for hover and active state */
+    border-color: #4CAF50; /* Border color for hover and active state */
+}
+
+.criteria-container {
+    display: flex;
+    justify-content: center; /* Center buttons horizontally */
+    flex-wrap: wrap; /* Allow buttons to wrap if needed */
+    gap: 10px; /* Space between buttons when they wrap */
+    width: 80%; /* Adjust width to prevent overflow */
+    margin-bottom: 10px; /* Space below the container */
 }
