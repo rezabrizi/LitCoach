@@ -11,7 +11,6 @@
       }
     ],
     "action": {
-      "default_popup": "popup.html",
       "default_icon": {
         "24": "images/icon24.png",
         "48": "images/icon48.png"
@@ -20,6 +19,12 @@
     "icons": {
       "24": "images/icon24.png",
       "48": "images/icon48.png"
-    }
+    },
+    "web_accessible_resources": [
+        {
+          "resources": ["sidebar.css"],
+          "matches": ["<all_urls>"]
+        }
+    ]
   }
   

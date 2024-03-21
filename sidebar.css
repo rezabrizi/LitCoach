@@ -1,0 +1,46 @@
+/* sidebar.css */
+
+#my-extension-sidebar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 400px;
+    height: 100%;
+    background-color: #1E1E1E; /* Dark background for better contrast */
+    color: #FFFFFF; /* Light text color */
+    z-index: 1000;
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.2); /* Soft shadow for depth */
+    display: flex;
+    flex-direction: column; /* Stack elements vertically */
+    align-items: center; /* Center elements horizontally */
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+#my-extension-coach {
+    background-color: #4CAF50; /* Green background */
+    color: white;
+    padding: 10px 20px;
+    margin: 20px 0;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease; /* Smooth transition for hover effect */
+}
+
+#my-extension-coach:hover {
+    background-color: #45a049; /* Darker green on hover */
+}
+
+#my-extension-coach-feedback {
+    width: 100%;
+    height: calc(100% - 40px - 20px); /* Adjust height to take up remaining space */
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #2C2C2C; /* Slightly lighter background than sidebar for contrast */
+    color: #FFFFFF; /* Light text color */
+    border: 1px solid #555; /* Subtle border */
+    border-radius: 4px;
+    resize: none; /* Prevent resizing */
+    overflow-y: auto; /* Enable scrolling for overflow */
+}
