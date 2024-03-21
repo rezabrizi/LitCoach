@@ -35,7 +35,7 @@ function injectSidebar() {
         captureProblemContext().then(problemContext => {
             console.log('Problem:', problemContext.problem);
             console.log('User Code:', problemContext.userCode);
-            const feedback = "TEST FEEDBACK!!!!";
+            const feedback = "YOU CAN'T SOLVE THE PROBLEM BECAUSE YOU ARE A FUCKING DUMBASS!";
             document.getElementById('my-extension-coach-feedback').value = feedback;
         }).catch(error => {
             console.error("Error capturing problem context:", error);
