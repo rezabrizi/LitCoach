@@ -96,21 +96,50 @@ async function getFeedback(problemContext){
     }
 }
 
-// Function to capture the problem context (problem description and user code)
-async function captureProblemContext() {
-    let problemContext = {};
-    try {
-        const problemElement = await waitForElement('meta[name="description"]');
-        problemContext.problem = problemElement ? problemElement.content : 'Problem description not found';
-
-        const codeContainer = await waitForElement('.view-lines.monaco-mouse-cursor-text');
-        problemContext.userCode = getCode(codeContainer);
-    } catch (error) {
-        console.error(error);
-        throw error; // Rethrow to be caught by the caller
-    }
-    return problemContext;
+// This function injects a script to capture the code from Monaco Editor using an external script file
+function injectScriptToCaptureCode() {
+    const script = document.createElement('script');
+    script.src = chrome.runtime.getURL('injectScript.js'); // Load the script from the extension
+    (document.head || document.documentElement).appendChild(script);
+    script.onload = function() {
+        this.remove(); // Clean up after injection
+    };
 }
+
+  
+  // Modified captureProblemContext to use the new method
+  async function captureProblemContext() {
+      let problemContext = {};
+      try {
+          // Capture the problem description
+          const problemElement = await waitForElement('meta[name="description"]');
+          problemContext.problem = problemElement ? problemElement.content : 'N/A';
+  
+          injectScriptToCaptureCode();
+          problemContext.userCode = await new Promise((resolve, reject) => {
+            const listener = function(event) {
+              if (event.source != window || !event.data.type || event.data.type != 'FROM_PAGE') {
+                return;
+              }
+              window.removeEventListener('message', listener);
+              resolve(event.data.text);
+            };
+            window.addEventListener('message', listener);
+            // Timeout as a fallback in case the code cannot be captured
+            setTimeout(() => {
+              window.removeEventListener('message', listener);
+              reject(new Error('Timeout waiting for code from Monaco Editor'));
+            }, 5000); // Adjust timeout as necessary
+          });
+
+      } catch (error) {
+          console.error("Error capturing problem context:", error);
+          problemContext.userCode = 'N/A'; // Default value in case of error
+      }
+      return problemContext;
+  }
+  
+
 
 // Utility function to wait for an element to appear in the DOM
 function waitForElement(selector) {

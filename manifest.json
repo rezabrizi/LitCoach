@@ -1,30 +1,40 @@
 {
-    "manifest_version": 3,
-    "name": "LitCoach",
-    "version": "1.0",
-    "description": "Guide and provide feedback for LeetCode problems",
-    "permissions": ["activeTab", "storage"],
-    "content_scripts": [
-      {
-        "matches": ["https://leetcode.com/problems/*/"],
-        "js": ["contentScript.js"]
-      }
-    ],
-    "action": {
-      "default_icon": {
-        "24": "images/icon24.png",
-        "48": "images/icon48.png"
-      }
-    },
-    "icons": {
+  "manifest_version": 3,
+  "name": "LitCoach",
+  "version": "1.0",
+  "description": "Guide and provide feedback for LeetCode problems",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "scripting",
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://leetcode.com/*"
+  ],
+  "background": {
+    "service_worker": "backgroundScript.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://leetcode.com/problems/*"],
+      "js": ["contentScript.js"]
+    }
+  ],
+  "action": {
+    "default_icon": {
       "24": "images/icon24.png",
       "48": "images/icon48.png"
-    },
-    "web_accessible_resources": [
-        {
-          "resources": ["sidebar.css"],
-          "matches": ["<all_urls>"]
-        }
-    ]
-  }
-  
+    }
+  },
+  "icons": {
+    "24": "images/icon24.png",
+    "48": "images/icon48.png"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["sidebar.css", "injectScript.js"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
