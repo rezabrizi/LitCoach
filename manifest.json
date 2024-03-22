@@ -7,14 +7,15 @@
     "activeTab",
     "storage",
     "scripting",
-    "tabs"
+    "tabs",
+    "webNavigation"
   ],
+  "background": {
+    "service_worker": "background.js"
+  },
   "host_permissions": [
     "https://leetcode.com/*"
   ],
-  "background": {
-    "service_worker": "backgroundScript.js"
-  },
   "content_scripts": [
     {
       "matches": ["https://leetcode.com/problems/*"],

@@ -1,9 +1,43 @@
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.action === "toggleSidebar") {
+        console.log("Received the message in content Script!");
+        const sidebar = document.getElementById('my-extension-sidebar');
+        if (sidebar) {
+            // Toggle the .hidden class to show/hide the sidebar
+            sidebar.classList.toggle('hidden');
+            const isSidebarVisible = !sidebar.classList.contains('hidden');
+            toggleMainContent(isSidebarVisible ? "400px" : "0");
+        } 
+        else {
+            injectSidebar();
+            toggleMainContent("400px");
+        }
+    } else if (message.action === "hideSidebar") {
+        const sidebar = document.getElementById('my-extension-sidebar');
+        if (sidebar && !sidebar.classList.contains('hidden')) {
+            sidebar.classList.add('hidden');
+            toggleMainContent("0");
+        }
+    }
+});
+
+function toggleMainContent(margin) {
+    const mainContent = document.querySelector('#__next');
+    if (mainContent) {
+        mainContent.style.marginRight = margin;
+    } else {
+        document.body.style.marginRight = margin;
+    }
+}
+
 function injectCSS() {
-    const styleSheet = document.createElement('link');
-    styleSheet.href = chrome.runtime.getURL('sidebar.css');
-    styleSheet.type = 'text/css';
-    styleSheet.rel = 'stylesheet';
-    document.head.appendChild(styleSheet);
+    if (!document.head.querySelector('link[href="' + chrome.runtime.getURL('sidebar.css') + '"]')) {
+        const styleSheet = document.createElement('link');
+        styleSheet.href = chrome.runtime.getURL('sidebar.css');
+        styleSheet.type = 'text/css';
+        styleSheet.rel = 'stylesheet';
+        document.head.appendChild(styleSheet);
+    }
 }
 
 function setupToggleButtons() {
@@ -37,14 +71,6 @@ function injectSidebar() {
     `;
 
     document.body.appendChild(sidebar);
-
-    // Adjusting the page layout to accommodate the sidebar
-    const mainContent = document.querySelector('#__next');
-    if (mainContent) {
-        mainContent.style.marginRight = "400px";
-    } else {
-        document.body.style.marginRight = "400px";
-    }
 
     // Setup toggle button functionality
     setupToggleButtons();
@@ -102,7 +128,7 @@ function injectScriptToCaptureCode() {
     script.src = chrome.runtime.getURL('injectScript.js'); // Load the script from the extension
     (document.head || document.documentElement).appendChild(script);
     script.onload = function() {
-        this.remove(); // Clean up after injection
+        this.remove();
     };
 }
 
@@ -129,7 +155,7 @@ function injectScriptToCaptureCode() {
             setTimeout(() => {
               window.removeEventListener('message', listener);
               reject(new Error('Timeout waiting for code from Monaco Editor'));
-            }, 5000); // Adjust timeout as necessary
+            }, 5000);
           });
 
       } catch (error) {
@@ -162,17 +188,3 @@ function waitForElement(selector) {
     });
 }
 
-// Function to get user code from the code editor
-function getCode(codeContainer) {
-    let allCode = '';
-    if (codeContainer) {
-        const lines = codeContainer.querySelectorAll('.view-line');
-        lines.forEach(line => {
-            allCode += line.textContent + '\n';
-        });
-    }
-    return allCode.trim();
-}
-
-// Inject the sidebar when the content script loads
-injectSidebar();

@@ -42,6 +42,13 @@
     background-color: #45a049; /* Darker green on hover */
 }
 
+/* Additional class to hide the sidebar */
+#my-extension-sidebar.hidden {
+    visibility: hidden;
+    right: -400px; /* Assuming the sidebar width is 400px */
+}
+
+
 #my-extension-coach-feedback {
     width: 100%;
     height: calc(100% - 40px - 20px); /* Adjust height to take up remaining space */
