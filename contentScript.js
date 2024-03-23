@@ -15,11 +15,41 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     } else if (message.action === "hideSidebar") {
         const sidebar = document.getElementById('my-extension-sidebar');
         if (sidebar && !sidebar.classList.contains('hidden')) {
+            resetSidebarContent();
             sidebar.classList.add('hidden');
             toggleMainContent("0");
         }
     }
+    else if (message.action === "resetSidebar") {
+        const sidebar = document.getElementById('my-extension-sidebar');
+        if (sidebar)
+        {
+            resetSidebarContent();
+        }
+    }
 });
+
+function resetSidebarContent(){
+    const sidebar = document.getElementById('my-extension-sidebar');
+    if (sidebar) {
+        // Example of resetting to an initial state
+        sidebar.innerHTML = `
+            <select id="my-extension-coach-type">
+                <option value="guide">Guide</option>
+                <option value="feedback" selected>Feedback</option>
+            </select>
+            <div id="my-extension-criteria" class="criteria-container">
+                <button class="toggle-button" id="time-complexity-toggle">Time Complexity</button>
+                <button class="toggle-button" id="space-complexity-toggle">Space Complexity</button>
+                <button class="toggle-button" id="code-conciseness-toggle">Code Conciseness</button>
+            </div>
+            <button id="my-extension-coach">Get Coach Feedback</button>
+            <textarea id="my-extension-coach-feedback" readonly></textarea>
+        `;
+        // Reinitialize any event listeners or dynamic content as needed
+        setupToggleButtons();
+    }
+}
 
 function toggleMainContent(margin) {
     const mainContent = document.querySelector('#__next');
@@ -115,7 +145,7 @@ async function getFeedback(problemContext){
         }
 
         const data = await response.json(); 
-        return data.feedback; 
+        return data.syntax; 
     } catch (error){
         console.error('Error fetching feedback: ', error);
         throw error; 
@@ -134,36 +164,36 @@ function injectScriptToCaptureCode() {
 
   
   // Modified captureProblemContext to use the new method
-  async function captureProblemContext() {
-      let problemContext = {};
-      try {
-          // Capture the problem description
-          const problemElement = await waitForElement('meta[name="description"]');
-          problemContext.problem = problemElement ? problemElement.content : 'N/A';
-  
-          injectScriptToCaptureCode();
-          problemContext.userCode = await new Promise((resolve, reject) => {
-            const listener = function(event) {
-              if (event.source != window || !event.data.type || event.data.type != 'FROM_PAGE') {
-                return;
-              }
-              window.removeEventListener('message', listener);
-              resolve(event.data.text);
-            };
-            window.addEventListener('message', listener);
-            // Timeout as a fallback in case the code cannot be captured
-            setTimeout(() => {
-              window.removeEventListener('message', listener);
-              reject(new Error('Timeout waiting for code from Monaco Editor'));
-            }, 5000);
-          });
+async function captureProblemContext() {
+    let problemContext = {};
+    try {
+        // Capture the problem description
+        const problemElement = await waitForElement('meta[name="description"]');
+        problemContext.problem = problemElement ? problemElement.content : 'N/A';
 
-      } catch (error) {
-          console.error("Error capturing problem context:", error);
-          problemContext.userCode = 'N/A'; // Default value in case of error
-      }
-      return problemContext;
-  }
+        injectScriptToCaptureCode();
+        problemContext.userCode = await new Promise((resolve, reject) => {
+        const listener = function(event) {
+            if (event.source != window || !event.data.type || event.data.type != 'FROM_PAGE') {
+            return;
+            }
+            window.removeEventListener('message', listener);
+            resolve(event.data.text);
+        };
+        window.addEventListener('message', listener);
+        // Timeout as a fallback in case the code cannot be captured
+        setTimeout(() => {
+            window.removeEventListener('message', listener);
+            reject(new Error('Timeout waiting for code from Monaco Editor'));
+        }, 5000);
+        });
+
+    } catch (error) {
+        console.error("Error capturing problem context:", error);
+        problemContext.userCode = 'N/A'; // Default value in case of error
+    }
+    return problemContext;
+}
   
 
 
