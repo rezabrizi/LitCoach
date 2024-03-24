@@ -15,6 +15,12 @@
     align-items: center; /* Center elements horizontally */
     padding: 20px;
     box-sizing: border-box;
+    overflow-x: hidden; 
+}
+
+#my-extension-sidebar *{
+    max-width: 100%;
+    box-sizing: border-box; 
 }
 
 #my-extension-coach-type {
@@ -93,4 +99,8 @@
     gap: 10px; /* Space between buttons when they wrap */
     width: 80%; /* Adjust width to prevent overflow */
     margin-bottom: 10px; /* Space below the container */
+}
+
+#my-extension-coach-feedback-container {
+    overflow-y: auto; /* Allows vertical scrolling within the container */
 }

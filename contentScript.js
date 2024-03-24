@@ -15,7 +15,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     } else if (message.action === "hideSidebar") {
         const sidebar = document.getElementById('my-extension-sidebar');
         if (sidebar && !sidebar.classList.contains('hidden')) {
-            resetSidebarContent();
+            var element = document.getElementById('my-extension-coach-feedback-container');
+            if (element) {
+                element.innerHTML = '';
+            }
             sidebar.classList.add('hidden');
             toggleMainContent("0");
         }
@@ -24,32 +27,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         const sidebar = document.getElementById('my-extension-sidebar');
         if (sidebar)
         {
-            resetSidebarContent();
+            var element = document.getElementById('my-extension-coach-feedback-container');
+            if (element) {
+                element.innerHTML = '';
+            }
         }
     }
 });
 
-function resetSidebarContent(){
-    const sidebar = document.getElementById('my-extension-sidebar');
-    if (sidebar) {
-        // Example of resetting to an initial state
-        sidebar.innerHTML = `
-            <select id="my-extension-coach-type">
-                <option value="guide">Guide</option>
-                <option value="feedback" selected>Feedback</option>
-            </select>
-            <div id="my-extension-criteria" class="criteria-container">
-                <button class="toggle-button" id="time-complexity-toggle">Time Complexity</button>
-                <button class="toggle-button" id="space-complexity-toggle">Space Complexity</button>
-                <button class="toggle-button" id="code-conciseness-toggle">Code Conciseness</button>
-            </div>
-            <button id="my-extension-coach">LitCoach it!</button>
-            <div id="my-extension-coach-feedback-container"></div>
-        `;
-        // Reinitialize any event listeners or dynamic content as needed
-        setupToggleButtons();
-    }
-}
 
 function toggleMainContent(margin) {
     const mainContent = document.querySelector('#__next');
