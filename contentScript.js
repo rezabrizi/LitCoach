@@ -43,8 +43,8 @@ function resetSidebarContent(){
                 <button class="toggle-button" id="space-complexity-toggle">Space Complexity</button>
                 <button class="toggle-button" id="code-conciseness-toggle">Code Conciseness</button>
             </div>
-            <button id="my-extension-coach">Get Coach Feedback</button>
-            <textarea id="my-extension-coach-feedback" readonly></textarea>
+            <button id="my-extension-coach">LitCoach it!</button>
+            <div id="my-extension-coach-feedback-container"></div>
         `;
         // Reinitialize any event listeners or dynamic content as needed
         setupToggleButtons();
@@ -96,8 +96,8 @@ function injectSidebar() {
             <button class="toggle-button" id="space-complexity-toggle">Space Complexity</button>
             <button class="toggle-button" id="code-conciseness-toggle">Code Conciseness</button>
         </div>
-        <button id="my-extension-coach">Get Coach Feedback</button>
-        <textarea id="my-extension-coach-feedback" readonly></textarea>
+        <button id="my-extension-coach">LitCoach it!</button>
+        <div id="my-extension-coach-feedback-container"> </div>
     `;
 
     document.body.appendChild(sidebar);
@@ -107,6 +107,14 @@ function injectSidebar() {
 
     // Add event listener to the coach feedback button
     document.getElementById('my-extension-coach').addEventListener('click', function() {
+
+        document.getElementById('my-extension-coach-feedback-container').innerHTML = '';
+
+
+        let button = this
+        button.disabled = true; 
+        let syntaxLoaderInterval = showLoading('my-extension-coach-feedback-container', "Checking syntax", "syntax");
+
         captureProblemContext().then(async (problemData) => {
             let problemContext = {
                 ...problemData,
@@ -117,18 +125,84 @@ function injectSidebar() {
                     codeConciseness: document.getElementById('code-conciseness-toggle').classList.contains('active'),
                 }
             };
+    
             try {
+                const syntax = await checkSyntax(problemContext);
+                clearInterval(syntaxLoaderInterval); // Stop the loading effect for syntax check
+                document.getElementById('loadingMessage-syntax').remove();
+                let syntaxContainer = document.createElement('div');
+            
+                if (syntax.syntax === false) {
+                    // Display syntax error and solution
+                    syntaxContainer.innerHTML = `<div>${syntax.syntax_description}</div><br><pre><code>${syntax.syntax_code}</code></pre>`;
+                }
+                document.getElementById('my-extension-coach-feedback-container').appendChild(syntaxContainer);
+                let spaceAfterSyntax = document.createElement('div');
+                spaceAfterSyntax.style.margin = '30px 0';
+                document.getElementById('my-extension-coach-feedback-container').appendChild(spaceAfterSyntax);
+                // Now, handle the feedback with a new loading message
+                let feedbackLoaderInterval = showLoading('my-extension-coach-feedback-container', "Getting feedback", "feedback");
                 const feedback = await getFeedback(problemContext);
-                document.getElementById('my-extension-coach-feedback').value = feedback;
+                clearInterval(feedbackLoaderInterval); // Stop the loading effect
+                document.getElementById('loadingMessage-feedback').remove(); // Remove this specific loading message
+    
+                let feedbackContainer = document.createElement('div');
+                feedbackContainer.innerHTML = `<div>${feedback.feedback}</div>`;
+                document.getElementById('my-extension-coach-feedback-container').appendChild(feedbackContainer);
+    
             } catch (error) {
                 console.error("Error getting feedback: ", error);
-                document.getElementById('my-extension-coach-feedback').value = "Error getting feedback.";
+                clearInterval(syntaxLoaderInterval);
+                document.getElementById('my-extension-coach-feedback-container').textContent += "\nError getting feedback.";
+            } finally {
+                button.disabled = false;
             }
         }).catch(error => {
             console.error("Error capturing problem context:", error);
+            clearInterval(syntaxLoaderInterval);
+            document.getElementById('my-extension-coach-feedback-container').textContent += "\nError capturing problem context.";
+            button.disabled = false; 
         });
     });
 }
+
+function showLoading(containerId, message, uniqueSuffix) {
+    let dots = 0;
+    const loadingDiv = document.createElement('div');
+    loadingDiv.id = `loadingMessage-${uniqueSuffix}`; // Unique ID
+    loadingDiv.textContent = message;
+    document.getElementById(containerId).appendChild(loadingDiv);
+    
+    return setInterval(() => {
+        dots = (dots + 1) % 4;
+        loadingDiv.textContent = message + ".".repeat(dots);
+    }, 500);
+}
+
+
+
+async function checkSyntax(problemContext){
+    try{
+        const response = await fetch ('http://127.0.0.1:5000/api/syntax', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(problemContext)
+        }); 
+
+        if(!response.ok){
+            throw new Error('Network response was not ok');
+        }
+
+        const data = await response.json(); 
+        return data; 
+    } catch(error) {
+        console.error('Error checking syntax: ', error); 
+        throw error; 
+    }
+}
+
 
 async function getFeedback(problemContext){
     try{
@@ -145,7 +219,7 @@ async function getFeedback(problemContext){
         }
 
         const data = await response.json(); 
-        return data.syntax; 
+        return data; 
     } catch (error){
         console.error('Error fetching feedback: ', error);
         throw error; 

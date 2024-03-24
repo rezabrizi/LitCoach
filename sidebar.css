@@ -42,6 +42,12 @@
     background-color: #45a049; /* Darker green on hover */
 }
 
+#my-extension-coach:disabled {
+    background-color: #6C6C6C; /* Muted green or gray for disabled state */
+    cursor: not-allowed; /* Change cursor to indicate it's not clickable */
+    opacity: 0.7; /* Optional: reduce opacity to enhance the disabled look */
+}
+
 /* Additional class to hide the sidebar */
 #my-extension-sidebar.hidden {
     visibility: hidden;
