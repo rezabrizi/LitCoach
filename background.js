@@ -5,7 +5,6 @@ chrome.action.onClicked.addListener((tab) => {
 });
 
 const lastProblemUrl = {};
-
 chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
     if (changeInfo.url) {
         // Extract the base problem identifier from the URL
