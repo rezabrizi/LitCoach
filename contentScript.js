@@ -215,7 +215,7 @@ function showLoading(containerId, message, uniqueSuffix) {
 
 async function checkSyntax(problemContext){
     try{
-        const response = await fetch ('http://127.0.0.1:5000/api/syntax', {
+        const response = await fetch ('http://146.190.170.64:8000/api/syntax', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -238,7 +238,7 @@ async function checkSyntax(problemContext){
 
 async function getFeedback(problemContext){
     try{
-        const response = await fetch('http://127.0.0.1:5000/api/feedback', {
+        const response = await fetch('http://146.190.170.64:8000/api/feedback', {
             method: 'POST', 
             headers: {
                 'Content-Type': 'application/json',
@@ -260,7 +260,7 @@ async function getFeedback(problemContext){
 
 async function getGuide(problemContext){
     try{
-        const response = await fetch('http://127.0.0.1:5000/api/guide', {
+        const response = await fetch('http://146.190.170.64:8000/api/guide', {
             method: 'POST', 
             headers: {
                 'Content-Type': 'application/json',
