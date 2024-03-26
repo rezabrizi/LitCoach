@@ -125,15 +125,49 @@ function injectSidebar() {
                 let spaceAfterSyntax = document.createElement('div');
                 spaceAfterSyntax.style.margin = '30px 0';
                 document.getElementById('my-extension-coach-feedback-container').appendChild(spaceAfterSyntax);
-                // Now, handle the feedback with a new loading message
-                let feedbackLoaderInterval = showLoading('my-extension-coach-feedback-container', "Getting feedback", "feedback");
-                const feedback = await getFeedback(problemContext);
-                clearInterval(feedbackLoaderInterval); // Stop the loading effect
-                document.getElementById('loadingMessage-feedback').remove(); // Remove this specific loading message
-    
-                let feedbackContainer = document.createElement('div');
-                feedbackContainer.innerHTML = `<div>${feedback.feedback}</div>`;
-                document.getElementById('my-extension-coach-feedback-container').appendChild(feedbackContainer);
+                
+                if (problemContext.coachType === "feedback") {
+                    // Now, handle the feedback with a new loading message
+                    let feedbackLoaderInterval = showLoading('my-extension-coach-feedback-container', "Getting feedback", "feedback");
+                    const feedback = await getFeedback(problemContext);
+                    clearInterval(feedbackLoaderInterval); // Stop the loading effect
+                    document.getElementById('loadingMessage-feedback').remove(); // Remove this specific loading message
+        
+                    let feedbackContainer = document.createElement('div');
+                    feedbackContainer.innerHTML = `<div>${feedback.feedback}</div>`;
+                    document.getElementById('my-extension-coach-feedback-container').appendChild(feedbackContainer);
+                }
+                else if (problemContext.coachType === "guide"){
+                    let guideLoaderInterval = showLoading('my-extension-coach-feedback-container', "Getting guide", "guide");
+                    const guide = await getGuide(problemContext);
+                    clearInterval(guideLoaderInterval);
+                    document.getElementById('loadingMessage-guide').remove(); // Remove this specific loading message
+
+                    let guideContainer = document.createElement('div');
+
+                    // Check if guide is true, then display only the description
+                    if (guide.guide === true) {
+                        guideContainer.innerHTML = `<div>${guide.guide_description}</div>`;
+                    } else {
+                        // Guide is false, display description, steps, and code
+                        let guideSteps = guide.guide_steps;
+                        let stepsHtml = '<ol>';
+                        for (let step in guideSteps) {
+                            stepsHtml += `<li>${guideSteps[step]}</li>`;
+                        }
+                        stepsHtml += '</ol>';
+
+                        guideContainer.innerHTML = `
+                            <div>${guide.guide_description}</div>
+                            ${stepsHtml}
+                            <pre><code>${guide.guide_code}</code></pre>
+                        `;
+                    }
+
+                    document.getElementById('my-extension-coach-feedback-container').appendChild(guideContainer);
+                }
+
+                
     
             } catch (error) {
                 console.error("Error getting feedback: ", error);
@@ -192,6 +226,28 @@ async function checkSyntax(problemContext){
 async function getFeedback(problemContext){
     try{
         const response = await fetch('http://127.0.0.1:5000/api/feedback', {
+            method: 'POST', 
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(problemContext),
+        });
+
+        if(!response.ok){
+            throw new Error('Network response was not ok');
+        }
+
+        const data = await response.json(); 
+        return data; 
+    } catch (error){
+        console.error('Error fetching feedback: ', error);
+        throw error; 
+    }
+}
+
+async function getGuide(problemContext){
+    try{
+        const response = await fetch('http://127.0.0.1:5000/api/guide', {
             method: 'POST', 
             headers: {
                 'Content-Type': 'application/json',
