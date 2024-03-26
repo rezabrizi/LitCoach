@@ -15,10 +15,15 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
         // Check if we have moved to a different problem
         if (currentProblemBase && currentProblemBase !== lastProblemUrl[tabId]) {
             // Update the last problem URL identifier for this tab
-            lastProblemUrl[tabId] = currentProblemBase;
+            if (!(tabId in lastProblemUrl))
+            {
+                lastProblemUrl[tabId] = currentProblemBase;
+            }
+            else{
+                lastProblemUrl[tabId] = currentProblemBase;
+                chrome.tabs.sendMessage(tabId, {action: "resetSidebar"});
+            }
             
-            // Since it's a different problem, reset the sidebar
-            chrome.tabs.sendMessage(tabId, {action: "resetSidebar"});
         } else if (!currentProblemBase) {
             // If the new URL is not a problem page, hide the sidebar and clear the stored URL for this tab
             delete lastProblemUrl[tabId];

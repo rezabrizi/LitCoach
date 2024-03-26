@@ -111,3 +111,8 @@
     white-space: pre;
     overflow-x: auto;
 }
+
+#my-extension-coach-feedback-container ol {
+    list-style-type: decimal; /* Ensure numbers are displayed */
+    margin-left: 20px; /* Standard indent for list items */
+}

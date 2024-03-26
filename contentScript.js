@@ -147,37 +147,40 @@ function injectSidebar() {
                     feedbackContainer.innerHTML = `<div>${feedback.feedback}</div>`;
                     document.getElementById('my-extension-coach-feedback-container').appendChild(feedbackContainer);
                 }
-                else if (problemContext.coachType === "guide"){
+                else if (problemContext.coachType === "guide") {
                     let guideLoaderInterval = showLoading('my-extension-coach-feedback-container', "Getting guide", "guide");
                     const guide = await getGuide(problemContext);
                     clearInterval(guideLoaderInterval);
-                    document.getElementById('loadingMessage-guide').remove(); // Remove this specific loading message
-
+                    document.getElementById('loadingMessage-guide').remove(); 
                     let guideContainer = document.createElement('div');
-
-                    // Check if guide is true, then display only the description
+                
                     if (guide.guide === true) {
-                        guideContainer.innerHTML = `<div>${guide.guide_description}</div>`;
+                        let description = document.createElement('p');
+                        description.textContent = guide.guide_description;
+                        guideContainer.appendChild(description);
                     } else {
-                        // Guide is false, display description, steps, and code
-                        let guideSteps = guide.guide_steps;
-                        let stepsHtml = '<ol>';
-                        for (let step in guideSteps) {
-                            stepsHtml += `<li>${guideSteps[step]}</li>`;
-                        }
-                        stepsHtml += '</ol>';
-
-                        guideContainer.innerHTML = `
-                            <div>${guide.guide_description}</div>
-                            ${stepsHtml}
-                            <pre><code>${guide.guide_code}</code></pre>
-                        `;
+                        let description = document.createElement('p');
+                        description.textContent = guide.guide_description;
+                        guideContainer.appendChild(description);
+                
+                        let ol = document.createElement('ol');
+                        Object.keys(guide.guide_steps).forEach(step => {
+                            let li = document.createElement('li');
+                            li.textContent = guide.guide_steps[step];
+                            ol.appendChild(li);
+                        });
+                        guideContainer.appendChild(ol);
+                
+                        let pre = document.createElement('pre');
+                        pre.style = "margin-top: 10px;";
+                        let code = document.createElement('code');
+                        code.textContent = guide.guide_code; // Assuming escapeHTML function is used if needed
+                        pre.appendChild(code);
+                        guideContainer.appendChild(pre);
                     }
-
+                
                     document.getElementById('my-extension-coach-feedback-container').appendChild(guideContainer);
                 }
-
-                
     
             } catch (error) {
                 console.error("Error getting feedback: ", error);
