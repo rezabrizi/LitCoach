@@ -15,7 +15,7 @@
     align-items: center; /* Center elements horizontally */
     padding: 20px;
     box-sizing: border-box;
-    overflow-x: hidden; 
+    overflow-x: auto; 
 }
 
 #my-extension-sidebar *{
@@ -103,4 +103,11 @@
 
 #my-extension-coach-feedback-container {
     overflow-y: auto; /* Allows vertical scrolling within the container */
+    overflow-x: auto; 
+}
+
+#my-extension-coach-feedback-container pre,
+#my-extension-coach-feedback-container code {
+    white-space: pre;
+    overflow-x: auto;
 }

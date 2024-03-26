@@ -63,6 +63,15 @@ function setupToggleButtons() {
     });
 }
 
+function escapeHTML(text) {
+    return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
 
 function injectSidebar() {
     // Inject CSS
@@ -119,7 +128,8 @@ function injectSidebar() {
             
                 if (syntax.syntax === false) {
                     // Display syntax error and solution
-                    syntaxContainer.innerHTML = `<div>${syntax.syntax_description}</div><br><pre><code>${syntax.syntax_code}</code></pre>`;
+                    const escapedCode = escapeHTML(syntax.syntax_code);
+                    syntaxContainer.innerHTML = `<div>${syntax.syntax_description}</div><br><pre><code>${escapedCode}</code></pre>`;
                 }
                 document.getElementById('my-extension-coach-feedback-container').appendChild(syntaxContainer);
                 let spaceAfterSyntax = document.createElement('div');
