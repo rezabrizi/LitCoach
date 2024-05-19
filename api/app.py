@@ -1,16 +1,17 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, make_response
 from flask_cors import CORS
 import os
 import openai
-from dotenv import load_dotenv
+#from dotenv import load_dotenv
 
 
-load_dotenv()
+#load_dotenv()
 
 
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "chrome-extension://knohaceblijbgcamifbhfolgocambnfd"}}, supports_credentials=True)
-client = openai.OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+#CORS(app, resources={r"/api/*": {"origins": "chrome-extension:///niidabkahodeiboimeffglfogcmfhpkb"}})
+CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)
+client = openai.OpenAI()
 
 
 with open(os.path.join(os.path.dirname(__file__), "help_prompt.txt"), "r") as f:
@@ -38,7 +39,7 @@ def help_open_ai(problem, user_code, help_level):
                 {"role": "user", "content": construct_user_message(problem, user_code, help_level)}
             ],
             temperature=0.1, 
-            max_tokens=512,
+            max_tokens=1024,
             top_p=0.5,
             frequency_penalty=0,
             presence_penalty=0
@@ -52,22 +53,32 @@ def help_open_ai(problem, user_code, help_level):
         raise Exception(f"OpenAI Error: {str(e)}")
     except Exception as e:
         raise Exception(f"An unexpected error occurred: {str(e)}")
-
+    
 
 @app.route("/api/help", methods=['POST'])
 def get_help():
-    if request.headers.get('Origin') != "chrome-extension://knohaceblijbgcamifbhfolgocambnfd":
-        return jsonify({"error": "Invalid Origin"}), 403
+    # if request.method == 'OPTIONS':
+    #     response = make_response()
+    #     response.headers.add("Access-Control-Allow-Origin", "chrome-extension://niidabkahodeiboimeffglfogcmfhpkb")
+    #     response.headers.add("Access-Control-Allow-Methods", "POST, OPTIONS")
+    #     response.headers.add("Access-Control-Allow-Headers", "Content-Type")
+    #     return response
+    
     
     data = request.json
     problem, user_code, help_level = data.get("problem"), data.get("user_code"), data.get("help_level")
+    print(user_code)
     response_dict = {"help_response": None}
     try:
         response_dict['help_response'] = help_open_ai(problem, user_code, help_level)
-        return jsonify(response_dict), 200
+        response = jsonify(response_dict)
+        #response.headers.add("Access-Control-Allow-Origin", "chrome-extension://niidabkahodeiboimeffglfogcmfhpkb")
+        return response, 200
     except Exception as e:
-        print(f"help error - {str(e)}")
-        return jsonify({"error": {str(e)}}), 500
+        print(str(e))
+        response = jsonify({"error": str(e)})
+        #response.headers.add("Access-Control-Allow-Origin", "chrome-extension://niidabkahodeiboimeffglfogcmfhpkb")
+        return response, 500
 
 
 @app.route("/api/health", methods=['GET'])

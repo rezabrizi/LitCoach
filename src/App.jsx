@@ -35,6 +35,7 @@ function App() {
         try {
             const aiResponse = await getAIHelp(helpLevel);
             setResponse(aiResponse);
+            console.log(aiResponse); 
             toast({
                 title: "Success",
                 description: "AI help received successfully.",

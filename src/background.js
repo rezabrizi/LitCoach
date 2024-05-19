@@ -34,7 +34,7 @@ chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
                 {
                     target: { tabId: tab.id },
                     world: "MAIN",
-                    func: () => window.monaco.editor.getModels()[0].getValue(),
+                    func: () => window.monaco.editor.getModels()[1].getValue(),
                 },
                 (results) => {
                     const response = results?.[0]?.result

@@ -15,7 +15,7 @@ export const getAIHelp = async (help_level) => {
         if (!problem || !user_code) {
             throw new Error("Problem description or editor value not found.");
         }
-
+        
         const response = await axios.post(
             `${api_url}/api/help`,
             {
@@ -29,7 +29,6 @@ export const getAIHelp = async (help_level) => {
                 },
             },
         );
-
         return response.data.help_response;
     } catch (error) {
         console.error("Failed to get AI help:", error);
