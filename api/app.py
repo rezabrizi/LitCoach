@@ -9,7 +9,7 @@ load_dotenv()
 
 
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "https://leetcode.com"}}, supports_credentials=True)
+CORS(app, resources={r"/api/*": {"origins": "chrome-extension://knohaceblijbgcamifbhfolgocambnfd"}}, supports_credentials=True)
 client = openai.OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 
@@ -56,6 +56,9 @@ def help_open_ai(problem, user_code, help_level):
 
 @app.route("/api/help", methods=['POST'])
 def get_help():
+    if request.headers.get('Origin') != "chrome-extension://knohaceblijbgcamifbhfolgocambnfd":
+        return jsonify({"error": "Invalid Origin"}), 403
+    
     data = request.json
     problem, user_code, help_level = data.get("problem"), data.get("user_code"), data.get("help_level")
     response_dict = {"help_response": None}
