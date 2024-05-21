@@ -57,7 +57,7 @@ function App() {
     };
 
     return (
-        <ThemeProvider defaultTheme="light">
+        <ThemeProvider>
             {isLeetCodeProblem ? (
                 <div className="flex flex-col items-center py-4 space-y-4 px-4">
                     <p className="text-base text-center">Your Personal LeetCode Assistant</p>
