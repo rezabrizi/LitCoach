@@ -1,0 +1,24 @@
+Task: Given a problem, current user code, and a help level provide assistance to the user
+to solve the problem. 
+
+Problems:
+1- Absolute evaluation of the correctness of code (deterministic)
+2- The task is the exact same everytime, is there a way to only say it once, instead of
+saying that with every prompt? 
+3- More concise response
+
+
+Turn the problem into a state machine by having subtasks of a complex task
+
+1- Is the problem correct or not? 
+2a- if the problem is correct: Help level is not necessary and only suggestions can be given 
+
+
+Give the model time to think by having various prompts and using inner monologue 
+
+
+
+
+Analysis: 
+How does a LLM know that code to an algorithmic problem is correct? By comparing the question
+and answer to correct answers that it knows. 

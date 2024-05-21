@@ -32,13 +32,14 @@ def construct_user_message(problem, user_code, help_level):
 
 def help_open_ai(problem, user_code, help_level): 
     try:
+        print(construct_user_message(problem, user_code, help_level))
         openai_response = client.chat.completions.create(
             model="gpt-4o",
             messages=[
                 {"role": "system", "content": HELP_PROMPT},
                 {"role": "user", "content": construct_user_message(problem, user_code, help_level)}
             ],
-            temperature=0.1, 
+            temperature=0, 
             max_tokens=1024,
             top_p=0.5,
             frequency_penalty=0,
@@ -67,7 +68,7 @@ def get_help():
     
     data = request.json
     problem, user_code, help_level = data.get("problem"), data.get("user_code"), data.get("help_level")
-    print(user_code)
+    
     response_dict = {"help_response": None}
     try:
         response_dict['help_response'] = help_open_ai(problem, user_code, help_level)

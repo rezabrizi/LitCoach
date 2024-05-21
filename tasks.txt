@@ -1,6 +1,6 @@
 Gridhar 
 1. Figure out how to differentiate between premium acc code and non premium
-2. Format the front end so it can potentially be nicer 
+2. Format the front end so it can potentially be nicer ß
     - markdown displayed better
     - code highlights?
     - everything fit on the window at all times 
