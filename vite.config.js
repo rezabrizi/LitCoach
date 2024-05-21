@@ -19,4 +19,9 @@ const dynamicManifest = { ...existingManifest, version, description };
 export default defineConfig({
     plugins: [react(), crx({ manifest: dynamicManifest })],
     server: { port: 5173 },
+    resolve: {
+        alias: {
+            "@": path.resolve(__dirname, "./src"),
+        },
+    },
 });

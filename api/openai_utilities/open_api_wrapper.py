@@ -30,7 +30,6 @@ class OpenApiWrapper:
 
     def help_open_ai(self, problem, user_code, help_level): 
         prompt = self.sys_help_prompt()
-        print(prompt)
         try:
             openai_response = self.client.chat.completions.create(
                 model="gpt-4o",
