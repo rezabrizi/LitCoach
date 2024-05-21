@@ -6,12 +6,13 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Button } from "./components/ui/button.jsx";
-import { getAIHelp } from "./utils/GetAIHelp.js";
+import { Button } from "@/components/ui/button.jsx";
+import { ThemeProvider } from "@/components/theme-provider.tsx";
 import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import Markdown from "react-markdown";
 import rehypeHighlight from "rehype-highlight";
-import "react-toastify/dist/ReactToastify.css";
+import { getAIHelp } from "./utils/GetAIHelp.js";
 
 function App() {
     const [isLeetCodeProblem, setIsLeetCodeProblem] = useState(false);
@@ -55,30 +56,34 @@ function App() {
         }
     };
 
-    return isLeetCodeProblem ? (
-        <div className="flex flex-col items-center py-4 space-y-4 px-4">
-            <p className="text-base text-center">Your Personal LeetCode Assistant</p>
-            <Select value={helpLevel} onValueChange={(value) => setHelpLevel(value)}>
-                <SelectTrigger>
-                    <SelectValue placeholder="Select Assistance Level" />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="1">Minimal Assistance</SelectItem>
-                    <SelectItem value="2">Moderate Assistance</SelectItem>
-                    <SelectItem value="3">Extensive Assistance</SelectItem>
-                </SelectContent>
-            </Select>
-            <Button variant="outline" size="sm" disabled={isLoading} onClick={handleSubmit}>
-                Submit
-            </Button>
-            <Markdown rehypePlugins={[rehypeHighlight]}>{response}</Markdown>
+    return (
+        <ThemeProvider defaultTheme="light">
+            {isLeetCodeProblem ? (
+                <div className="flex flex-col items-center py-4 space-y-4 px-4">
+                    <p className="text-base text-center">Your Personal LeetCode Assistant</p>
+                    <Select value={helpLevel} onValueChange={(value) => setHelpLevel(value)}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Select Assistance Level" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="1">Minimal Assistance</SelectItem>
+                            <SelectItem value="2">Moderate Assistance</SelectItem>
+                            <SelectItem value="3">Extensive Assistance</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <Button variant="outline" size="sm" disabled={isLoading} onClick={handleSubmit}>
+                        Submit
+                    </Button>
+                    <Markdown rehypePlugins={[rehypeHighlight]}>{response}</Markdown>
+                </div>
+            ) : (
+                <p className="flex h-screen text-center items-center justify-center">
+                    Please navigate to a LeetCode problem to use this extension. <br />
+                    If you think this is an error, please reload the extension.
+                </p>
+            )}
             <ToastContainer />
-        </div>
-    ) : (
-        <p className="flex h-screen text-center items-center justify-center">
-            Please navigate to a LeetCode problem to use this extension. <br />
-            If you think this is an error, please reload the extension.
-        </p>
+        </ThemeProvider>
     );
 }
 

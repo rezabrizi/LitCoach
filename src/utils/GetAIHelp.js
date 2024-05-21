@@ -11,7 +11,6 @@ export const getAIHelp = async (help_level) => {
 
         const problem = problemResponse.value;
         const user_code = userCodeResponse.value;
-        console.log(user_code);
 
         if (!problem || !user_code) {
             throw new Error("Problem description or editor value not found.");
