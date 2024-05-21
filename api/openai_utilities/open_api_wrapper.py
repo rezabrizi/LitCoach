@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-class open_api_wrapper: 
+class OpenApiWrapper: 
     def __init__(self):
         self.client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 

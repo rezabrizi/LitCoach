@@ -1,13 +1,13 @@
 from flask import Flask, request, jsonify, make_response
 from flask_cors import CORS
-from openai_utilities.open_api_wrapper import open_api_wrapper
+from .openai_utilities import OpenApiWrapper
 
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)
 
     
-openaiwrapper = open_api_wrapper()
+openaiwrapper = OpenApiWrapper()
 
 
 @app.route("/api/help", methods=['POST'])

@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { VStack, Text, Button, Select, useToast, Image, Box } from "@chakra-ui/react";
 import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+// import remarkGfm from "remark-gfm";
+import ChakraUIRenderer from 'chakra-ui-markdown-renderer';
 import { getAIHelp } from "./GetAIHelp";
 
 function App() {
@@ -70,13 +71,12 @@ function App() {
                         <option value="2">Moderate Assistance</option>
                         <option value="3">Extensive Assistance</option>
                     </Select>
-
                     <Button onClick={handleSubmit} colorScheme="teal" isLoading={isLoading}>
                         Submit
                     </Button>
-                    <Box px={4}>
+                    <Box px={2}>
                         {response && (
-                            <ReactMarkdown remarkPlugins={[remarkGfm]} children={response} />
+                            <ReactMarkdown components={ChakraUIRenderer()} children={response} skipHtml />
                         )}
                     </Box>
                 </>
