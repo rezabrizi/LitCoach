@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
-import { VStack, Text, Button, Select, useToast, Image } from "@chakra-ui/react";
-import ReactMarkdown from 'react-markdown'
+import { VStack, Text, Button, Select, useToast, Image, Box } from "@chakra-ui/react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { getAIHelp } from "./GetAIHelp";
 
 function App() {
     const [helpLevel, setHelpLevel] = useState("");
     const [response, setResponse] = useState("");
     const [isLeetCodeProblem, setIsLeetCodeProblem] = useState(false);
-    const [isLoading, setIsLoading] = useState(false)
+    const [isLoading, setIsLoading] = useState(false);
     const toast = useToast();
 
     useEffect(() => {
@@ -17,7 +18,7 @@ function App() {
     }, []);
 
     const handleSubmit = async () => {
-        setIsLoading(true)
+        setIsLoading(true);
 
         if (!helpLevel) {
             toast({
@@ -28,14 +29,14 @@ function App() {
                 isClosable: true,
             });
 
-            setIsLoading(false)
+            setIsLoading(false);
             return;
         }
 
         try {
             const aiResponse = await getAIHelp(helpLevel);
             setResponse(aiResponse);
-            console.log(aiResponse); 
+
             toast({
                 title: "Success",
                 description: "AI help received successfully.",
@@ -52,7 +53,7 @@ function App() {
                 isClosable: true,
             });
         } finally {
-            setIsLoading(false)
+            setIsLoading(false);
         }
     };
 
@@ -73,7 +74,11 @@ function App() {
                     <Button onClick={handleSubmit} colorScheme="teal" isLoading={isLoading}>
                         Submit
                     </Button>
-                    {response && <ReactMarkdown>{response}</ReactMarkdown>}
+                    <Box px={4}>
+                        {response && (
+                            <ReactMarkdown remarkPlugins={[remarkGfm]} children={response} />
+                        )}
+                    </Box>
                 </>
             ) : (
                 <>
