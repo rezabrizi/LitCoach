@@ -75,11 +75,9 @@ def get_help():
     response_dict = {"help_response": None}
     try:
         response_dict['help_response'] = openaiwrapper.help_open_ai(problem, user_code, help_level)
-        response = jsonify(response_dict)
-        return response, 200
+        return jsonify(response_dict), 200
     except Exception as e:
-        response = jsonify({"error": str(e)})
-        return response, 500
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route("/api/health", methods=['GET'])
