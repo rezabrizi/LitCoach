@@ -7,7 +7,6 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button.jsx";
-import { ThemeProvider } from "@/components/theme-provider.tsx";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Markdown from "react-markdown";
@@ -57,7 +56,7 @@ function App() {
     };
 
     return (
-        <ThemeProvider>
+        <>
             {isLeetCodeProblem ? (
                 <div className="flex flex-col items-center py-4 space-y-4 px-4">
                     <p className="text-base text-center">Your Personal LeetCode Assistant</p>
@@ -75,6 +74,7 @@ function App() {
                         Submit
                     </Button>
                     <Markdown rehypePlugins={[rehypeHighlight]}>{response}</Markdown>
+                    <ToastContainer />
                 </div>
             ) : (
                 <p className="flex h-screen text-center items-center justify-center">
@@ -82,8 +82,7 @@ function App() {
                     If you think this is an error, please reload the extension.
                 </p>
             )}
-            <ToastContainer />
-        </ThemeProvider>
+        </>
     );
 }
 
