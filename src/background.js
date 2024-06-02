@@ -38,7 +38,7 @@ chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
                         const getPremiumButton = document.querySelector(".text-brand-orange");
                         return window.monaco.editor
                             .getModels()
-                            [getPremiumButton ? 0 : 1].getValue();
+                            [getPremiumButton && getPremiumButton.textContent.trim() === 'Premium' ? 0 : 1].getValue();
                     },
                 },
                 (results) => {
