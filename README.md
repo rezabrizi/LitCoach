@@ -1,8 +1,47 @@
-# React + Vite
+## Local Development
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+> [!NOTE]  
+> This project uses the `concurrently` package to run the server and extension concurrently. Check out the `package.json` file for more details.
 
-Currently, two official plugins are available:
+Make sure you have the following software installed on your machine:
 
--   [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
--   [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+-   Node.js
+-   Python
+
+### Steps:
+
+1. **Clone the repository:**
+
+    ```bash
+    git clone https://github.com/rezabrizi/LitCoach.git
+    ```
+
+2. **Navigate to the project directory:**
+
+    ```bash
+    cd LitCoach
+    ```
+
+3. **Install dependencies:**
+
+    ```bash
+    npm install
+    ```
+
+4. **Start the server and extension concurrently:**
+
+    ```bash
+    npm run dev
+    ```
+
+5. **Enable Developer Mode in Chrome:**
+
+    - Navigate to `chrome://extensions/`.
+    - Enable Developer Mode.
+
+6. **Load the extension:**
+
+    - Unpack the `dist` folder.
+    - Start using the extension for seamless testing and development.
+
+Please feel free to open an issue or submit a pull request if you have any suggestions or feedback.

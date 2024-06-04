@@ -18,8 +18,6 @@ function App() {
     }, []);
 
     const handleSubmit = async () => {
-        setIsLoading(true);
-
         if (!helpLevel) {
             toast({
                 title: "Error",
@@ -28,15 +26,14 @@ function App() {
                 duration: 5000,
                 isClosable: true,
             });
-
-            setIsLoading(false);
             return;
         }
+
+        setIsLoading(true);
 
         try {
             const aiResponse = await getAIHelp(helpLevel);
             setResponse(aiResponse);
-
             toast({
                 title: "Success",
                 description: "AI help received successfully.",
@@ -45,9 +42,13 @@ function App() {
                 isClosable: true,
             });
         } catch (error) {
+            const errorMessage =
+                error.message === "Problem description or editor value not found."
+                    ? "Please navigate to a LeetCode problem"
+                    : "Failed to get AI help.";
             toast({
                 title: "Error",
-                description: "Failed to get AI help.",
+                description: errorMessage,
                 status: "error",
                 duration: 5000,
                 isClosable: true,
@@ -61,7 +62,7 @@ function App() {
         <VStack spacing={3} p={4} align="stretch">
             {isLeetCodeProblem ? (
                 <>
-                    <Text fontSize="md" align={"center"}>
+                    <Text fontSize="md" align="center">
                         Your Personal LeetCode Assistant
                     </Text>
                     <Select
