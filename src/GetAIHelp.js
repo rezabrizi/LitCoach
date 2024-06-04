@@ -10,7 +10,10 @@ export const getAIHelp = async (help_level) => {
         const userCodeResponse = await chrome.runtime.sendMessage({ action: "getEditorValue" });
 
         const problem = problemResponse.value;
+        console.log(problem);
+
         const user_code = userCodeResponse.value;
+        console.log(user_code);
 
         if (!problem || !user_code) {
             throw new Error("Problem description or editor value not found.");

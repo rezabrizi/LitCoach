@@ -35,17 +35,19 @@ chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
                     target: { tabId: tab.id },
                     world: "MAIN",
                     func: () => {
-                        const getPremiumButton = document.querySelector(".text-brand-orange");
-                        return window.monaco.editor
-                            .getModels()
-                            [getPremiumButton && getPremiumButton.textContent.trim() === 'Premium' ? 0 : 1].getValue();
+                        const isPremium =
+                            document.querySelector(".text-brand-orange")?.textContent.trim() ===
+                            "Premium";
+                        return window.monaco.editor.getModels()[isPremium ? 0 : 1].getValue();
                     },
                 },
                 (results) => {
-                    const response = results?.[0]?.result
-                        ? { success: true, value: results[0].result }
-                        : { success: false, error: chrome.runtime.lastError };
-                    sendResponse(response);
+                    const [result] = results || [];
+                    sendResponse(
+                        result
+                            ? { success: true, value: result.result }
+                            : { success: false, error: chrome.runtime.lastError },
+                    );
                 },
             );
         });

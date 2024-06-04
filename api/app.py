@@ -7,11 +7,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 if not OPENAI_API_KEY:
     raise Exception("Open AI API key not set")
-
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)
@@ -70,12 +68,17 @@ openaiwrapper = OpenApiWrapper()
 
 @app.route("/api/help", methods=['POST'])
 def get_help():
+    if "chrome-extension://" not in request.headers.get("Origin", ""):
+        return jsonify({"error": "Origin not allowed to access this endpoint"}), 403
+
     data = request.json
     problem, user_code, help_level = data.get("problem"), data.get("user_code"), data.get("help_level")
-    response_dict = {"help_response": None}
+    if not all([problem, user_code, help_level]):
+        return jsonify({"error": "Missing required fields"}), 400
+
     try:
-        response_dict['help_response'] = openaiwrapper.help_open_ai(problem, user_code, help_level)
-        return jsonify(response_dict), 200
+        help_response = openaiwrapper.help_open_ai(problem, user_code, help_level)
+        return jsonify({"help_response": help_response}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
