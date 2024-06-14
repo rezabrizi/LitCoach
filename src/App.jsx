@@ -6,7 +6,7 @@ import { getAIHelp } from "./GetAIHelp";
 
 function App() {
     const [helpLevel, setHelpLevel] = useState("");
-    const [response, setResponse] = useState("");
+    const [response, setResponse] = useState(localStorage.getItem("help_response") || "");
     const [isLeetCodeProblem, setIsLeetCodeProblem] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const toast = useToast();

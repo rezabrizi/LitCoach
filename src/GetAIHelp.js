@@ -32,6 +32,8 @@ export const getAIHelp = async (help_level) => {
                 },
             },
         );
+
+        localStorage.setItem("help_response", response.data.help_response);
         return response.data.help_response;
     } catch (error) {
         console.error("Failed to get AI help:", error);
