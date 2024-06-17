@@ -1,4 +1,4 @@
-<h1 style="text-align:center; font-size: 3em;">⚡ LitCoach</h1>
+<h1 align="center">⚡ LitCoach</h1>
 
 LitCoach is an AI-powered Chrome extension designed to provide comprehensive guidance and feedback for LeetCode problems, leveraging the advanced capabilities of ChatGPT. Whether you're preparing for technical interviews or aiming to enhance your problem-solving skills, LitCoach offers tailored advice and insights to help you succeed.
 
