@@ -1,7 +1,7 @@
 <p align="center">
-  <img src="assets/Preview1.jpg" alt="Sample Image 1" width="300"/>
-  <img src="assets/Preview2.jpg" alt="Sample Image 2" width="300"/>
-  <img src="assets/Preview3.jpeg" alt="Sample Image 3" width="300"/>
+  <img src="assets/Preview1.jpg" alt="Sample Image 1" width="700"/>
+  <img src="assets/Preview2.jpg" alt="Sample Image 2" width="700"/>
+  <img src="assets/Preview3.jpeg" alt="Sample Image 3" width="700"/>
 </p>
 
 [![Chrome Web Store](https://img.shields.io/badge/Featured_on-Chrome_Web_Store-cce7e8?style=for-the-badge)](https://chromewebstore.google.com/detail/litcoach/pbkbbpmpbidfjbcapgplbdogiljdechf?hl=en&authuser=0)
@@ -21,9 +21,10 @@
 - [![Chakra UI](https://img.shields.io/badge/Styled_with-Chakra_UI-319795?style=for-the-badge&logo=chakra-ui)](https://chakra-ui.com/)
 - [![Axios](https://img.shields.io/badge/HTTP_requests_with-Axios-009688?style=for-the-badge&logo=axios)](https://www.npmjs.com/package/axios/)
 
-## Local Development Instructions
+## Local Development
 
-> **Note:** This project uses the `concurrently` package to run the server and extension simultaneously. Check the `package.json` file for more details.
+> [!NOTE]  
+> This project uses the `concurrently` package to run the server and extension simultaneously. Check the `package.json` file for more details.
 
 ### Prerequisites
 
