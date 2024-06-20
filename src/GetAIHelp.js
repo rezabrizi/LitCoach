@@ -1,6 +1,8 @@
 import axios from "axios";
 
-const api_url = import.meta.env.DEV ? "http://127.0.0.1:8000" : "https://lit-coach.vercel.app";
+const api_url = import.meta.env.DEV
+    ? "http://127.0.0.1:8000"
+    : import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
 export const getAIHelp = async (help_level) => {
     try {

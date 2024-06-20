@@ -28,6 +28,12 @@
 
 ### Prerequisites
 
+Set the following environment variables in `/api/.env`:
+
+```bash
+OPENAI_API_KEY='sk-xxxxxx'
+```
+
 Ensure you have the following software installed on your machine:
 
 - [Node.js](https://nodejs.org/)
