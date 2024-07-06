@@ -3,6 +3,11 @@ import { VStack, Text, Button, Select, useToast } from "@chakra-ui/react";
 import ReactMarkdown from "react-markdown";
 import ChakraUIRenderer from "chakra-ui-markdown-renderer";
 import { getAIHelp } from "./GetAIHelp";
+import axios from "axios";
+
+const api_url = import.meta.env.DEV
+    ? "http://127.0.0.1:8000"
+    : import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
 function App() {
     const [helpLevel, setHelpLevel] = useState("");
@@ -15,6 +20,9 @@ function App() {
         chrome.runtime.sendMessage({ action: "isLeetCodeProblem" }, (res) => {
             setIsLeetCodeProblem(res.value);
         });
+
+        // Wake up server
+        axios.get(`${api_url}/api/health`);
     }, []);
 
     const handleSubmit = async () => {
