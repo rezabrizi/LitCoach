@@ -1,5 +1,7 @@
 console.log("Background script running!");
 
+const leetCodeProblemUrlPrefix = "https://leetcode.com/problems/";
+
 // Enable the side panel when the action button is clicked
 chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(console.error);
 
@@ -7,7 +9,7 @@ chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(consol
 chrome.tabs.onUpdated.addListener(async (tabId, _, tab) => {
     if (!tab.url) return;
 
-    const enabled = /^https?:\/\/leetcode\.com\/problems\/[^]+\/$/.test(tab.url);
+    const enabled = tab.url.startsWith(leetCodeProblemUrlPrefix);
     await chrome.sidePanel.setOptions({
         tabId,
         path: enabled ? "index.html" : undefined,
@@ -19,7 +21,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, _, tab) => {
 chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
     if (message.action === "isLeetCodeProblem") {
         chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
-            const isLeetCodeProblem = /^https?:\/\/leetcode\.com\/problems\/[^]+\/$/.test(tab.url);
+            const isLeetCodeProblem = tab.url.startsWith(leetCodeProblemUrlPrefix);
             sendResponse({ value: isLeetCodeProblem });
         });
         return true;
@@ -36,17 +38,14 @@ chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
                     world: "MAIN",
                     func: () => {
                         const isPremium =
-                            document.querySelector(".text-brand-orange")?.textContent.trim() ===
-                            "Premium";
+                            document.querySelector(".text-brand-orange")?.textContent.trim() === "Premium";
                         return window.monaco.editor.getModels()[isPremium ? 0 : 1].getValue();
                     },
                 },
                 (results) => {
                     const [result] = results || [];
                     sendResponse(
-                        result
-                            ? { success: true, value: result.result }
-                            : { success: false, error: chrome.runtime.lastError },
+                        result.result !== null ? { success: true, value: result.result } : { success: false },
                     );
                 },
             );
@@ -68,10 +67,9 @@ chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
                     },
                 },
                 (results) => {
-                    const response = results?.[0]?.result
-                        ? { success: true, value: results[0].result }
-                        : { success: false, error: chrome.runtime.lastError };
-                    sendResponse(response);
+                    sendResponse(
+                        results?.[0]?.result ? { success: true, value: results[0].result } : { success: false },
+                    );
                 },
             );
         });

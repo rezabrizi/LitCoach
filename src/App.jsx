@@ -1,102 +1,142 @@
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { useState, useEffect } from "react";
-import { VStack, Text, Button, Select, useToast } from "@chakra-ui/react";
+import { useToast } from "@/hooks/use-toast";
+import { Toaster } from "@/components/ui/toaster";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import InfoIcon from "@/components/InfoIcon";
+import { ChevronUp, Loader2 } from "lucide-react";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import ReactMarkdown from "react-markdown";
-import ChakraUIRenderer from "chakra-ui-markdown-renderer";
-import { getAIHelp } from "./GetAIHelp";
-import axios from "axios";
 
 const api_url = import.meta.env.DEV
-    ? "http://127.0.0.1:8000"
+    ? "https://lit-coach.vercel.app"
     : import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
 function App() {
-    const [helpLevel, setHelpLevel] = useState("");
-    const [response, setResponse] = useState(localStorage.getItem("help_response") || "");
+    const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+    const { toast } = useToast();
     const [isLeetCodeProblem, setIsLeetCodeProblem] = useState(false);
+    const [userQuestion, setUserQuestion] = useState("");
+    const [aiResponse, setAiResponse] = useState("");
     const [isLoading, setIsLoading] = useState(false);
-    const toast = useToast();
 
     useEffect(() => {
-        chrome.runtime.sendMessage({ action: "isLeetCodeProblem" }, (res) => {
-            setIsLeetCodeProblem(res.value);
-        });
-
-        // Wake up server
-        axios.get(`${api_url}/api/health`);
+        chrome.runtime.sendMessage({ action: "isLeetCodeProblem" }, (res) => setIsLeetCodeProblem(res.value));
+        fetch(`${api_url}/api/health`); // Wake up the backend server
     }, []);
 
     const handleSubmit = async () => {
-        if (!helpLevel) {
-            toast({
-                title: "Error",
-                description: "Please select a help level.",
-                status: "error",
-                duration: 5000,
-                isClosable: true,
-            });
-            return;
-        }
-
         setIsLoading(true);
 
         try {
-            const aiResponse = await getAIHelp(helpLevel);
-            setResponse(aiResponse);
-            toast({
-                title: "Success",
-                description: "AI help received successfully.",
-                status: "success",
-                duration: 5000,
-                isClosable: true,
+            const problemResponse = await chrome.runtime.sendMessage({ action: "getProblemDescription" });
+            const userCodeResponse = await chrome.runtime.sendMessage({ action: "getEditorValue" });
+
+            if (!problemResponse.success) {
+                throw new Error("Failed to get problem description");
+            }
+
+            if (problemResponse.value.includes("Level up your coding skills")) {
+                throw new Error("Use LeetCode's new version");
+            }
+
+            if (!userCodeResponse.success) {
+                throw new Error("Failed to get user code");
+            }
+
+            // const result = await model.generateContentStream(
+
+            const queryParams = new URLSearchParams({
+                leetcode_question: problemResponse.value,
+                user_code: userCodeResponse.value,
+                user_question: userQuestion,
             });
+
+            const response = await fetch(`${api_url}/api/assistance?${queryParams}`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json" },
+            });
+
+            setAiResponse("");
+            setUserQuestion("");
+
+            const reader = response.body?.getReader();
+            const decoder = new TextDecoder("utf-8");
+
+            while (reader) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                const chunk = decoder.decode(value, { stream: true });
+                setAiResponse((aiResponse) => aiResponse + chunk);
+            }
         } catch (error) {
-            const errorMessage =
-                error.message === "Problem description or editor value not found."
-                    ? "Please navigate to a LeetCode problem"
-                    : "Failed to get AI help.";
+            console.error("Error fetching AI assistance:", error);
             toast({
-                title: "Error",
-                description: errorMessage,
-                status: "error",
-                duration: 5000,
-                isClosable: true,
+                variant: "destructive",
+                title: "Uh oh! Something went wrong.",
+                description: error.message,
             });
         } finally {
             setIsLoading(false);
         }
     };
 
-    return (
-        <VStack spacing={3} p={4} align="stretch">
-            {isLeetCodeProblem ? (
-                <>
-                    <Text fontSize="md" align="center">
-                        Your Personal LeetCode Assistant
-                    </Text>
-                    <Select
-                        placeholder="Select assistance level"
-                        onChange={(e) => setHelpLevel(e.target.value)}
-                    >
-                        <option value="1">Minimal</option>
-                        <option value="2">Moderate</option>
-                        <option value="3">Extensive</option>
-                    </Select>
-                    <Button onClick={handleSubmit} isLoading={isLoading}>
-                        Submit
-                    </Button>
-                    {response && (
-                        <ReactMarkdown components={ChakraUIRenderer()} skipHtml>
-                            {response}
-                        </ReactMarkdown>
-                    )}
-                </>
-            ) : (
-                <Text align="center">
-                    Please navigate to a LeetCode problem to use this extension. <br />
-                    If you think this is an error, please reload the extension.
-                </Text>
-            )}
-        </VStack>
+    return isLeetCodeProblem ? (
+        <>
+            <InfoIcon />
+            <ReactMarkdown
+                className="prose pb-16 pt-12 p-4"
+                components={{
+                    pre({ node, ...props }) {
+                        return <>{props.children}</>;
+                    },
+                    code({ node, className, ...props }) {
+                        const match = /language-(\w+)/.exec(className || "");
+                        return match ? (
+                            <div className="relative">
+                                <SyntaxHighlighter language={match[1]} {...props} />
+                            </div>
+                        ) : (
+                            <span className="bg-secondary p-[3px] rounded text-sm font-mono">
+                                {props.children}
+                            </span>
+                        );
+                    },
+                }}
+            >
+                {aiResponse}
+            </ReactMarkdown>
+            <div className="fixed bottom-0 left-0 w-full p-4 flex gap-2">
+                <Input
+                    type="text"
+                    placeholder="Ask your question here"
+                    value={userQuestion}
+                    onChange={(e) => setUserQuestion(e.target.value)}
+                />
+                <Button
+                    onClick={handleSubmit}
+                    disabled={isLoading || !userQuestion}
+                    variant="outline"
+                    className="p-2 h-10 w-10"
+                >
+                    {isLoading ? <Loader2 className="animate-spin" /> : <ChevronUp />}
+                </Button>
+            </div>
+            <Toaster />
+        </>
+    ) : (
+        <div className="flex flex-col items-center justify-center h-screen text-center space-y-2">
+            <img src="404_image.svg" alt="404" className="w-72 h-72" />
+            <p className="">
+                This extension only works on LeetCode problem pages.         
+            </p>
+            <p>
+                Reopen this extension if you're on a LeetCode problem page.
+            </p>
+        </div>
     );
 }
 

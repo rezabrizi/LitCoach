@@ -10,16 +10,16 @@
 
 ### Backend
 
-- [![Flask](https://img.shields.io/badge/Powered_by-Flask-000000?style=for-the-badge&logo=flask)](https://flask.palletsprojects.com/)
-- [![OpenAI](https://img.shields.io/badge/Powered_by-OpenAI-FF6600?style=for-the-badge&logo=openai)](https://www.openai.com/)
-- [![Vercel](https://img.shields.io/badge/Deployed_on-Vercel-000000?style=for-the-badge&logo=vercel)](https://vercel.com/)
+-   [![Flask](https://img.shields.io/badge/Powered_by-Flask-000000?style=for-the-badge&logo=flask)](https://flask.palletsprojects.com/)
+-   [![OpenAI](https://img.shields.io/badge/Powered_by-OpenAI-FF6600?style=for-the-badge&logo=openai)](https://www.openai.com/)
+-   [![Vercel](https://img.shields.io/badge/Deployed_on-Vercel-000000?style=for-the-badge&logo=vercel)](https://vercel.com/)
 
 ### Frontend
 
-- [![Vite](https://img.shields.io/badge/Powered_by-Vite-646CFF?style=for-the-badge&logo=vite)](https://vitejs.dev/)
-- [![React](https://img.shields.io/badge/Powered_by-React-61DAFB?style=for-the-badge&logo=react)](https://reactjs.org/)
-- [![Chakra UI](https://img.shields.io/badge/Styled_with-Chakra_UI-319795?style=for-the-badge&logo=chakra-ui)](https://chakra-ui.com/)
-- [![Axios](https://img.shields.io/badge/HTTP_requests_with-Axios-009688?style=for-the-badge&logo=axios)](https://www.npmjs.com/package/axios/)
+-   [![Vite](https://img.shields.io/badge/Powered_by-Vite-646CFF?style=for-the-badge&logo=vite)](https://vitejs.dev/)
+-   [![React](https://img.shields.io/badge/Powered_by-React-61DAFB?style=for-the-badge&logo=react)](https://reactjs.org/)
+-   [![Chakra UI](https://img.shields.io/badge/Styled_with-Chakra_UI-319795?style=for-the-badge&logo=chakra-ui)](https://chakra-ui.com/)
+-   [![Axios](https://img.shields.io/badge/HTTP_requests_with-Axios-009688?style=for-the-badge&logo=axios)](https://www.npmjs.com/package/axios/)
 
 ## Local Development
 
@@ -36,9 +36,9 @@ OPENAI_API_KEY='sk-xxxxxx'
 
 Ensure you have the following software installed on your machine:
 
-- [Node.js](https://nodejs.org/)
-- [Python](https://www.python.org/)
-- [Anaconda (optional)](https://www.anaconda.com/products/distribution) for managing virtual environments
+-   [Node.js](https://nodejs.org/)
+-   [Python](https://www.python.org/)
+-   [Anaconda (optional)](https://www.anaconda.com/products/distribution) for managing virtual environments
 
 ### Setup Steps
 
@@ -84,6 +84,7 @@ Ensure you have the following software installed on your machine:
     ```bash
     npm install
     ```
+
     > **Note:** This command not only installs the Node.js dependencies but also triggers a post-install script that installs the required Python packages.
 
 5. **Start the server and extension concurrently:**
