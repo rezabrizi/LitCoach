@@ -1,6 +1,6 @@
 {
     "name": "litcoach",
-    "description": "Guide and provide feedback for LeetCode problems",
+    "description": "Chrome extension to help you with LeetCode problems",
     "private": true,
     "version": "0.0.3",
     "type": "module",

@@ -118,7 +118,7 @@ function App() {
             <Toaster />
         </>
     ) : (
-        <img src="404_image.svg" alt="404" className=" flex flex-col items-center justify-center h-screen" />
+        <img src="404.svg" alt="404" className=" flex flex-col items-center justify-center h-screen" />
     );
 }
 
