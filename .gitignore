@@ -24,6 +24,3 @@ dist-ssr
 *.sw?
 
 .env
-.conda
-.venv
-__pycache__

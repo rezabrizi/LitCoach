@@ -40,7 +40,7 @@ function InfoIcon() {
                     <Button
                         variant="outline"
                         className="w-full"
-                        onClick={() => window.open("https://github.com/GiridharRNair/LeetGuide", "_blank")}
+                        onClick={() => window.open("https://github.com/rezabrizi/LitCoach", "_blank")}
                     >
                         <img src="/github_octocat_icon.svg" alt="GitHub" className="w-5 mr-2" />
                         GitHub Repository

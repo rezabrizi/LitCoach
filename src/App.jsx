@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import InfoIcon from "@/components/infoicon";
 import { ChevronUp, Loader2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import SyntaxHighlighter from "react-syntax-highlighter/dist/esm/default-highlight";
 
 const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash", systemInstruction: system_prompt });
@@ -76,7 +77,28 @@ function App() {
     return isLeetCodeProblem ? (
         <>
             <InfoIcon />
-            <ReactMarkdown className="prose pb-16 pt-12 p-4">{aiResponse}</ReactMarkdown>
+            <ReactMarkdown
+                className="prose pb-16 pt-12 p-4"
+                components={{
+                    pre({ ...props }) {
+                        return <>{props.children}</>;
+                    },
+                    code({ className, ...props }) {
+                        const match = /language-(\w+)/.exec(className || "");
+                        return match ? (
+                            <div className="relative">
+                                <SyntaxHighlighter language={match[1]} {...props} />
+                            </div>
+                        ) : (
+                            <span className="bg-secondary p-[3px] rounded text-sm font-mono">
+                                {props.children}
+                            </span>
+                        );
+                    },
+                }}
+            >
+                {aiResponse}
+            </ReactMarkdown>
             <div className="fixed bottom-0 left-0 w-full p-4 flex gap-2">
                 <Input
                     type="text"
@@ -96,11 +118,7 @@ function App() {
             <Toaster />
         </>
     ) : (
-        <div className="flex flex-col items-center justify-center h-screen text-center space-y-2">
-            <img src="404_image.svg" alt="404" className="w-72 h-72" />
-            <p className="">This extension only works on LeetCode problem pages.</p>
-            <p>Reopen this extension if you're on a LeetCode problem page.</p>
-        </div>
+        <img src="404_image.svg" alt="404" className=" flex flex-col items-center justify-center h-screen" />
     );
 }
 
