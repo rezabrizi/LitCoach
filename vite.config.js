@@ -6,18 +6,21 @@ import path from "path";
 
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
 
-const readJson = (filePath) => JSON.parse(fs.readFileSync(filePath, "utf-8"));
-
 const manifestPath = path.resolve(__dirname, "./public/manifest.json");
 const packageJsonPath = path.resolve(__dirname, "package.json");
 
-const existingManifest = readJson(manifestPath);
-const { version, description } = readJson(packageJsonPath);
+const existingManifest = JSON.parse(fs.readFileSync(manifestPath, "utf-8"));
+const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
 
-const dynamicManifest = { ...existingManifest, version, description };
+const manifest = {
+    ...existingManifest,
+    version: packageJson.version,
+    description: packageJson.description,
+};
 
+// https://vitejs.dev/config/
 export default defineConfig({
-    plugins: [react(), crx({ manifest: dynamicManifest })],
+    plugins: [react(), crx({ manifest })],
     server: { port: 5173 },
     resolve: {
         alias: {
