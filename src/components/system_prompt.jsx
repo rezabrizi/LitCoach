@@ -25,7 +25,6 @@ The problem description, constraints, and example(s) will be delimited within "P
 
 The user code will be delimited within "User Code Start" and "User Code End".
 
-The user question will be delimited within "User Question Start" and "User Question End".
-`;
+The user question will be delimited within "User Question Start" and "User Question End".`;
 
 export default system_prompt;

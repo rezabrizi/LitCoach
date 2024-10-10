@@ -17,7 +17,7 @@ function App() {
     const { toast } = useToast();
     const [isLeetCodeProblem, setIsLeetCodeProblem] = useState(false);
     const [userQuestion, setUserQuestion] = useState("");
-    const [aiResponse, setAiResponse] = useState("");
+    const [aiResponse, setAiResponse] = useState(localStorage.getItem("aiResponse") || "");
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
@@ -62,6 +62,8 @@ function App() {
                 const chunkText = chunk.text();
                 setAiResponse((aiResponse) => aiResponse + chunkText);
             }
+
+            localStorage.setItem("aiResponse", aiResponse);
         } catch (error) {
             console.error("Error fetching AI assistance:", error);
             toast({
@@ -118,7 +120,10 @@ function App() {
             <Toaster />
         </>
     ) : (
-        <img src="404.svg" alt="404" className=" flex flex-col items-center justify-center h-screen" />
+        <div className="flex items-center justify-center h-screen text-center">
+            Navigate to a LeetCode problem to use this extension. <br />
+            If this is a problem page, try reopening the extension.
+        </div>
     );
 }
 
