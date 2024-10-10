@@ -14,35 +14,42 @@ Chrome extension that uses Google's Gemini 1.5-Flash AI model to provide real-ti
 
 ### Prerequisites
 
-- Get your API key from [Google AI](https://ai.google.dev/) and add it to the `.env` file:
-    ```bash
-    VITE_GEMINI_API_KEY='YOUR_API_KEY'
-    ```
-- Ensure [Node.js](https://nodejs.org/) is installed.
+Get your API key from [Google AI](https://ai.google.dev/) and add it to the `.env` file:
+
+```bash
+VITE_GEMINI_API_KEY='YOUR_API_KEY'
+```
+
+Ensure [Node.js](https://nodejs.org/) is installed.
 
 ### Installation Steps
 
 1. **Clone the repository**:
+
     ```bash
     git clone https://github.com/rezabrizi/LitCoach.git
     ```
 
 2. **Navigate to the project directory**:
+
     ```bash
     cd LitCoach
     ```
 
 3. **Install dependencies**:
+
     ```bash
     npm install
     ```
 
 4. **Start the development server**:
+
     ```bash
     npm run dev
     ```
 
 5. **Enable Developer Mode in Chrome**:
+
     - Go to `chrome://extensions/`.
     - Enable **Developer Mode**.
 
