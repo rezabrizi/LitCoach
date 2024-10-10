@@ -1,6 +1,6 @@
 import system_prompt from "./components/system_prompt";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { useState, useEffect } from "react";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import { Button } from "@/components/ui/button";
@@ -30,6 +30,11 @@ function App() {
         try {
             const problemResponse = await chrome.runtime.sendMessage({ action: "getProblemDescription" });
             const userCodeResponse = await chrome.runtime.sendMessage({ action: "getEditorValue" });
+            const isLeetCodeProblem = await chrome.runtime.sendMessage({ action: "isLeetCodeProblem" });
+
+            if (!isLeetCodeProblem.value) {
+                throw new Error("Not a LeetCode problem page");
+            }
 
             if (!problemResponse.success) {
                 throw new Error("Failed to get problem description");
@@ -59,8 +64,7 @@ function App() {
             setUserQuestion("");
 
             for await (const chunk of result.stream) {
-                const chunkText = chunk.text();
-                setAiResponse((aiResponse) => aiResponse + chunkText);
+                setAiResponse((aiResponse) => aiResponse + chunk.text());
             }
 
             localStorage.setItem("aiResponse", aiResponse);

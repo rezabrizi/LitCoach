@@ -2,28 +2,21 @@ console.log("Background script running!");
 
 const leetCodeProblemUrlPrefix = "https://leetcode.com/problems/";
 
-// Enable the side panel when the action button is clicked
 chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(console.error);
 
-// Only enable the side panel on LeetCode problem pages
-chrome.tabs.onUpdated.addListener(async (tabId, _, tab) => {
-    if (!tab.url) return;
-
-    const enabled = tab.url.startsWith(leetCodeProblemUrlPrefix);
-    await chrome.sidePanel.setOptions({
-        tabId,
-        path: enabled ? "index.html" : undefined,
-        enabled,
-    });
+// Enable the side panel on LeetCode problem pages
+chrome.tabs.onUpdated.addListener(async (tabId, _, { url }) => {
+    if (!url) return;
+    const enabled = url.startsWith(leetCodeProblemUrlPrefix);
+    await chrome.sidePanel.setOptions({ tabId, path: enabled ? "index.html" : undefined, enabled });
 });
 
 // Check if the current tab is a LeetCode problem page
 chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
     if (message.action === "isLeetCodeProblem") {
-        chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
-            const isLeetCodeProblem = tab.url.startsWith(leetCodeProblemUrlPrefix);
-            sendResponse({ value: isLeetCodeProblem });
-        });
+        chrome.tabs.query({ active: true, currentWindow: true }, ([{ url }]) =>
+            sendResponse({ value: url.startsWith(leetCodeProblemUrlPrefix) }),
+        );
         return true;
     }
 });
@@ -31,24 +24,19 @@ chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
 // Get the editor value from the Monaco editor
 chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
     if (message.action === "getEditorValue") {
-        chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
-            chrome.scripting.executeScript(
-                {
-                    target: { tabId: tab.id },
-                    world: "MAIN",
-                    func: () => {
-                        const isPremium =
-                            document.querySelector(".text-brand-orange")?.textContent.trim() === "Premium";
-                        return window.monaco.editor.getModels()[isPremium ? 0 : 1].getValue();
-                    },
+        chrome.tabs.query({ active: true, currentWindow: true }, async ([{ id, url }]) => {
+            if (!url.startsWith(leetCodeProblemUrlPrefix)) return sendResponse({ success: false });
+
+            const [result] = await chrome.scripting.executeScript({
+                target: { tabId: id },
+                world: "MAIN",
+                func: () => {
+                    const isPremium =
+                        document.querySelector(".text-brand-orange")?.textContent.trim() === "Premium";
+                    return window.monaco.editor.getModels()[isPremium ? 0 : 1].getValue();
                 },
-                (results) => {
-                    const [result] = results || [];
-                    sendResponse(
-                        result.result !== null ? { success: true, value: result.result } : { success: false },
-                    );
-                },
-            );
+            });
+            sendResponse(result?.result ? { success: true, value: result.result } : { success: false });
         });
         return true;
     }
@@ -57,21 +45,14 @@ chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
 // Get the problem description from the meta tag
 chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
     if (message.action === "getProblemDescription") {
-        chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
-            chrome.scripting.executeScript(
-                {
-                    target: { tabId: tab.id },
-                    func: () => {
-                        const meta = document.querySelector('meta[name="description"]');
-                        return meta ? meta.content : null;
-                    },
-                },
-                (results) => {
-                    sendResponse(
-                        results?.[0]?.result ? { success: true, value: results[0].result } : { success: false },
-                    );
-                },
-            );
+        chrome.tabs.query({ active: true, currentWindow: true }, async ([{ id, url }]) => {
+            if (!url.startsWith(leetCodeProblemUrlPrefix)) return sendResponse({ success: false });
+
+            const [result] = await chrome.scripting.executeScript({
+                target: { tabId: id },
+                func: () => document.querySelector('meta[name="description"]')?.content || null,
+            });
+            sendResponse(result ? { success: true, value: result.result } : { success: false });
         });
         return true;
     }
