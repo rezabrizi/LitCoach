@@ -114,7 +114,7 @@ function App() {
                 />
                 <Button
                     onClick={handleSubmit}
-                    disabled={isLoading || !userQuestion}
+                    disabled={isLoading || !userQuestion.trim()}
                     variant="outline"
                     className="p-2 h-10 w-10"
                 >
