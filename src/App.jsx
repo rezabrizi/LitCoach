@@ -1,102 +1,133 @@
+import system_prompt from "./components/system_prompt";
 import { useState, useEffect } from "react";
-import { VStack, Text, Button, Select, useToast } from "@chakra-ui/react";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import { useToast } from "@/hooks/use-toast";
+import { Toaster } from "@/components/ui/toaster";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import InfoIcon from "@/components/infoicon";
+import { ChevronUp, Loader2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
-import ChakraUIRenderer from "chakra-ui-markdown-renderer";
-import { getAIHelp } from "./GetAIHelp";
-import axios from "axios";
+import SyntaxHighlighter from "react-syntax-highlighter/dist/esm/default-highlight";
 
-const api_url = import.meta.env.DEV
-    ? "http://127.0.0.1:8000"
-    : import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash", systemInstruction: system_prompt });
 
 function App() {
-    const [helpLevel, setHelpLevel] = useState("");
-    const [response, setResponse] = useState(localStorage.getItem("help_response") || "");
+    const { toast } = useToast();
     const [isLeetCodeProblem, setIsLeetCodeProblem] = useState(false);
+    const [userQuestion, setUserQuestion] = useState("");
+    const [aiResponse, setAiResponse] = useState(localStorage.getItem("aiResponse") || "");
     const [isLoading, setIsLoading] = useState(false);
-    const toast = useToast();
 
     useEffect(() => {
-        chrome.runtime.sendMessage({ action: "isLeetCodeProblem" }, (res) => {
-            setIsLeetCodeProblem(res.value);
-        });
-
-        // Wake up server
-        axios.get(`${api_url}/api/health`);
+        chrome.runtime.sendMessage({ action: "isLeetCodeProblem" }, (res) => setIsLeetCodeProblem(res.value));
     }, []);
 
     const handleSubmit = async () => {
-        if (!helpLevel) {
-            toast({
-                title: "Error",
-                description: "Please select a help level.",
-                status: "error",
-                duration: 5000,
-                isClosable: true,
-            });
-            return;
-        }
-
         setIsLoading(true);
 
         try {
-            const aiResponse = await getAIHelp(helpLevel);
-            setResponse(aiResponse);
-            toast({
-                title: "Success",
-                description: "AI help received successfully.",
-                status: "success",
-                duration: 5000,
-                isClosable: true,
-            });
+            const problemResponse = await chrome.runtime.sendMessage({ action: "getProblemDescription" });
+            const userCodeResponse = await chrome.runtime.sendMessage({ action: "getEditorValue" });
+            const isLeetCodeProblem = await chrome.runtime.sendMessage({ action: "isLeetCodeProblem" });
+
+            if (!isLeetCodeProblem.value) {
+                throw new Error("Not a LeetCode problem page");
+            }
+
+            if (!problemResponse.success) {
+                throw new Error("Failed to get problem description");
+            }
+
+            if (problemResponse.value.includes("Level up your coding skills")) {
+                throw new Error("Use LeetCode's new version");
+            }
+
+            if (!userCodeResponse.success) {
+                throw new Error("Failed to get user code");
+            }
+
+            const result = await model.generateContentStream(`
+                Problem Description Start 
+                ${problemResponse.value}
+                Problem Description End
+                User Solution Start
+                ${userCodeResponse.value}
+                User Solution End
+                User Question Start
+                ${userQuestion}
+                User Question End
+            `);
+
+            setAiResponse("");
+            setUserQuestion("");
+
+            for await (const chunk of result.stream) {
+                setAiResponse((aiResponse) => aiResponse + chunk.text());
+            }
+
+            localStorage.setItem("aiResponse", aiResponse);
         } catch (error) {
-            const errorMessage =
-                error.message === "Problem description or editor value not found."
-                    ? "Please navigate to a LeetCode problem"
-                    : "Failed to get AI help.";
+            console.error("Error fetching AI assistance:", error);
             toast({
-                title: "Error",
-                description: errorMessage,
-                status: "error",
-                duration: 5000,
-                isClosable: true,
+                variant: "destructive",
+                title: "Uh oh! Something went wrong.",
+                description: error.message,
             });
         } finally {
             setIsLoading(false);
         }
     };
 
-    return (
-        <VStack spacing={3} p={4} align="stretch">
-            {isLeetCodeProblem ? (
-                <>
-                    <Text fontSize="md" align="center">
-                        Your Personal LeetCode Assistant
-                    </Text>
-                    <Select
-                        placeholder="Select assistance level"
-                        onChange={(e) => setHelpLevel(e.target.value)}
-                    >
-                        <option value="1">Minimal</option>
-                        <option value="2">Moderate</option>
-                        <option value="3">Extensive</option>
-                    </Select>
-                    <Button onClick={handleSubmit} isLoading={isLoading}>
-                        Submit
-                    </Button>
-                    {response && (
-                        <ReactMarkdown components={ChakraUIRenderer()} skipHtml>
-                            {response}
-                        </ReactMarkdown>
-                    )}
-                </>
-            ) : (
-                <Text align="center">
-                    Please navigate to a LeetCode problem to use this extension. <br />
-                    If you think this is an error, please reload the extension.
-                </Text>
-            )}
-        </VStack>
+    return isLeetCodeProblem ? (
+        <>
+            <InfoIcon />
+            <ReactMarkdown
+                className="prose pb-16 pt-12 p-4"
+                components={{
+                    pre({ ...props }) {
+                        return <>{props.children}</>;
+                    },
+                    code({ className, ...props }) {
+                        const match = /language-(\w+)/.exec(className || "");
+                        return match ? (
+                            <div className="relative">
+                                <SyntaxHighlighter language={match[1]} {...props} />
+                            </div>
+                        ) : (
+                            <span className="bg-secondary p-[3px] rounded text-sm font-mono">
+                                {props.children}
+                            </span>
+                        );
+                    },
+                }}
+            >
+                {aiResponse}
+            </ReactMarkdown>
+            <div className="fixed bottom-0 left-0 w-full p-4 flex gap-2">
+                <Input
+                    type="text"
+                    placeholder="Ask your question here"
+                    value={userQuestion}
+                    onChange={(e) => setUserQuestion(e.target.value)}
+                />
+                <Button
+                    onClick={handleSubmit}
+                    disabled={isLoading || !userQuestion}
+                    variant="outline"
+                    className="p-2 h-10 w-10"
+                >
+                    {isLoading ? <Loader2 className="animate-spin" /> : <ChevronUp />}
+                </Button>
+            </div>
+            <Toaster />
+        </>
+    ) : (
+        <div className="flex items-center justify-center h-screen text-center">
+            Navigate to a LeetCode problem to use this extension. <br />
+            If this is a problem page, try reopening the extension.
+        </div>
     );
 }
 
