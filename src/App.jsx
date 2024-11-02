@@ -12,6 +12,7 @@ import SyntaxHighlighter from "react-syntax-highlighter/dist/esm/default-highlig
 
 const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash", systemInstruction: system_prompt });
+const MAX_QUESTION_LENGTH = 75; 
 
 function App() {
     const { toast } = useToast();
@@ -25,6 +26,15 @@ function App() {
     }, []);
 
     const handleSubmit = async () => {
+        if (userQuestion.length > MAX_QUESTION_LENGTH) {
+            toast({
+                variant: "destructive",
+                title: "Question too long",
+                description: `Please limit your question to ${MAX_QUESTION_LENGTH} characters.`,
+            });
+            return;
+        }
+
         setIsLoading(true);
 
         try {
@@ -108,9 +118,13 @@ function App() {
             <div className="fixed bottom-0 left-0 w-full p-4 flex gap-2">
                 <Input
                     type="text"
-                    placeholder="Ask your question here"
+                    placeholder={`Ask your question here (max ${MAX_QUESTION_LENGTH} chars)`}
                     value={userQuestion}
-                    onChange={(e) => setUserQuestion(e.target.value)}
+                    onChange={(e) => {
+                        if (e.target.value.length <= MAX_QUESTION_LENGTH) {
+                            setUserQuestion(e.target.value);
+                        }
+                    }}
                 />
                 <Button
                     onClick={handleSubmit}
