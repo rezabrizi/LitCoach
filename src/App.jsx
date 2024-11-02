@@ -12,7 +12,7 @@ import SyntaxHighlighter from "react-syntax-highlighter/dist/esm/default-highlig
 
 const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash", systemInstruction: system_prompt });
-const MAX_QUESTION_LENGTH = 75; 
+const MAX_QUESTION_LENGTH = 75;
 
 function App() {
     const { toast } = useToast();
@@ -73,11 +73,14 @@ function App() {
             setAiResponse("");
             setUserQuestion("");
 
+            let responseStream = "";
+
             for await (const chunk of result.stream) {
+                responseStream += chunk.text();
                 setAiResponse((aiResponse) => aiResponse + chunk.text());
             }
 
-            localStorage.setItem("aiResponse", aiResponse);
+            localStorage.setItem("aiResponse", responseStream);
         } catch (error) {
             console.error("Error fetching AI assistance:", error);
             toast({
