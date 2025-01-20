@@ -1,17 +1,13 @@
-import system_prompt from "./components/system_prompt";
 import { useState, useEffect } from "react";
-import { GoogleGenerativeAI } from "@google/generative-ai";
-import { useToast } from "@/hooks/use-toast";
-import { Toaster } from "@/components/ui/toaster";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import InfoIcon from "@/components/infoicon";
+import { useToast } from "@hooks/use-toast";
+import { Toaster } from "@components/ui/toaster";
+import { Button } from "@components/ui/button";
+import { Input } from "@components/ui/input";
+import InfoIcon from "@components/infoicon";
 import { ChevronUp, Loader2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import SyntaxHighlighter from "react-syntax-highlighter/dist/esm/default-highlight";
 
-const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash", systemInstruction: system_prompt });
 const MAX_QUESTION_LENGTH = 75;
 
 function App() {
@@ -42,45 +38,11 @@ function App() {
             const userCodeResponse = await chrome.runtime.sendMessage({ action: "getEditorValue" });
             const isLeetCodeProblem = await chrome.runtime.sendMessage({ action: "isLeetCodeProblem" });
 
-            if (!isLeetCodeProblem.value) {
-                throw new Error("Not a LeetCode problem page");
-            }
+            console.log("Problem Response:", problemResponse);
+            console.log("User Code Response:", userCodeResponse);
+            console.log("Is LeetCode Problem:", isLeetCodeProblem);
 
-            if (!problemResponse.success) {
-                throw new Error("Failed to get problem description");
-            }
-
-            if (problemResponse.value.includes("Level up your coding skills")) {
-                throw new Error("Use LeetCode's new version");
-            }
-
-            if (!userCodeResponse.success) {
-                throw new Error("Failed to get user code");
-            }
-
-            const result = await model.generateContentStream(`
-                Problem Description Start 
-                ${problemResponse.value}
-                Problem Description End
-                User Solution Start
-                ${userCodeResponse.value}
-                User Solution End
-                User Question Start
-                ${userQuestion}
-                User Question End
-            `);
-
-            setAiResponse("");
-            setUserQuestion("");
-
-            let responseStream = "";
-
-            for await (const chunk of result.stream) {
-                responseStream += chunk.text();
-                setAiResponse((aiResponse) => aiResponse + chunk.text());
-            }
-
-            localStorage.setItem("aiResponse", responseStream);
+            // localStorage.setItem("aiResponse", responseStream);
         } catch (error) {
             console.error("Error fetching AI assistance:", error);
             toast({
@@ -143,7 +105,7 @@ function App() {
     ) : (
         <div className="flex items-center justify-center h-screen text-center">
             Navigate to a LeetCode problem to use this extension. <br />
-            If this is a problem page, try reopening the extension.
+            Re-open the extension, if this is a mistake.
         </div>
     );
 }
