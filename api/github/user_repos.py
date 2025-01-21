@@ -1,10 +1,10 @@
 import requests
 from fastapi import HTTPException, status
 
-def fetch_github_user_repos(access_code: str) -> dict:
+def fetch_github_user_repos(access_token: str) -> dict:
     url = "https://api.github.com/user/repos/"
     headers={
-        "Authorization": f"token {access_code}",
+        "Authorization": f"token {access_token}",
         "Accept": "application/vnd.github.v3+json"
     }
 

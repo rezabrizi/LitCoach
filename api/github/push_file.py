@@ -3,9 +3,9 @@ from base64 import b64encode
 from fastapi import HTTPException, status
 from .user_info import fetch_github_user_info
 
-def push_file_to_github(repo_name: str, file_path: str, content: str, commit_message: str, access_code: str) -> None:
+def push_file_to_github(repo_name: str, file_path: str, content: str, commit_message: str, access_token: str) -> None:
     try:
-        user_info = fetch_github_user_info(access_code)
+        user_info = fetch_github_user_info(access_token)
     except HTTPException as e:
         raise HTTPException(status_code=e.status_code, detail=str(e))
     
@@ -13,7 +13,7 @@ def push_file_to_github(repo_name: str, file_path: str, content: str, commit_mes
     encoded_content = b64encode(content.encode()).decode()
     url = f"https://api.github.com/repos/{owner}/{repo_name}/contents/{file_path}"
     headers = {
-        "Authorization": f"token {access_code}",
+        "Authorization": f"token {access_token}",
         "Accept": "application/vnd.github.v3+json"
     }
     data = {

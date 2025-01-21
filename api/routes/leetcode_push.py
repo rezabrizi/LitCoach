@@ -29,7 +29,7 @@ SOLUTION_EXTENSION = {
 @router.get("/push-leetcode-submission")
 async def push_leetcode_submission(submission: LeetCodeSubmission):
     try:
-        if not does_github_repo_exist(submission.repo_name, submission.access_code):
+        if not does_github_repo_exist(submission.repo_name, submission.access_token):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Repository not found")
         
         directory_name = f"{submission.problem_number}-{submission.title.replace(' ', '-')}"
@@ -40,7 +40,7 @@ async def push_leetcode_submission(submission: LeetCodeSubmission):
             file_path=f"{directory_name}/README.md",
             content=submission.problem_description,
             commit_message=f"Add {submission.title} problem description",
-            access_code=submission.access_code
+            access_token=submission.access_token
         )
 
         # Add solution file
@@ -49,7 +49,7 @@ async def push_leetcode_submission(submission: LeetCodeSubmission):
             file_path=f"{directory_name}/{submission.title}.{SOLUTION_EXTENSION.get(submission.language, 'txt')}",
             content=submission.solution,
             commit_message=f"Time: {submission.runtime} ms ({submission.runtime_rank}%), Space: {submission.space} MB ({submission.space_rank}%)",
-            access_code=submission.access_code
+            access_token=submission.access_token
         )
 
         return {"message": "Submission pushed successfully"}

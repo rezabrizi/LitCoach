@@ -1,10 +1,10 @@
 import requests
 from fastapi import HTTPException, status
 
-def create_github_repo(repo_name: str, access_code: str) -> None:
+def create_github_repo(repo_name: str, access_token: str) -> None:
     url = f"https://api.github.com/repos/{repo_name}"
     headers = {
-        "Authorization": f"token {access_code}",
+        "Authorization": f"token {access_token}",
         "Accept": "application/vnd.github.v3+json"
     }
     data = {
