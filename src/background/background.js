@@ -1,6 +1,10 @@
+import axios from "axios";
+
 console.log("Background script running!");
 
 const LEETCODE_URL = "https://leetcode.com/problems/";
+const GITHUB_CLIENT_ID = import.meta.env.VITE_GITHUB_CLIENT_ID;
+const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
 chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(console.error);
 
@@ -52,19 +56,18 @@ chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
                 target: { tabId: id },
                 func: () => document.querySelector('meta[name="description"]')?.content || null,
             });
-            sendResponse(result ? { success: true, value: result.result } : { success: false });
+            sendResponse(result?.result ? { success: true, value: result.result } : { success: false });
         });
         return true;
     }
 });
 
 // Monitor for submission result changes
-chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     if (tab.url?.startsWith(LEETCODE_URL) && changeInfo.status === "complete") {
         chrome.scripting.executeScript({
             target: { tabId: tabId },
             func: () => {
-                // Ensure this script runs only once
                 if (window.__monitorSubmissionInjected) return;
                 window.__monitorSubmissionInjected = true;
 
@@ -100,3 +103,51 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
         });
     }
 });
+
+// Handle GitHub authentication
+chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
+    if (message.action === "github_auth") {
+        const getRedirectURL = chrome.identity.getRedirectURL();
+        const authUrl = `https://github.com/login/oauth/authorize?client_id=${GITHUB_CLIENT_ID}&redirect_uri=${getRedirectURL}&scope=read:user%20repo`;
+        chrome.identity.launchWebAuthFlow({ url: authUrl, interactive: true }, async (responseUrl) => {
+            if (chrome.runtime.lastError || !responseUrl) {
+                sendResponse({ error: chrome.runtime.lastError?.message || "Auth failed" });
+                return;
+            }
+
+            const urlParams = new URLSearchParams(new URL(responseUrl).search);
+            const code = urlParams.get("code");
+
+            await axios.post(`${API_URL}/github_access_token`, JSON.stringify({ code: code.toString() }), {
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            }).then((response) => {
+                chrome.storage.sync.set({ github_access_token: response.data.access_token }, () => {
+                    chrome.sidePanel.close();
+                    chrome.runtime.openOptionsPage();
+                });
+                sendResponse({ success: true, data: response.data });
+            }).catch((error) => {
+                sendResponse({ error: error.message });
+            });
+        });
+
+        return true;
+    }
+});
+
+
+// Check if the user is authenticated with GitHub
+chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
+    if (message.action === "is_authenticated") {
+        chrome.storage.sync.get("github_access_token", (data) => {
+            sendResponse({ authenticated: !!data.github_access_token });
+        });
+        return true;
+    }
+});
+
+
+// 6lmQHVMEBw85sTOy
+// giridharrnair

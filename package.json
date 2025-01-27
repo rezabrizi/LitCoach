@@ -6,16 +6,17 @@
     "type": "module",
     "scripts": {
         "dev": "vite",
+        "api": "uvicorn api.app:app --reload",
         "build": "vite build",
         "lint": "eslint .",
         "format": "prettier --write . --tab-width 4 --print-width 115",
         "preview": "vite preview"
     },
     "dependencies": {
-        "@google/generative-ai": "^0.21.0",
         "@radix-ui/react-dialog": "^1.1.2",
         "@radix-ui/react-dropdown-menu": "^2.1.2",
         "@radix-ui/react-toast": "^1.2.2",
+        "axios": "^1.7.9",
         "class-variance-authority": "^0.7.0",
         "clsx": "^2.1.1",
         "lucide-react": "^0.454.0",
