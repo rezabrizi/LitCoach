@@ -26,3 +26,5 @@ dist-ssr
 .env
 *__pycache__/
 *.venv
+
+api/test.ipynb

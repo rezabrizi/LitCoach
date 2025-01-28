@@ -1,4 +1,4 @@
-from openai import OpenAI
+from openai import OpenAI, OpenAIError, RateLimitError, AuthenticationError, APIError
 
 
 class OpenAIClient:
@@ -43,9 +43,21 @@ class OpenAIClient:
             else:
                 return response.choices[0].message.content
 
+        except RateLimitError as e:
+            # Handle rate-limiting
+            raise OpenAIError(f"Rate limit exceeded: {e}") from e
+
+        except AuthenticationError as e:
+            # Handle authentication issues
+            raise OpenAIError(f"Authentication failed: {e}") from e
+
+        except APIError as e:
+            # Handle general API errors (e.g., server errors)
+            raise OpenAIError(f"OpenAI API error: {e}") from e
+
         except Exception as e:
-            print(f"Error calling chat model {model}: {e}")
-            return None
+            # Handle unexpected errors
+            raise Exception(f"An unexpected error occurred: {e}") from e
 
     def list_models(self):
         """
