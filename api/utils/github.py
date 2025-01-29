@@ -2,26 +2,26 @@ import requests
 from fastapi.exceptions import HTTPException
 import os
 from dotenv import load_dotenv
-
-# Load environment variables
-load_dotenv()
-
-# Retrieve GitHub credentials from environment variables
-GITHUB_CLIENT_ID = os.getenv("GITHUB_CLIENT_ID")
-GITHUB_CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET")
+from typing import List
+from api.config import settings
 
 
 def resolve_github_access_token(code: str):
     try:
         response = requests.post(
             "https://github.com/login/oauth/access_token",
-            data={
-                "client_id": GITHUB_CLIENT_ID,
-                "client_secret": GITHUB_CLIENT_SECRET,
+            json={
+                "client_id": settings.GITHUB_CLIENT_ID,
+                "client_secret": settings.GITHUB_CLIENT_SECRET,
                 "code": code,
             },
             headers={"Accept": "application/json"},
         )
+
+        print(f"code: {code}")
+        print(f"GITHUB_CLIENT_ID: {settings.GITHUB_CLIENT_ID}")
+        print(f"GITHUB_CLIENT_SECRET: {settings.GITHUB_CLIENT_SECRET}")
+        print(response.json())
 
         response.raise_for_status()
 
@@ -72,4 +72,21 @@ def get_user_info_from_github(access_token: str):
         raise HTTPException(
             status_code=getattr(e.response, "status_code", 500),
             detail=f"Error fetching GitHub user info: {str(e)}",
+        )
+
+
+def get_user_repos(access_token: str) -> List[dict]:
+    try:
+        response = requests.get(
+            "https://api.github.com/user/repos",
+            headers={"Authorization": f"token {access_token}"},
+        )
+
+        response.raise_for_status()
+
+        return response.json()
+    except requests.RequestException as e:
+        raise HTTPException(
+            status_code=getattr(e.response, "status_code", 500),
+            detail=f"Error fetching user's Github repositories: {str(e)}",
         )

@@ -1,9 +1,14 @@
 from datetime import datetime, timezone
+from api.models.user import User
 from api.db.mongo import USERS_COLLECTION, USAGE_COLLECTION
 
 
 def user_exists(user_id: str):
-    return USERS_COLLECTION.find_one({"user_id": user_id})
+    user_data = USERS_COLLECTION.find_one({"user_id": user_id})
+    print(user_data)
+    if user_data:
+        return User(**user_data)
+    return None
 
 
 def add_new_user(

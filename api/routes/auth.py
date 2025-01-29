@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from api.services.database import user_exists, add_new_user, upsert_user
 from api.utils.github import resolve_github_access_token, get_user_info_from_github
-from api.db.mongo import USERS_COLLECTION
+
 from pydantic import BaseModel
 
 
@@ -16,12 +16,13 @@ router = APIRouter()
 @router.post("/github_access_token")
 def github_callback(github_code: GithubCode):
     try:
+        print(github_code.code)
         # Step 1: Resolve the GitHub access token
         access_token = resolve_github_access_token(github_code.code)
 
         # Step 2: Fetch GitHub user info
         github_user_info = get_user_info_from_github(access_token)
-        user_id = github_user_info["id"]
+        user_id = int(github_user_info["id"])
         username = github_user_info["login"]
         email = github_user_info.get("email")
         avatar_url = github_user_info.get("avatar_url")

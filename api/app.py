@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.utils.openai_utils import OpenAIClient
-from api.routes import authrouter, airouter
+from api.routes import authrouter, airouter, userrouter
 from api.config import get_settings
 
 
@@ -25,8 +25,8 @@ app.add_middleware(
 )
 
 app.include_router(authrouter, prefix="/auth", tags=["auth"])
-app.include_router(airouter, prefix="/ai", tags=["auth"])
-# app.include_router(user.router, prefix="/auth", tags=["auth"])
+app.include_router(airouter, prefix="/ai", tags=["ai"])
+app.include_router(userrouter, prefix="/user", tags=["auth"])
 
 
 @app.get("/health")
