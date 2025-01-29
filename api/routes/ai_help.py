@@ -5,7 +5,7 @@ from openai import OpenAIError
 from api.models.problem import LeetcodeProblem
 from api.services.database import is_user_premium, get_monthly_usage
 from api.utils.openai_utils import get_open_ai_prompt, OpenAIClient
-from api.app import get_openai_client
+from api.config import openai_client
 
 
 router = APIRouter()
@@ -14,10 +14,9 @@ router = APIRouter()
 @router.post("/get_ai_help")
 def ai_help(
     problem_context: LeetcodeProblem,
-    openai_client: OpenAIClient = Depends(get_openai_client),
 ):
     # TODO (Reza): Implement token count based on the models
-    tokens_needed = get_token_count(problem_context)
+    # tokens_needed = get_token_count(problem_context)
 
     # Check if the user is a premium user
     is_premium = is_user_premium(problem_context.github_id)
