@@ -1,7 +1,6 @@
 import requests
 from fastapi.exceptions import HTTPException
-import os
-from dotenv import load_dotenv
+import base64
 from typing import List
 from api.config import settings
 
@@ -89,4 +88,62 @@ def get_user_repos(access_token: str) -> List[dict]:
         raise HTTPException(
             status_code=getattr(e.response, "status_code", 500),
             detail=f"Error fetching user's Github repositories: {str(e)}",
+        )
+
+
+def resolve_github_repo_id_to_repo_name(repo_id: int, access_token: str):
+    repos = get_user_repos(access_token=access_token)
+
+    for repo in repos:
+        if repo.get("id") == repo_id:
+            try:
+                return {
+                    "name": repo.get("name"),
+                    "owner": repo.get("owner").get("login"),
+                }
+            except Exception as e:
+                raise HTTPException(
+                    status_code=500,
+                    detail="Unable to retrieve the github repo info to push to",
+                )
+    return None
+
+
+# GitHub API function to create/update a file
+def push_to_github(
+    file_path: str,
+    content: str,
+    commit_message: str,
+    owner_login: str,
+    repo_name: str,
+    access_token: str,
+):
+
+    url = f"https://api.github.com/repos/{owner_login}/{repo_name}/contents/{file_path}"
+    headers = {"Authorization": f"token {access_token}"}
+
+    # Encode content in base64
+    content_encoded = base64.b64encode(content.encode()).decode("utf-8")
+
+    # Check if the file already exists (required for updating)
+    response = requests.get(url, headers=headers)
+    sha = response.json().get("sha", None)  # Get file SHA if it exists
+
+    # Create payload for GitHub API request
+    data = {
+        "message": commit_message,
+        "content": content_encoded,
+        "branch": "main",
+    }
+    if sha:
+        data["sha"] = sha  # Required for updating existing files
+
+    # Send request to GitHub API
+    response = requests.put(url, json=data, headers=headers)
+
+    if response.status_code in [200, 201]:
+        return {"status": "success", "file": file_path}
+    else:
+        raise HTTPException(
+            status_code=500, detail=f"GitHub API Error: {response.json()}"
         )
