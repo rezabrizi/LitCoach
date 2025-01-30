@@ -74,6 +74,7 @@ def get_user_repos(access_token: str) -> List[dict]:
         response = requests.get(
             "https://api.github.com/user/repos",
             headers={"Authorization": f"token {access_token}"},
+            params={"affiliation": "owner"}
         )
 
         response.raise_for_status()
