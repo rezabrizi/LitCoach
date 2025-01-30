@@ -17,11 +17,6 @@ def resolve_github_access_token(code: str):
             headers={"Accept": "application/json"},
         )
 
-        print(f"code: {code}")
-        print(f"GITHUB_CLIENT_ID: {settings.GITHUB_CLIENT_ID}")
-        print(f"GITHUB_CLIENT_SECRET: {settings.GITHUB_CLIENT_SECRET}")
-        print(response.json())
-
         response.raise_for_status()
 
         # Extract the access token from the response
@@ -140,7 +135,6 @@ def push_to_github(
 
     # Send request to GitHub API
     response = requests.put(url, json=data, headers=headers)
-
     if response.status_code in [200, 201]:
         return {"status": "success", "file": file_path}
     else:

@@ -29,7 +29,6 @@ def github_callback(github_code: GithubCode):
 
         # Step 3: Check if user exists or create a new user
         existing_user = user_exists(user_id=user_id)
-
         if not existing_user:
             # Insert the new user if not found
             add_new_user(
@@ -39,14 +38,23 @@ def github_callback(github_code: GithubCode):
                 avatar_url=avatar_url,
                 access_token=access_token,
             )
-
             return JSONResponse(
                 content={"message": "User added successfully", "user_id": user_id},
                 status_code=201,
             )
+        elif existing_user.access_token != access_token:
+            upsert_user({"user_id": user_id, "access_token": access_token})
+            return JSONResponse(
+                content={
+                    "message": "User already exists; Access Token updated ",
+                    "user_id": user_id,
+                },
+                status_code=202,
+            )
+
         return JSONResponse(
             content={"message": "User already exists", "user_id": user_id},
-            status_code=202,
+            status_code=203,
         )
 
     except HTTPException as e:
