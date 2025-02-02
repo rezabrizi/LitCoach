@@ -40,3 +40,7 @@ build-backend = "poetry.core.masonry.api"
 packages = [
     { include = "api" }
 ]
+
+[tool.poetry.group.dev.dependencies]
+ipykernel = "^6.29.5"
+
