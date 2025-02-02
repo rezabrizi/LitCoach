@@ -16,48 +16,47 @@ class OpenAIClient:
             project=project_id,
         )
 
-    def call_chat_model(self, model: str, messages: list, stream: bool = False):
+    def call_chat_model(
+        self, model: str, messages: list, stream: bool = False, stream_options=None
+    ):
         """
         Calls the specified OpenAI chat model with the given message history and optional parameters.
 
         :param model: The name of the OpenAI model to use (e.g., "gpt-3.5-turbo", "gpt-4").
         :param messages: A list of message dicts (e.g., {"role": "user", "content": "Hello!"}).
         :param stream: Whether to stream the output.
-        :param kwargs: Additional parameters for the OpenAI API call (e.g., max_tokens, temperature).
-        :return: The model's response (if stream=False) or generator (if stream=True).
+        :return: A generator for the streamed response and the total token usage.
         """
-        try:
-            response = self.client.chat.completions.create(
-                model=model,
-                messages=messages,
-                stream=stream,
-            )
+        if stream:
+            return self._stream_response(model, messages, stream_options)
+        else:
+            return self._get_response(model, messages)
 
-            if stream:
+    def _stream_response(self, model, messages, stream_options):
+        response = self.client.chat.completions.create(
+            model=model,
+            messages=messages,
+            stream=True,
+            stream_options=stream_options,
+        )
 
-                for chunk in response:
-                    if chunk.choices[0].delta.content is not None:
-                        chunk.choices[0].delta.content
-                        current_response = chunk.choices[0].delta.content
-                        yield "data: " + current_response + "\n\n"
-            else:
-                return response.choices[0].message.content
+        for chunk in response:
+            if chunk.choices and chunk.choices[0].delta.content is not None:
+                yield "data: " + chunk.choices[0].delta.content + "\n\n"
 
-        except RateLimitError as e:
-            # Handle rate-limiting
-            raise OpenAIError(f"Rate limit exceeded: {e}") from e
+            elif hasattr(chunk, "usage") and chunk.usage is not None:
 
-        except AuthenticationError as e:
-            # Handle authentication issues
-            raise OpenAIError(f"Authentication failed: {e}") from e
+                yield "meta: " + str(chunk.usage.completion_tokens) + " " + str(
+                    chunk.usage.prompt_tokens
+                ) + "\n\n"
 
-        except APIError as e:
-            # Handle general API errors (e.g., server errors)
-            raise OpenAIError(f"OpenAI API error: {e}") from e
-
-        except Exception as e:
-            # Handle unexpected errors
-            raise Exception(f"An unexpected error occurred: {e}") from e
+    def _get_response(self, model, messages):
+        response = self.client.chat.completions.create(
+            model=model,
+            messages=messages,
+            stream=False,
+        )
+        return response.choices[0].message.content
 
     def list_models(self):
         """

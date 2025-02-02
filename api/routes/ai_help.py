@@ -4,7 +4,7 @@ from openai import OpenAIError
 
 from api.models.problem import LeetcodeProblem
 from api.services.database import is_user_premium, get_monthly_usage
-from api.utils.openai_utils import get_open_ai_prompt, OpenAIClient
+from api.utils.openai_utils import get_open_ai_prompt
 from api.config import openai_client
 
 

@@ -58,11 +58,14 @@ LANGUAGE_EXTENSIONS = {
     "Elixir": "ex",
 }
 
+
 @router.post("/submit_problem")
 def submit_problem(request: LeetcodeSubmission):
     try:
         # Generate filenames
-        folder_name = request.question_id + "-" + request.question_title.replace(" ", "-").lower()
+        folder_name = (
+            request.question_id + "-" + request.question_title.replace(" ", "-").lower()
+        )
         readme_path = f"{folder_name}/README.md"
 
         extension = LANGUAGE_EXTENSIONS.get(request.language, "txt")
@@ -70,7 +73,9 @@ def submit_problem(request: LeetcodeSubmission):
         code_path = f"{folder_name}/{folder_name}.{extension}"
 
         user = user_exists(request.user_github_id)
-        repo = resolve_github_repo_id_to_repo_name(request.github_repo_id, user.access_token)
+        repo = resolve_github_repo_id_to_repo_name(
+            request.github_repo_id, user.access_token
+        )
 
         if not user:
             raise HTTPException(status_code=403, details="User not found!")
@@ -104,11 +109,13 @@ def submit_problem(request: LeetcodeSubmission):
         raise e
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Unexpected Error: {str(e)}")
-    
+
+
 class CreateRepo(BaseModel):
     github_id: int
     repo_name: str
-    
+
+
 @router.post("/create_repo")
 def create_repo(request: CreateRepo):
     try:

@@ -10,3 +10,6 @@ client = MongoClient(MONGO_DB_URI, tlsCAFile=certifi.where())
 db = client["LITCOACH"]
 USERS_COLLECTION = db["users"]
 USAGE_COLLECTION = db["usage"]
+
+USERS_COLLECTION.create_index("user_id", unique=True)  # Ensures user_id is unique
+USAGE_COLLECTION.create_index("user_id")  # Index for fast lookup
