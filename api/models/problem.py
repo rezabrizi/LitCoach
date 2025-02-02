@@ -10,11 +10,14 @@ class LeetcodeProblem(BaseModel):
 
 
 class LeetcodeSubmission(BaseModel):
-    problem_name: str
-    problem_description: str
+    question_id: str
+    question_title: str
+    question_content: str
     code: str
     language: str
-    user_id: int
-    repo_id: int
+    user_github_id: int
+    github_repo_id: int
     runtime: str
-    space: str
+    runtime_percentile: str
+    memory: str
+    memory_percentile: str

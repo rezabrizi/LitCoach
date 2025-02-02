@@ -1,29 +1,29 @@
-import React, { useEffect, useState } from "react";
-import GithubAuth from "@/components/github-auth";
+import { useEffect, useState } from "react";
+import GitHubAuthComponent from "@/components/github-auth";
+import { Loader2 } from "lucide-react";
 
 function App() {
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [isAuthenticated, setAuthenticated] = useState(false);
 
     useEffect(() => {
-        chrome.runtime.sendMessage({ action: "is_authenticated" }, (response) => {
-            if (response?.authenticated) {
-                setIsAuthenticated(true);
-            } else {
-                setIsAuthenticated(false);
-            }
+        chrome.runtime.sendMessage({ action: "isAuthenticated" }, (response) => {
+            setAuthenticated(response?.authenticated);
+            setLoading(false);
         });
-    }, []);
+    }, [isAuthenticated]);
 
-    return (
-        <div>
-            <h1>Side Panel</h1>
-            {!isAuthenticated ? (
-                <GithubAuth />
-            ) : (
-                <p>You are authenticated with GitHub. Access your features!</p>
-            )}
-        </div>
-    );
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <Loader2 className="w-6 h-6 animate-spin" />
+            </div>
+        );
+    }
+
+    if (!isAuthenticated) return <GitHubAuthComponent onAuthenticationComplete={setAuthenticated} />;
+
+    return <div>Authenticated</div>;
 }
 
 export default App;

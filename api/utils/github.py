@@ -70,19 +70,37 @@ def get_user_info_from_github(access_token: str):
 
 
 def get_user_repos(access_token: str) -> List[dict]:
+    """
+    Fetch all GitHub repositories for the authenticated user by handling pagination.
+
+    :param access_token: GitHub OAuth access token.
+    :return: A list of repository dictionaries.
+    """
     try:
-        response = requests.get(
-            "https://api.github.com/user/repos",
-            headers={"Authorization": f"token {access_token}"},
-        )
+        repos = []
+        page = 1
+        while True:
+            response = requests.get(
+                "https://api.github.com/user/repos",
+                headers={"Authorization": f"token {access_token}"},
+                params={"affiliation": "owner", "per_page": 100, "page": page},  # Get up to 100 per page
+            )
 
-        response.raise_for_status()
+            response.raise_for_status()
 
-        return response.json()
+            page_repos = response.json()
+            if not page_repos:  # Stop if no more repositories
+                break
+
+            repos.extend(page_repos)
+            page += 1  # Move to the next page
+
+        return repos
+
     except requests.RequestException as e:
         raise HTTPException(
             status_code=getattr(e.response, "status_code", 500),
-            detail=f"Error fetching user's Github repositories: {str(e)}",
+            detail=f"Error fetching user's GitHub repositories: {str(e)}",
         )
 
 
@@ -141,3 +159,27 @@ def push_to_github(
         raise HTTPException(
             status_code=500, detail=f"GitHub API Error: {response.json()}"
         )
+    
+def create_github_repo(repo_name: str, access_token: str) -> int:
+    url = "https://api.github.com/user/repos"
+    headers = {
+        "Authorization": f"token {access_token}",
+        "Accept": "application/vnd.github.v3+json"
+    }
+    data = {
+        "name": repo_name,
+        "description": "Collection of successful LeetCode submissions - automatically synced using LitCoach",
+        "homepage": "https://chromewebstore.google.com/detail/litcoach/pbkbbpmpbidfjbcapgplbdogiljdechf",
+        "private": False,
+        "auto_init": True,
+    }
+
+    try:
+        response = requests.post(url, headers=headers, json=data)
+        response.raise_for_status()  
+        return response.json().get("id")
+    except requests.RequestException as e:
+        status_code = getattr(e.response, "status_code", 500)
+        raise HTTPException(status_code=status_code, detail=str(e))
+
+    
