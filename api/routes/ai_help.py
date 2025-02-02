@@ -15,8 +15,6 @@ router = APIRouter()
 def ai_help(
     problem_context: LeetcodeProblem,
 ):
-    # TODO (Reza): Implement token count based on the models
-    # tokens_needed = get_token_count(problem_context)
 
     # Check if the user is a premium user
     is_premium = is_user_premium(problem_context.github_id)
@@ -24,7 +22,7 @@ def ai_help(
     # If the user is not premium, check if they have enough tokens
     if not is_premium:
         tokens_used = get_monthly_usage(problem_context.github_id)
-        if tokens_needed + tokens_used >= 30000:
+        if tokens_used >= 30000:
             raise HTTPException(
                 status_code=403,
                 detail="Insufficient tokens. Please upgrade to premium or buy more tokens.",
