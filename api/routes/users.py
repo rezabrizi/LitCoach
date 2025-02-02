@@ -58,20 +58,19 @@ LANGUAGE_EXTENSIONS = {
     "Elixir": "ex",
 }
 
-
 @router.post("/submit_problem")
 def submit_problem(request: LeetcodeSubmission):
     try:
         # Generate filenames
-        folder_name = request.problem_name.replace(" ", "_").lower()
+        folder_name = request.question_id + "-" + request.question_title.replace(" ", "-").lower()
         readme_path = f"{folder_name}/README.md"
 
-        extension = LANGUAGE_EXTENSIONS.get(request.language.lower(), "txt")
+        extension = LANGUAGE_EXTENSIONS.get(request.language, "txt")
         print(extension)
-        code_path = f"{folder_name}/solution.{extension}"
+        code_path = f"{folder_name}/{folder_name}.{extension}"
 
-        user = user_exists(request.user_id)
-        repo = resolve_github_repo_id_to_repo_name(request.repo_id, user.access_token)
+        user = user_exists(request.user_github_id)
+        repo = resolve_github_repo_id_to_repo_name(request.github_repo_id, user.access_token)
 
         if not user:
             raise HTTPException(status_code=403, details="User not found!")
@@ -79,8 +78,8 @@ def submit_problem(request: LeetcodeSubmission):
         # Push README.md
         push_to_github(
             readme_path,
-            request.problem_description,
-            f"Add problem: {request.problem_name}",
+            request.question_content,
+            f"Add problem description for {request.question_title}",
             repo.get("owner"),
             repo.get("name"),
             user.access_token,
@@ -90,7 +89,7 @@ def submit_problem(request: LeetcodeSubmission):
         push_to_github(
             code_path,
             request.code,
-            f"Add solution for: {request.problem_name}, RUNTIME: {request.runtime}, SPACE: {request.space}",
+            f"Time: {request.runtime} ({request.runtime_percentile}) Space: {request.memory} ({request.memory_percentile})",
             repo.get("owner"),
             repo.get("name"),
             user.access_token,

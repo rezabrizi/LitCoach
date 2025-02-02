@@ -35,7 +35,6 @@ const App = () => {
     const [selectedRepoID, setSelectedRepoID] = useState(null);
     const [selectedRepoName, setSelectedRepoName] = useState("");
     const [loading, setLoading] = useState(true);
-    const [enabled, setEnabled] = useState(true);
     const [authenticated, setAuthenticated] = useState(false);
     const [creatingRepo, setCreatingRepo] = useState(false);
 
@@ -47,11 +46,7 @@ const App = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const stored = await chrome.storage.sync.get([
-                    "selected_repo_id",
-                    "github_user_id",
-                    "leetcode_to_github_enabled",
-                ]);
+                const stored = await chrome.storage.sync.get(["selected_repo_id", "github_user_id"]);
 
                 const authResponse = await chrome.runtime.sendMessage({ action: "isAuthenticated" });
                 setAuthenticated(authResponse?.authenticated);
@@ -63,7 +58,6 @@ const App = () => {
 
                     setRepos(data);
                     setGitHubUserID(stored.github_user_id);
-                    setEnabled(stored.leetcode_to_github_enabled ?? true);
 
                     const storedRepoId = stored.selected_repo_id;
                     if (storedRepoId) {
@@ -88,32 +82,22 @@ const App = () => {
     }, [authenticated, toast]);
 
     const handleRepoSelect = async (repoId) => {
-        try {
-            const selectedRepo = repos.find((repo) => repo.id.toString() === repoId.toString());
-            await chrome.storage.sync.set({ selected_repo_id: repoId });
-            setSelectedRepoID(repoId);
-            setSelectedRepoName(selectedRepo?.name || "");
-        } catch (error) {
-            console.error(error);
-            toast({
-                title: "Error",
-                description: "Failed to update repository selection",
-                variant: "destructive",
-            });
-        }
+        const selectedRepo = repos.find((repo) => repo.id.toString() === repoId.toString());
+        await chrome.storage.sync.set({ selected_repo_id: repoId });
+        setSelectedRepoID(repoId);
+        setSelectedRepoName(selectedRepo?.name || "");
     };
 
     const handleToggleSync = async (checked) => {
-        try {
-            await chrome.storage.sync.set({ leetcode_to_github_enabled: checked });
-            setEnabled(checked);
-        } catch (error) {
-            console.error(error);
-            toast({
-                title: "Error",
-                description: "Failed to update sync settings",
-                variant: "destructive",
-            });
+        if (!checked) {
+            await chrome.storage.sync.remove("selected_repo_id");
+            setSelectedRepoID(null);
+            setSelectedRepoName("");
+        } else if (repos.length > 0) {
+            const firstRepo = repos[0];
+            await chrome.storage.sync.set({ selected_repo_id: firstRepo.id });
+            setSelectedRepoID(firstRepo.id);
+            setSelectedRepoName(firstRepo.name);
         }
     };
 
@@ -176,8 +160,8 @@ const App = () => {
                             <FolderGit2 className="w-5 h-5" />
                             <CardTitle>LeetCode to GitHub</CardTitle>
                         </div>
-                        <Badge variant={enabled ? "default" : "secondary"}>
-                            {enabled ? "Active" : "Disabled"}
+                        <Badge variant={selectedRepoID ? "default" : "secondary"}>
+                            {selectedRepoID ? "Active" : "Disabled"}
                         </Badge>
                     </div>
                     <CardDescription className="pb-2">
@@ -191,11 +175,11 @@ const App = () => {
                             <h4 className="text-sm font-medium">Sync Status</h4>
                             <p className="text-sm text-muted-foreground">Enable or disable automatic syncing</p>
                         </div>
-                        <Switch checked={enabled} onCheckedChange={handleToggleSync} />
+                        <Switch checked={!!selectedRepoID} onCheckedChange={handleToggleSync} />
                     </div>
                 </CardHeader>
 
-                {enabled && (
+                {selectedRepoID && (
                     <CardContent>
                         <Tabs defaultValue="select">
                             <TabsList className="grid w-full grid-cols-2">
