@@ -4,7 +4,6 @@ import base64
 from typing import List
 from api.config import settings
 
-
 def resolve_github_access_token(code: str):
     try:
         response = requests.post(
@@ -18,8 +17,6 @@ def resolve_github_access_token(code: str):
         )
 
         response.raise_for_status()
-
-        # Extract the access token from the response
         access_token = response.json().get("access_token")
 
         if not access_token:
@@ -34,7 +31,6 @@ def resolve_github_access_token(code: str):
         return access_token
 
     except requests.RequestException as e:
-        # Handle request errors and return an HTTPException
         raise HTTPException(
             status_code=500,
             detail=f"Request to GitHub failed: {str(e)}",
@@ -42,24 +38,13 @@ def resolve_github_access_token(code: str):
 
 
 def get_user_info_from_github(access_token: str):
-    """
-    Fetch GitHub user information using an access token.
-
-    :param access_token: GitHub OAuth access token.
-    :return: A dictionary with GitHub user information.
-    :raises HTTPException: If the request to GitHub fails.
-    """
     try:
-        # Call the GitHub API to get user information
         response = requests.get(
             "https://api.github.com/user",
             headers={"Authorization": f"token {access_token}"},
         )
 
-        # Raise an exception for non-200 responses
         response.raise_for_status()
-
-        # Parse and return the user data
         return response.json()
 
     except requests.RequestException as e:
@@ -70,30 +55,23 @@ def get_user_info_from_github(access_token: str):
 
 
 def get_user_repos(access_token: str) -> List[dict]:
-    """
-    Fetch all GitHub repositories for the authenticated user by handling pagination.
+    url = "https://api.github.com/user/repos"
+    headers = {"Authorization": f"token {access_token}"}
+    params = {"affiliation": "owner", "per_page": 100}  
 
-    :param access_token: GitHub OAuth access token.
-    :return: A list of repository dictionaries.
-    """
     try:
         repos = []
         page = 1
         while True:
-            response = requests.get(
-                "https://api.github.com/user/repos",
-                headers={"Authorization": f"token {access_token}"},
-                params={"affiliation": "owner", "per_page": 100, "page": page},  # Get up to 100 per page
-            )
-
+            response = requests.get(url, headers=headers, params={**params, "page": page})
             response.raise_for_status()
-
             page_repos = response.json()
-            if not page_repos:  # Stop if no more repositories
+
+            if not page_repos:
                 break
 
             repos.extend(page_repos)
-            page += 1  # Move to the next page
+            page += 1
 
         return repos
 
@@ -109,20 +87,14 @@ def resolve_github_repo_id_to_repo_name(repo_id: int, access_token: str):
 
     for repo in repos:
         if repo.get("id") == repo_id:
-            try:
-                return {
-                    "name": repo.get("name"),
-                    "owner": repo.get("owner").get("login"),
-                }
-            except Exception as e:
-                raise HTTPException(
-                    status_code=500,
-                    detail="Unable to retrieve the github repo info to push to",
-                )
+            return {
+                "name": repo.get("name"),
+                "owner": repo.get("owner").get("login"),
+            }
+
     return None
 
 
-# GitHub API function to create/update a file
 def push_to_github(
     file_path: str,
     content: str,
@@ -131,40 +103,38 @@ def push_to_github(
     repo_name: str,
     access_token: str,
 ):
-
     url = f"https://api.github.com/repos/{owner_login}/{repo_name}/contents/{file_path}"
     headers = {"Authorization": f"token {access_token}"}
 
-    # Encode content in base64
     content_encoded = base64.b64encode(content.encode()).decode("utf-8")
 
-    # Check if the file already exists (required for updating)
     response = requests.get(url, headers=headers)
-    sha = response.json().get("sha", None)  # Get file SHA if it exists
+    sha = response.json().get("sha", None)  
 
-    # Create payload for GitHub API request
     data = {
         "message": commit_message,
         "content": content_encoded,
         "branch": "main",
     }
     if sha:
-        data["sha"] = sha  # Required for updating existing files
+        data["sha"] = sha 
 
-    # Send request to GitHub API
-    response = requests.put(url, json=data, headers=headers)
-    if response.status_code in [200, 201]:
+    try:
+        response = requests.put(url, json=data, headers=headers)
+        response.raise_for_status()
         return {"status": "success", "file": file_path}
-    else:
+    except requests.RequestException as e:
         raise HTTPException(
-            status_code=500, detail=f"GitHub API Error: {response.json()}"
+            status_code=getattr(e.response, "status_code", 500),
+            detail=f"Error pushing to GitHub: {str(e)}",
         )
-    
+
+
 def create_github_repo(repo_name: str, access_token: str) -> int:
     url = "https://api.github.com/user/repos"
     headers = {
         "Authorization": f"token {access_token}",
-        "Accept": "application/vnd.github.v3+json"
+        "Accept": "application/vnd.github.v3+json",
     }
     data = {
         "name": repo_name,
@@ -176,10 +146,10 @@ def create_github_repo(repo_name: str, access_token: str) -> int:
 
     try:
         response = requests.post(url, headers=headers, json=data)
-        response.raise_for_status()  
+        response.raise_for_status()
         return response.json().get("id")
     except requests.RequestException as e:
-        status_code = getattr(e.response, "status_code", 500)
-        raise HTTPException(status_code=status_code, detail=str(e))
-
-    
+        raise HTTPException(
+            status_code=getattr(e.response, "status_code", 500),
+            detail=f"Error creating GitHub repo: {str(e)}",
+        )
