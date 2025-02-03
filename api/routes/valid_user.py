@@ -1,27 +1,24 @@
+import requests
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from api.db import user_exists
-from api.services import get_user_repos
 
 
 router = APIRouter()
 
 
-@router.get("/repos")
-def get_all_available_repos(github_id: int):
+@router.get("/valid_user")
+def valid_user(github_id: int):
     try:
         user = user_exists(github_id)
         if not user:
-            raise HTTPException(403, detail="User Does Not Exist")
+            raise HTTPException(404, detail="User Does Not Exist")
 
-        user_repos = get_user_repos(user.access_token)
-
-        user_repos_names_and_ids = [
-            {"id": repo["id"], "name": repo["name"]} for repo in user_repos
-        ]
+        response = requests.get(f"https://api.github.com/user/{github_id}")
+        response.raise_for_status()
 
         return JSONResponse(
-            content={"repos": user_repos_names_and_ids},
+            content={"message": "User is valid", "user_id": github_id},
             status_code=200,
         )
     except HTTPException:

@@ -97,11 +97,12 @@ def push_to_github(
     file_path: str,
     content: str,
     commit_message: str,
-    owner_login: str,
+    owner_name: str,
     repo_name: str,
     access_token: str,
 ) -> dict:
-    url = f"https://api.github.com/repos/{owner_login}/{repo_name}/contents/{file_path}"
+    url = f"https://api.github.com/repos/{owner_name}/{repo_name}/contents/{file_path}"
+    print(url)
     headers = {"Authorization": f"token {access_token}"}
     data = {
         "message": commit_message,

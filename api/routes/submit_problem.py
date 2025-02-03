@@ -50,21 +50,21 @@ def submit_problem(request: LeetcodeSubmission):
             raise HTTPException(status_code=403, details="User not found!")
 
         push_to_github(
-            readme_path,
-            request.question_content,
-            f"Add problem description for {request.question_title}",
-            repo.get("owner"),
-            repo.get("name"),
-            user.access_token,
+            file_path=readme_path,
+            content=request.question_content,
+            commit_message=f"Add problem description for {request.question_title}",
+            owner_name=repo.get("owner"),
+            repo_name=repo.get("name"),
+            access_token=user.access_token,
         )
 
         push_to_github(
-            code_path,
-            request.code,
-            f"Time: {request.runtime} ({request.runtime_percentile}) Space: {request.memory} ({request.memory_percentile})",
-            repo.get("owner"),
-            repo.get("name"),
-            user.access_token,
+            file_path=code_path,
+            content=request.code,
+            commit_message=f"Time: {request.runtime} ({request.runtime_percentile}) Space: {request.memory} ({request.memory_percentile})",
+            owner_name=repo.get("owner"),
+            repo_name=repo.get("name"),
+            access_token=user.access_token,
         )
 
         return JSONResponse(

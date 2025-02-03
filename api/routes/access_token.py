@@ -21,27 +21,38 @@ def github_callback(github_code: GithubCode):
             "email": github_user_info.get("email"),
             "avatar_url": github_user_info.get("avatar_url"),
             "access_token": access_token,
+            "account_creation_date": datetime.now(timezone.utc),
         }
 
         existing_user = user_exists(user_id=user_data["user_id"])
 
         if not existing_user:
-            add_new_user(**user_data, account_creation_date=datetime.now(timezone.utc).date())
+            add_new_user(**user_data)
             return JSONResponse(
-                {"message": "User added successfully", "user_id": user_data["user_id"]},
+                content={
+                    "message": "User added successfully",
+                    "user_id": user_data["user_id"],
+                },
                 status_code=201,
             )
 
         if existing_user.access_token != access_token:
             upsert_user({"user_id": user_data["user_id"], "access_token": access_token})
             return JSONResponse(
-                {"message": "User already exists; Access Token updated", "user_id": user_data["user_id"]},
+                content={
+                    "message": "User already exists; Access Token updated",
+                    "user_id": user_data["user_id"],
+                },
                 status_code=202,
             )
 
-        return JSONResponse({"message": "User already exists", "user_id": user_data["user_id"]}, status_code=203)
-
+        return JSONResponse(
+            content={"message": "User already exists", "user_id": user_data["user_id"]},
+            status_code=203,
+        )
     except HTTPException:
-        raise  
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"An unexpected error occurred: {str(e)}"
+        )

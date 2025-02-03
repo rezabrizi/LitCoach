@@ -1,5 +1,5 @@
+from datetime import datetime
 from pydantic import BaseModel
-from datetime import date
 from typing import Optional
 
 
@@ -11,6 +11,6 @@ class User(BaseModel):
     access_token: str
     is_premium: bool = False
     premium_expiry: Optional[str] = None
-    account_creation_date: date
+    account_creation_date: datetime
     tokens: int
-    last_reset: date
+    last_reset: datetime

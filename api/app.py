@@ -21,7 +21,7 @@ app.add_middleware(
 
 app.include_router(router)
 
+
 @app.get("/health")
 def health_check():
     return {"message": "healthy", "?": settings.CUSTOM_VAL}
-
