@@ -6,6 +6,7 @@ from .submit_problem import router as submit_problem_router
 from .repos import router as repos_router
 from .ai_help import router as ai_help_router
 from .valid_user import router as valid_user_router
+from .payment import router as striperouter
 
 router = APIRouter()
 
@@ -16,6 +17,7 @@ router.include_router(create_repo_router, prefix="/user", tags=["Repositories"])
 router.include_router(submit_problem_router, prefix="/user", tags=["Submissions"])
 router.include_router(repos_router, prefix="/user", tags=["Repositories"])
 router.include_router(valid_user_router, prefix="/user", tags=["User Validation"])
+router.include_router(striperouter, prefix="/payment", tags=["User Payment"])
 
 __all__ = [
     "router",

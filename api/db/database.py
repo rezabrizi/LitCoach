@@ -37,8 +37,10 @@ def add_new_user(
             "is_premium": False,
             "premium_expiry": None,
             "account_creation_date": account_creation_date,
-            "tokens": 0,
-            "last_reset": account_creation_date,
+            "tokens_used_monthly": 0,
+            "last_monthly_token_reset": account_creation_date,
+            "tokens_used_in_past_5_hours": 0,
+            "last_cooldown_reset": account_creation_date,
         }
     )
 
@@ -79,16 +81,43 @@ def reset_tokens_if_needed(user_id: int):
     if not user:
         return
 
-    last_reset = user.last_reset
+    last_monthly_reset = user.last_monthly_token_reset
+    last_cooldown_reset = user.last_cooldown_reset
     now = datetime.now(timezone.utc)
 
     # Ensure we only reset once per 30 days
-    if now - last_reset >= timedelta(days=30):
+    if now - last_monthly_reset >= timedelta(days=30):
         USERS_COLLECTION.update_one(
-            {"user_id": user_id}, {"$set": {"tokens_used": 0, "last_reset": now}}
+            {"user_id": user_id},
+            {"$set": {"tokens_used_monthly": 0, "last_monthly_token_reset": now}},
+        )
+
+    if now - last_cooldown_reset >= timedelta(hours=5):
+        USERS_COLLECTION.update_one(
+            {"user_id": user_id},
+            {"$set": {"tokens_used_in_past_5_hours": 0, "last_cooldown_reset": now}},
         )
 
 
-def get_current_token_usage(user_id: int):
+def get_monthly_token_usage(user_id: int):
     user = user_exists(user_id=user_id)
-    return user.tokens
+    return user.tokens_used_monthly
+
+
+def get_5h_token_usage(user_id: int):
+    user = user_exists(user_id=user_id)
+    return user.tokens_used_in_past_5_hours
+
+
+def can_user_use_ai(user_id: int):
+    reset_tokens_if_needed(user_id=user_id)
+    if is_user_premium(user_id=user_id):
+        return True
+
+    if get_5h_token_usage(user_id=user_id) >= 1500:
+        return False
+
+    # if get_monthly_token_usage(user_id=user_id) >= 30000:
+    #     return False
+
+    return True
