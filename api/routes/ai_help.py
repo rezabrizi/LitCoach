@@ -2,10 +2,10 @@ from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import StreamingResponse
 from openai import OpenAIError
 
-from api.models.problem import LeetcodeProblem
-from api.services.database import is_user_premium, get_monthly_usage
-from api.utils.openai_utils import get_open_ai_prompt, OpenAIClient
-from api.config import openai_client
+from api.models import LeetcodeProblem
+from api.db.database import is_user_premium, get_monthly_usage
+from api.services.openai import get_open_ai_prompt, OpenAIClient
+# from api.config import openai_client
 
 
 router = APIRouter()

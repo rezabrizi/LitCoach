@@ -29,7 +29,8 @@ dependencies = [
     "urllib3==2.3.0",
     "uvicorn==0.34.0",
     "tiktoken (>=0.8.0,<0.9.0)",
-    "openai (>=1.60.2,<2.0.0)"
+    "openai (>=1.60.2,<2.0.0)",
+    "black (>=25.1.0,<26.0.0)"
 ]
 
 [build-system]

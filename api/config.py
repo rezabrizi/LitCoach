@@ -1,6 +1,5 @@
 from functools import lru_cache
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from api.utils.openai_utils import OpenAIClient
 
 
 class Settings(BaseSettings):
@@ -16,12 +15,8 @@ class Settings(BaseSettings):
 
 
 @lru_cache
-def get_settings():
+def get_settings() -> Settings:
     return Settings()
 
 
 settings = get_settings()
-
-openai_client = OpenAIClient(
-    API_KEY=settings.OPENAI_KEY, project_id=settings.OPENAI_PROJECT_ID
-)
