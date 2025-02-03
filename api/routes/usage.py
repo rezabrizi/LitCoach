@@ -1,7 +1,7 @@
-from fastapi import APIRouter, HTTPException, 
+from fastapi import APIRouter, HTTPException
 from datetime import datetime, timezone
 
-from api.db.mongo import USAGE_COLLECTION
+from api.db import USAGE_COLLECTION
 
 
 router = APIRouter()
@@ -25,7 +25,7 @@ def post_usage(
             "user_id": user_id,
             "problem_name": problem_name,
             "tokens": total_tokens,
-            "tz": now,
+            "ts": now,
             "ai_model": ai_model,
         }
     )

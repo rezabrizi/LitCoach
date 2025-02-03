@@ -3,11 +3,16 @@ from fastapi.responses import StreamingResponse
 from openai import OpenAIError
 
 from api.models import LeetcodeProblem
-from api.db.database import is_user_premium, get_monthly_usage
+from api.db.database import (
+    is_user_premium,
+    reset_tokens_if_needed,
+    get_current_token_usage,
+)
 from api.services.openai import get_open_ai_prompt, OpenAIClient
 
-# from api.config import openai_client
+from api.config import settings
 
+openai_client = OpenAIClient(settings.OPENAI_KEY, settings.OPENAI_PROJECT_ID)
 
 router = APIRouter()
 
@@ -16,13 +21,13 @@ router = APIRouter()
 def ai_help(
     problem_context: LeetcodeProblem,
 ):
-
     # Check if the user is a premium user
     is_premium = is_user_premium(problem_context.github_id)
+    reset_tokens_if_needed(problem_context.github_id)
 
     # If the user is not premium, check if they have enough tokens
     if not is_premium:
-        tokens_used = get_monthly_usage(problem_context.github_id)
+        tokens_used = get_current_token_usage(problem_context.github_id)
         if tokens_used >= 30000:
             raise HTTPException(
                 status_code=403,

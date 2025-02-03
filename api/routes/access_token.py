@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from api.db import user_exists, add_new_user, upsert_user
@@ -20,6 +21,7 @@ def github_callback(github_code: GithubCode):
 
         # Step 2: Fetch GitHub user info
         github_user_info = get_user_info_from_github(access_token)
+        today_s_date = datetime.now(timezone.utc).date()
         user_id = int(github_user_info["id"])
         username = github_user_info["login"]
         email = github_user_info.get("email")
@@ -35,6 +37,7 @@ def github_callback(github_code: GithubCode):
                 email=email,
                 avatar_url=avatar_url,
                 access_token=access_token,
+                account_creation_date=today_s_date,
             )
             return JSONResponse(
                 content={"message": "User added successfully", "user_id": user_id},

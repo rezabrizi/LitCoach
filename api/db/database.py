@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone, date, timedelta
 from api.models.user import User
 from pymongo import MongoClient
 import certifi
@@ -12,7 +12,7 @@ USERS_COLLECTION = db["users"]
 USAGE_COLLECTION = db["usage"]
 
 
-def user_exists(user_id: str):
+def user_exists(user_id: int):
     user_data = USERS_COLLECTION.find_one({"user_id": user_id})
     if user_data:
         return User(**user_data)
@@ -20,7 +20,12 @@ def user_exists(user_id: str):
 
 
 def add_new_user(
-    user_id: str, username: str, email: str, avatar_url: str, access_token: str
+    user_id: str,
+    username: str,
+    email: str,
+    avatar_url: str,
+    access_token: str,
+    account_creation_date: date,
 ):
     USERS_COLLECTION.insert_one(
         {
@@ -31,6 +36,9 @@ def add_new_user(
             "access_token": access_token,
             "is_premium": False,
             "premium_expiry": None,
+            "account_creation_date": account_creation_date,
+            "tokens": 0,
+            "last_reset": account_creation_date,
         }
     )
 
@@ -65,34 +73,22 @@ def is_user_premium(user_id: str) -> bool:
     return False
 
 
-def get_monthly_usage(user_id: str) -> int:
+def reset_tokens_if_needed(user_id: int):
+    user = user_exists(user_id=user_id)
+
+    if not user:
+        return
+
+    last_reset = user.last_reset
     now = datetime.now(timezone.utc)
 
-    start_of_month = datetime(now.year, now.month, 1)
-    if now.month == 12:
-        end_of_month = datetime(now.year + 1, 1, 1)
-    else:
-        end_of_month = datetime(now.year, now.month + 1, 1)
+    # Ensure we only reset once per 30 days
+    if now - last_reset >= timedelta(days=30):
+        USERS_COLLECTION.update_one(
+            {"user_id": user_id}, {"$set": {"tokens_used": 0, "last_reset": now}}
+        )
 
-    pipeline = [
-        {
-            "$match": {
-                "user_id": user_id,
-                "timestamp": {
-                    "$gte": start_of_month,
-                    "$lt": end_of_month,
-                },
-            }
-        },
-        {
-            "$group": {
-                "_id": None,
-                "total_tokens": {"$sum": "$tokens"},
-            }
-        },
-    ]
-    result = list(USAGE_COLLECTION.aggregate(pipeline))
 
-    if result:
-        return result[0]["total_tokens"]
-    return 0
+def get_current_token_usage(user_id: int):
+    user = user_exists(user_id=user_id)
+    return user.tokens

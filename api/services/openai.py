@@ -45,7 +45,6 @@ class OpenAIClient:
                 yield "data: " + chunk.choices[0].delta.content + "\n\n"
 
             elif hasattr(chunk, "usage") and chunk.usage is not None:
-
                 yield "meta: " + str(chunk.usage.completion_tokens) + " " + str(
                     chunk.usage.prompt_tokens
                 ) + "\n\n"
