@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import JSONResponse
 from api.models import LeetcodeSubmission
 from api.db import user_exists
 from api.services import resolve_github_repo_id_to_repo_name, push_to_github
@@ -66,12 +67,14 @@ def submit_problem(request: LeetcodeSubmission):
             user.access_token,
         )
 
-        return {
-            "message": "Problem and solution successfully added to GitHub!",
-            "problem": folder_name,
-        }
-
-    except HTTPException as e:
-        raise e
+        return JSONResponse(
+            content={
+                "message": "Problem and solution successfully added to GitHub!",
+                "problem": folder_name,
+            },
+            status_code=201,
+        )
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Unexpected Error: {str(e)}")

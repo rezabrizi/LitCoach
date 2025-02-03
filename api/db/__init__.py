@@ -3,7 +3,6 @@ from .database import (
     add_new_user,
     upsert_user,
     is_user_premium,
-    get_monthly_usage,
     USAGE_COLLECTION,
 )
 
@@ -12,6 +11,5 @@ __all__ = [
     "add_new_user",
     "upsert_user",
     "is_user_premium",
-    "get_monthly_usage",
     "USAGE_COLLECTION",
 ]

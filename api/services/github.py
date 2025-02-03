@@ -4,18 +4,18 @@ import base64
 from typing import List
 from api.config import settings
 
-def resolve_github_access_token(code: str):
-    try:
-        response = requests.post(
-            "https://github.com/login/oauth/access_token",
-            json={
-                "client_id": settings.GITHUB_CLIENT_ID,
-                "client_secret": settings.GITHUB_CLIENT_SECRET,
-                "code": code,
-            },
-            headers={"Accept": "application/json"},
-        )
 
+def resolve_github_access_token(code: str) -> str:
+    url = "https://github.com/login/oauth/access_token"
+    headers = {"Accept": "application/json"}
+    data = {
+        "client_id": settings.GITHUB_CLIENT_ID,
+        "client_secret": settings.GITHUB_CLIENT_SECRET,
+        "code": code,
+    }
+
+    try:
+        response = requests.post(url, headers=headers, data=data)
         response.raise_for_status()
         access_token = response.json().get("access_token")
 
@@ -29,24 +29,21 @@ def resolve_github_access_token(code: str):
             )
 
         return access_token
-
     except requests.RequestException as e:
         raise HTTPException(
-            status_code=500,
+            status_code=getattr(e.response, "status_code", 500),
             detail=f"Request to GitHub failed: {str(e)}",
         )
 
 
-def get_user_info_from_github(access_token: str):
-    try:
-        response = requests.get(
-            "https://api.github.com/user",
-            headers={"Authorization": f"token {access_token}"},
-        )
+def get_user_info_from_github(access_token: str) -> dict:
+    url = "https://api.github.com/user"
+    headers = {"Authorization": f"token {access_token}"}
 
+    try:
+        response = requests.get(url, headers=headers)
         response.raise_for_status()
         return response.json()
-
     except requests.RequestException as e:
         raise HTTPException(
             status_code=getattr(e.response, "status_code", 500),
@@ -57,13 +54,15 @@ def get_user_info_from_github(access_token: str):
 def get_user_repos(access_token: str) -> List[dict]:
     url = "https://api.github.com/user/repos"
     headers = {"Authorization": f"token {access_token}"}
-    params = {"affiliation": "owner", "per_page": 100}  
+    params = {"affiliation": "owner", "per_page": 100}
 
     try:
         repos = []
         page = 1
         while True:
-            response = requests.get(url, headers=headers, params={**params, "page": page})
+            response = requests.get(
+                url, headers=headers, params={**params, "page": page}
+            )
             response.raise_for_status()
             page_repos = response.json()
 
@@ -74,7 +73,6 @@ def get_user_repos(access_token: str) -> List[dict]:
             page += 1
 
         return repos
-
     except requests.RequestException as e:
         raise HTTPException(
             status_code=getattr(e.response, "status_code", 500),
@@ -82,7 +80,7 @@ def get_user_repos(access_token: str) -> List[dict]:
         )
 
 
-def resolve_github_repo_id_to_repo_name(repo_id: int, access_token: str):
+def resolve_github_repo_id_to_repo_name(repo_id: int, access_token: str) -> dict:
     repos = get_user_repos(access_token=access_token)
 
     for repo in repos:
@@ -102,22 +100,20 @@ def push_to_github(
     owner_login: str,
     repo_name: str,
     access_token: str,
-):
+) -> dict:
     url = f"https://api.github.com/repos/{owner_login}/{repo_name}/contents/{file_path}"
     headers = {"Authorization": f"token {access_token}"}
-
-    content_encoded = base64.b64encode(content.encode()).decode("utf-8")
-
-    response = requests.get(url, headers=headers)
-    sha = response.json().get("sha", None)  
-
     data = {
         "message": commit_message,
-        "content": content_encoded,
+        "content": base64.b64encode(content.encode()).decode("utf-8"),
         "branch": "main",
     }
+
+    response = requests.get(url, headers=headers)
+    sha = response.json().get("sha", None)
+
     if sha:
-        data["sha"] = sha 
+        data["sha"] = sha
 
     try:
         response = requests.put(url, json=data, headers=headers)
