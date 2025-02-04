@@ -42,12 +42,12 @@ def submit_problem(request: LeetcodeSubmission):
         code_path = f"{folder_name}/{folder_name}.{extension}"
 
         user = user_exists(request.user_github_id)
+        if not user:
+            raise HTTPException(status_code=403, details="User not found!")
+        
         repo = resolve_github_repo_id_to_repo_name(
             request.github_repo_id, user.access_token
         )
-
-        if not user:
-            raise HTTPException(status_code=403, details="User not found!")
 
         push_to_github(
             file_path=readme_path,

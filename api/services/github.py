@@ -141,6 +141,13 @@ def create_github_repo(repo_name: str, access_token: str) -> int:
         "auto_init": True,
     }
 
+    repo_names = [repo.get("name") for repo in get_user_repos(access_token=access_token)]
+    if repo_name in repo_names:
+        raise HTTPException(
+            status_code=400,
+            detail="Repository with the same name already exists",
+        )
+
     try:
         response = requests.post(url, headers=headers, json=data)
         response.raise_for_status()
