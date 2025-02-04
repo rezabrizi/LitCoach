@@ -3,7 +3,7 @@ import axios from "axios";
 console.log("Background script running!");
 
 const LEETCODE_URL = "https://leetcode.com/problems/";
-const GRAPHQL_URL = "https://leetcode.com/graphql/";
+const GRAPHQL_URL = "https://leetcode.com/graphql";
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
 chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(console.error);
@@ -87,11 +87,45 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 // Function to fetch submission details using GraphQL
 async function fetchSubmissionDetails(submissionId) {
     try {
+        const query = `
+            query submissionDetails($submissionId: Int!) {
+                submissionDetails(submissionId: $submissionId) {
+                    runtime
+                    runtimeDisplay
+                    runtimePercentile
+                    runtimeDistribution
+                    memory
+                    memoryDisplay
+                    memoryPercentile
+                    memoryDistribution
+                    code
+                    timestamp
+                    statusCode
+                    lang {
+                        name
+                        verboseName
+                    }
+                    question {
+                        questionId
+                        title
+                        titleSlug
+                        content
+                        difficulty
+                    }
+                    notes
+                    topicTags {
+                        tagId
+                        slug
+                        name
+                    }
+                    runtimeError
+                }
+            }
+        `;
+
         const response = await axios.post(GRAPHQL_URL, {
-            query: "\n    query submissionDetails($submissionId: Int!) {\n  submissionDetails(submissionId: $submissionId) {\n    runtime\n    runtimeDisplay\n    runtimePercentile\n    runtimeDistribution\n    memory\n    memoryDisplay\n    memoryPercentile\n    memoryDistribution\n    code\n    timestamp\n    statusCode\n    lang {\n      name\n      verboseName\n    }\n    question {\n      questionId\n    title\n    titleSlug\n    content\n    difficulty\n    }\n    notes\n    topicTags {\n      tagId\n      slug\n      name\n    }\n    runtimeError\n  }\n}\n    ",
-            variables: {
-                submissionId: parseInt(submissionId),
-            },
+            query,
+            variables: { submissionId: parseInt(submissionId) },
         });
 
         return response.data.data.submissionDetails;
@@ -104,44 +138,50 @@ async function fetchSubmissionDetails(submissionId) {
 // Handle submission accepted message
 chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
     if (message.action === "submissionAccepted") {
-        (async () => {
+        chrome.storage.sync.get(["github_user_id", "selected_repo_id"], async (data) => {
+            if (!data.github_user_id || !data.selected_repo_id) {
+                console.error("GitHub user ID or selected repo ID not found");
+                return;
+            }
+
             const details = await fetchSubmissionDetails(message.submissionId);
             if (!details) {
                 console.error("Failed to fetch submission details");
                 return;
             }
 
-            console.log("Submission Details:", details);
-            chrome.storage.sync.get(["github_user_id", "selected_repo_id"], async (data) => {
-                if (!data.github_user_id || !data.selected_repo_id) {
-                    console.error("GitHub user ID or selected repo ID not found");
-                    return;
-                }
+            const now = new Date();
+            const submissionDate = new Date(details.timestamp * 1000);
+            if (
+                submissionDate.getUTCFullYear() !== now.getUTCFullYear() ||
+                submissionDate.getUTCMonth() !== now.getUTCMonth() ||
+                submissionDate.getUTCDate() !== now.getUTCDate() ||
+                submissionDate.getUTCHours() !== now.getUTCHours() ||
+                submissionDate.getUTCMinutes() !== now.getUTCMinutes()
+            ) {
+                return;
+            }
 
-                const metrics = {
-                    question_id: details.question.questionId,
-                    question_title: details.question.title,
-                    question_content: details.question.content,
-                    code: details.code,
-                    language: details.lang.verboseName,
-                    user_github_id: data.github_user_id,
-                    github_repo_id: data.selected_repo_id,
-                    runtime: details.runtimeDisplay,
-                    runtime_percentile: `${parseFloat(details.runtimePercentile).toFixed(2)}%`,
-                    memory: details.memoryDisplay,
-                    memory_percentile: `${parseFloat(details.memoryPercentile).toFixed(2)}%`,
-                };
+            const metrics = {
+                question_id: details.question.questionId,
+                question_title: details.question.title,
+                question_content: details.question.content,
+                code: details.code,
+                language: details.lang.verboseName,
+                user_github_id: data.github_user_id,
+                github_repo_id: data.selected_repo_id,
+                runtime: details.runtimeDisplay,
+                runtime_percentile: `${parseFloat(details.runtimePercentile).toFixed(2)}%`,
+                memory: details.memoryDisplay,
+                memory_percentile: `${parseFloat(details.memoryPercentile).toFixed(2)}%`,
+            };
 
-                console.log("Submission Metrics:", metrics);
-
-                try {
-                    const response = await axios.post(`${API_URL}/user/submit_problem`, metrics);
-                    console.log("Submission stored successfully:", response.data);
-                } catch (error) {
-                    console.error("Error storing submission:", error);
-                }
-            });
-        })();
+            try {
+                await axios.post(`${API_URL}/user/submit_problem`, metrics);
+            } catch (error) {
+                console.error(error.response?.data?.detail || "Failed to submit problem");
+            }
+        });
         return true;
     }
 });
@@ -156,10 +196,12 @@ chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
             }
 
             try {
-                await axios.get(`https://api.github.com/user/${data.github_user_id}`);
+                await axios.get(`${API_URL}/user/valid_user`, {
+                    params: { github_id: data.github_user_id },
+                });
                 sendResponse({ authenticated: true });
             } catch (error) {
-                console.error(error);
+                console.error(error.response?.data?.detail || "User not authenticated");
                 sendResponse({ authenticated: false });
             }
         });
