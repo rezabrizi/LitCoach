@@ -47,6 +47,7 @@ const GitHubAuthComponent = ({ onAuthenticationComplete }) => {
                 description: "Successfully authenticated with GitHub",
             });
         } catch (error) {
+            console.error(error);
             onAuthenticationComplete(false);
             toast({
                 title: "Authentication Failed",
