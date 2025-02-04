@@ -1,12 +1,14 @@
-import axios from "axios";
 import { useState } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "./ui/card";
 import { Button } from "./ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { ToastAction } from "@/components/ui/toast";
 import { Loader2 } from "lucide-react";
+import axios from "axios";
 
 const GITHUB_CLIENT_ID = import.meta.env.VITE_GITHUB_CLIENT_ID;
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+const FEEDBACK_FORM = "https://forms.gle/udJ4YT3oCTiLFuC98";
 
 const GitHubAuthComponent = ({ onAuthenticationComplete }) => {
     const { toast } = useToast();
@@ -15,59 +17,56 @@ const GitHubAuthComponent = ({ onAuthenticationComplete }) => {
     const handleGitHubAuth = async () => {
         setIsAuthenticating(true);
         const redirectURL = chrome.identity.getRedirectURL();
-        console.log(`First step! ${GITHUB_CLIENT_ID}`);
         const authUrl = `https://github.com/login/oauth/authorize?client_id=${GITHUB_CLIENT_ID}&redirect_uri=${redirectURL}&scope=read:user%20repo`;
 
-        chrome.identity.launchWebAuthFlow({ url: authUrl, interactive: true }, async (responseUrl) => {
-            if (chrome.runtime.lastError || !responseUrl) {
-                console.error(chrome.runtime.lastError?.message || "Auth failed");
-                setIsAuthenticating(false);
-                return;
-            }
-
-            const urlParams = new URLSearchParams(new URL(responseUrl).search);
-            const code = urlParams.get("code");
-
-            if (!code) {
-                console.error("No authorization code received");
-                setIsAuthenticating(false);
-                return;
-            }
-
-            try {
-                const response = await axios.post(
-                    `${API_URL}/auth/github_access_token`,
-                    JSON.stringify({ code }),
-                    { headers: { "Content-Type": "application/json" } },
-                );
-
-                await chrome.storage.sync.set({
-                    github_user_id: response.data.user_id,
+        try {
+            const responseUrl = await new Promise((resolve, reject) => {
+                chrome.identity.launchWebAuthFlow({ url: authUrl, interactive: true }, (response) => {
+                    if (chrome.runtime.lastError || !response) {
+                        reject(new Error(chrome.runtime.lastError?.message || "Authentication failed"));
+                    }
+                    resolve(response);
                 });
+            });
 
-                onAuthenticationComplete(true);
-                chrome.runtime.openOptionsPage();
+            const code = new URLSearchParams(new URL(responseUrl).search).get("code");
+            if (!code) throw new Error("No authorization code received");
 
-                toast({
-                    title: "Success",
-                    description: "Successfully authenticated with GitHub",
-                });
-            } catch (error) {
-                console.error(error.response?.data?.error || "Token exchange failed");
-                onAuthenticationComplete(false);
-                toast({
-                    title: "Error",
-                    description: "Failed to authenticate with GitHub",
-                    variant: "destructive",
-                });
-            } finally {
-                setIsAuthenticating(false);
-            }
-        });
+            const { data } = await axios.post(
+                `${API_URL}/auth/github_access_token`,
+                { code },
+                { headers: { "Content-Type": "application/json" } },
+            );
+
+            await chrome.storage.sync.set({ github_user_id: data.user_id });
+            onAuthenticationComplete(true);
+            chrome.runtime.openOptionsPage();
+
+            toast({
+                title: "Success",
+                description: "Successfully authenticated with GitHub",
+            });
+        } catch (error) {
+            onAuthenticationComplete(false);
+            toast({
+                title: "Authentication Failed",
+                description: "Failed to authenticate with GitHub",
+                action: (
+                    <ToastAction
+                        altText="Report Issue"
+                        onClick={() => window.open(FEEDBACK_FORM, "_blank", "noopener,noreferrer")}
+                    >
+                        Report Issue
+                    </ToastAction>
+                ),
+            });
+        } finally {
+            setIsAuthenticating(false);
+        }
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <div className="min-h-screen flex items-center justify-center p-4">
             <Card className="w-full max-w-md">
                 <CardHeader>
                     <CardTitle className="flex items-center">
