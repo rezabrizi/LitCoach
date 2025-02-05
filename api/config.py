@@ -1,3 +1,4 @@
+import logging
 from functools import lru_cache
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -23,3 +24,19 @@ def get_settings() -> Settings:
 
 
 settings = get_settings()
+
+# Create custom logger
+logger = logging.getLogger("Litcoach")
+logger.setLevel(logging.DEBUG)
+
+# Create file handler
+file_handler = logging.FileHandler("app.log")
+file_handler.setLevel(logging.DEBUG)
+
+# Create formatter and add it to the handler
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+file_handler.setFormatter(formatter)
+
+# Add handler to the logger
+logger.addHandler(file_handler)
+logger.debug("LOADED")

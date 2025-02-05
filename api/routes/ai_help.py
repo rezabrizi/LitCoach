@@ -2,9 +2,9 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 from openai import OpenAIError
 from api.models import AIHelp
-from api.db import can_user_use_ai, upsert_user
+from api.db import can_user_use_ai, update_user_tokens
 from api.services.openai import get_ai_prompt, AIClient
-from api.config import settings
+from api.config import settings, logger
 
 
 openai_client = AIClient(
@@ -15,11 +15,11 @@ router = APIRouter()
 
 @router.post("/get_ai_help")
 def ai_help(request: AIHelp):
-    # if not can_user_use_ai(request.user_github_id):
-    #     raise HTTPException(
-    #         status_code=403,
-    #         detail="Insufficient tokens. Please upgrade to premium or buy more tokens.",
-    #     )
+    if not can_user_use_ai(request.user_github_id):
+        raise HTTPException(
+            status_code=403,
+            detail="Insufficient tokens. Please upgrade to premium or buy more tokens.",
+        )
 
     if request.llm in ["gpt-4o-mini", "deepseek-chat"]:
         try:
@@ -29,6 +29,7 @@ def ai_help(request: AIHelp):
                 user_code=request.user_code,
                 question=request.user_prompt,
             )
+            logger.debug(request.conversation_context)
 
             response = openai_client.call_chat_model(
                 model=request.llm,
@@ -46,8 +47,7 @@ def ai_help(request: AIHelp):
                         total_prompt_tokens += chunk.usage.prompt_tokens
 
                 total_tokens = total_completion_tokens * 4 + total_prompt_tokens
-                print(total_completion_tokens)
-                upsert_user({"user_id": request.user_github_id, "tokens": total_tokens})
+                update_user_tokens(request.user_github_id, total_tokens)
 
             return StreamingResponse(generate(), media_type="text/event-stream")
 

@@ -2,7 +2,7 @@ from datetime import datetime, timezone, date, timedelta
 from api.models.user import User
 from pymongo import MongoClient
 import certifi
-from api.config import settings
+from api.config import settings, logger
 
 
 MONGO_DB_URI = f"mongodb+srv://{settings.MONGO_DB_USERNAME}:{settings.MONGO_DB_PASS}@litcoachusers.dxs0t.mongodb.net/?retryWrites=true&w=majority&appName=LitCoachUsers"
@@ -15,6 +15,18 @@ USAGE_COLLECTION = db["usage"]
 def user_exists(user_id: int):
     user_data = USERS_COLLECTION.find_one({"user_id": user_id})
     if user_data:
+        if "account_creation_date" in user_data:
+            user_data["account_creation_date"] = user_data[
+                "account_creation_date"
+            ].replace(tzinfo=timezone.utc)
+        if "last_monthly_token_reset" in user_data:
+            user_data["last_monthly_token_reset"] = user_data[
+                "last_monthly_token_reset"
+            ].replace(tzinfo=timezone.utc)
+        if "last_cooldown_reset" in user_data:
+            user_data["last_cooldown_reset"] = user_data["last_cooldown_reset"].replace(
+                tzinfo=timezone.utc
+            )
         return User(**user_data)
     return None
 
@@ -41,6 +53,21 @@ def add_new_user(
             "last_monthly_token_reset": account_creation_date,
             "tokens_used_in_past_5_hours": 0,
             "last_cooldown_reset": account_creation_date,
+        }
+    )
+
+
+def update_user_tokens(user_id: int, new_tokens: int):
+    user = user_exists(user_id)
+    if not user:
+        return
+    user.tokens_used_in_past_5_hours += new_tokens
+    user.tokens_used_monthly += new_tokens
+    upsert_user(
+        {
+            "user_id": user.user_id,
+            "tokens_used_in_past_5_hours": user.tokens_used_in_past_5_hours,
+            "tokens_used_monthly": user.tokens_used_monthly,
         }
     )
 
@@ -83,8 +110,10 @@ def reset_tokens_if_needed(user_id: int):
 
     last_monthly_reset = user.last_monthly_token_reset
     last_cooldown_reset = user.last_cooldown_reset
-    now = datetime.now(timezone.utc)
 
+    logger.debug(f"last cooldown time {last_cooldown_reset}")
+    now = datetime.now(timezone.utc)
+    logger.debug(f"now {now}")
     # Ensure we only reset once per 30 days
     if now - last_monthly_reset >= timedelta(days=30):
         USERS_COLLECTION.update_one(
@@ -92,7 +121,7 @@ def reset_tokens_if_needed(user_id: int):
             {"$set": {"tokens_used_monthly": 0, "last_monthly_token_reset": now}},
         )
 
-    if now - last_cooldown_reset >= timedelta(hours=5):
+    if now - last_cooldown_reset >= timedelta(minutes=1):
         USERS_COLLECTION.update_one(
             {"user_id": user_id},
             {"$set": {"tokens_used_in_past_5_hours": 0, "last_cooldown_reset": now}},
