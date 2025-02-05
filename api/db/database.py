@@ -121,7 +121,7 @@ def reset_tokens_if_needed(user_id: int):
             {"$set": {"tokens_used_monthly": 0, "last_monthly_token_reset": now}},
         )
 
-    if now - last_cooldown_reset >= timedelta(minutes=1):
+    if now - last_cooldown_reset >= timedelta(hours=5):
         USERS_COLLECTION.update_one(
             {"user_id": user_id},
             {"$set": {"tokens_used_in_past_5_hours": 0, "last_cooldown_reset": now}},
