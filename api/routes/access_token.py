@@ -53,6 +53,7 @@ def github_callback(github_code: GithubCode):
     except HTTPException:
         raise
     except Exception as e:
+        print(e)
         raise HTTPException(
             status_code=500, detail=f"An unexpected error occurred: {str(e)}"
         )

@@ -1,48 +1,52 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 from openai import OpenAIError
-
-from api.models import LeetcodeProblem
-from api.db.database import can_user_use_ai
-from api.services.openai import get_open_ai_prompt, OpenAIClient
-
+from api.models import AIHelp
+from api.db import can_user_use_ai, upsert_user
+from api.services.openai import get_ai_prompt, OpenAIClient
 from api.config import settings
 
-openai_client = OpenAIClient(settings.OPENAI_KEY, settings.OPENAI_PROJECT_ID)
 
+openai_client = OpenAIClient(settings.OPENAI_KEY, settings.OPENAI_PROJECT_ID)
 router = APIRouter()
 
 
 @router.post("/get_ai_help")
-def ai_help(
-    problem_context: LeetcodeProblem,
-):
-    if not can_user_use_ai(problem_context.github_id):
-        raise HTTPException(
-            status_code=403,
-            detail="Insufficient tokens. Please upgrade to premium or buy more tokens.",
-        )
+def ai_help(request: AIHelp):
+    # if not can_user_use_ai(request.user_github_id):
+    #     raise HTTPException(
+    #         status_code=403,
+    #         detail="Insufficient tokens. Please upgrade to premium or buy more tokens.",
+    #     )
 
-    # Route to the correct LLM based on the request
-    if problem_context.llm == "gpt-4o-mini":
+    if request.llm in ["gpt-4o-mini"]:
         try:
-            # Call the gpt4o-mini function and return a streaming response
-            prompt = get_open_ai_prompt(
-                problem=problem_context.problem,
-                chat_context=problem_context.context,
-                user_code=problem_context.code,
+            prompt = get_ai_prompt(
+                problem=request.leetcode_problem_description,
+                chat_context=request.conversation_context,
+                user_code=request.user_code,
+                question=request.user_prompt,
             )
 
-            return StreamingResponse(
-                openai_client.call_chat_model(
-                    model=problem_context.llm,
-                    messages=prompt,
-                    stream=True,
-                    # TODO(reza): insert usage for the user
-                    stream_options={"include_usage": True},
-                ),
-                media_type="text/event-stream",
+            response = openai_client.call_chat_model(
+                model=request.llm,
+                messages=prompt,
             )
+
+            def generate():
+                total_completion_tokens = 0
+                total_prompt_tokens = 0
+                for chunk in response:
+                    if chunk.choices and chunk.choices[0].delta.content is not None:
+                        yield chunk.choices[0].delta.content
+                    elif hasattr(chunk, "usage") and chunk.usage is not None:
+                        total_completion_tokens += chunk.usage.completion_tokens
+                        total_prompt_tokens += chunk.usage.prompt_tokens
+
+                total_tokens = total_completion_tokens * 4 + total_prompt_tokens
+                upsert_user({"user_id": request.user_github_id, "tokens": total_tokens})
+
+            return StreamingResponse(generate(), media_type="text/event-stream")
 
         except OpenAIError as e:
             raise HTTPException(
@@ -55,11 +59,5 @@ def ai_help(
                 status_code=500,
                 detail=f"An unexpected error occurred: {str(e)}",
             )
-    elif problem_context.llm == "gpt-4o":
-        raise HTTPException(status_code=500, detail="LLM Not available!")
-
-    elif problem_context.llm == "claude":
-        raise HTTPException(status_code=500, detail="LLM Not available!")
-
-    # Default response if no valid LLM is matched
-    raise HTTPException(status_code=400, detail="Invalid LLM specified.")
+    else:
+        raise HTTPException(status_code=500, detail="Invalid model")

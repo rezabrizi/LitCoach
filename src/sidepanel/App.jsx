@@ -3,10 +3,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
-import { MessageCircle, Send, AlertCircle, StopCircle } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { MessageCircle, Send, StopCircle, AlertCircle } from "lucide-react";
 import { AuthComponent } from "@/components/github-auth";
+import { useToast } from "@/hooks/use-toast";
 import ReactMarkdown from "react-markdown";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
@@ -15,97 +16,51 @@ function App() {
     const [newMessage, setNewMessage] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [isValidPage, setIsValidPage] = useState(false);
-    const [error, setError] = useState("");
     const messagesEndRef = useRef(null);
-    const responseText = useRef("");
     const abortControllerRef = useRef(null);
     const textAreaRef = useRef(null);
+    const { toast } = useToast();
 
     useEffect(() => {
         checkIfLeetCodeProblem();
-        
-        // Auto-resize textarea
-        const textarea = textAreaRef.current;
-        if (textarea) {
-            textarea.style.height = 'auto';
-            textarea.style.height = `${Math.min(textarea.scrollHeight, 150)}px`;
+        if (textAreaRef.current) {
+            textAreaRef.current.style.height = "auto";
+            textAreaRef.current.style.height = `${Math.min(textAreaRef.current.scrollHeight, 150)}px`;
         }
     }, [newMessage]);
 
     useEffect(() => {
-        scrollToBottom();
-    }, [messages]);
-
-    const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    };
+    }, [messages]);
 
     const checkIfLeetCodeProblem = async () => {
         chrome.runtime.sendMessage({ action: "isLeetCodeProblem" }, (response) => {
             setIsValidPage(response.value);
-            if (!response.value) {
-                setError("Please navigate to a LeetCode problem page to use the AI assistant.");
-            }
         });
     };
 
-    const getProblemContext = async () => {
-        const [codeResponse, descriptionResponse] = await Promise.all([
-            new Promise((resolve) => chrome.runtime.sendMessage({ action: "getEditorValue" }, resolve)),
-            new Promise((resolve) => chrome.runtime.sendMessage({ action: "getProblemDescription" }, resolve)),
-        ]);
-
-        if (!codeResponse.success || !descriptionResponse.success) {
-            throw new Error("Failed to fetch problem context");
-        }
-
-        return {
-            code: codeResponse.value,
-            problem: descriptionResponse.value,
-        };
-    };
-
-    const processStream = async (reader, signal) => {
+    const handleStream = async (response) => {
+        const reader = response.body.getReader();
         const decoder = new TextDecoder();
-        let buffer = "";
+
+        setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
 
         try {
             while (true) {
                 const { value, done } = await reader.read();
                 if (done) break;
 
-                buffer += decoder.decode(value, { stream: true });
-                const lines = buffer.split("\n");
-                buffer = lines.pop();
-
-                for (const line of lines) {
-                    if (line.startsWith("data: ")) {
-                        const content = line.slice(5).trim();
-                        if (content === "[DONE]") {
-                            return;
-                        }
-
-                        responseText.current += content;
-                        setMessages((prev) => {
-                            const newMessages = [...prev];
-                            newMessages[newMessages.length - 1].content = responseText.current;
-                            return newMessages;
-                        });
-                    }
-                }
+                const text = decoder.decode(value);
+                setMessages((prev) => {
+                    const newMessages = [...prev];
+                    const lastMessage = newMessages[newMessages.length - 1];
+                    lastMessage.content += text;
+                    return newMessages;
+                });
             }
         } catch (error) {
-            console.log(error);
             if (error.name === "AbortError") return;
             throw error;
-        }
-    };
-
-    const stopResponse = () => {
-        if (abortControllerRef.current) {
-            abortControllerRef.current.abort();
-            abortControllerRef.current = null;
-            setIsLoading(false);
         }
     };
 
@@ -113,48 +68,47 @@ function App() {
         if (!newMessage.trim() || !isValidPage || isLoading) return;
 
         setIsLoading(true);
-        setError('');
-        const userMessage = { role: 'user', content: newMessage };
-        setMessages(prev => [...prev, userMessage]);
-        setNewMessage('');
-        responseText.current = '';
+        setMessages((prev) => [...prev, { role: "user", content: newMessage }]);
+        const currentMessage = newMessage;
+        setNewMessage("");
 
         try {
-            const context = await getProblemContext();
-            const github_id = await new Promise(resolve => {
-                chrome.storage.sync.get(['github_user_id'], (data) => {
-                    resolve(data.github_user_id);
-                });
+            const [codeResponse, descriptionResponse] = await Promise.all([
+                new Promise((resolve) => chrome.runtime.sendMessage({ action: "getEditorValue" }, resolve)),
+                new Promise((resolve) => chrome.runtime.sendMessage({ action: "getProblemDescription" }, resolve)),
+            ]);
+
+            const github_id = await new Promise((resolve) => {
+                chrome.storage.sync.get(["github_user_id"], resolve);
             });
 
             abortControllerRef.current = new AbortController();
+
             const response = await fetch(`${API_URL}/ai/get_ai_help`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    problem: context.problem,
-                    code: context.code,
-                    context: messages.map(m => `${m.role}: ${m.content}`).join('\n') + '\nuser: ' + newMessage,
-                    github_id: github_id,
-                    llm: 'gpt-4o-mini'
+                    leetcode_problem_description: descriptionResponse.value,
+                    user_code: codeResponse.value,
+                    conversation_context: messages.map((m) => `${m.role}: ${m.content}`).join("\n"),
+                    user_prompt: currentMessage,
+                    user_github_id: github_id.github_user_id,
+                    llm: "gpt-4o-mini",
                 }),
-                signal: abortControllerRef.current.signal
+                signal: abortControllerRef.current.signal,
             });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || `API error: ${response.statusText}`);
-            }
+            if (!response.ok) throw new Error(await response.text());
 
-            setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
-            const reader = response.body.getReader();
-            await processStream(reader, abortControllerRef.current.signal);
-
+            await handleStream(response);
         } catch (error) {
-            console.log(error);
             if (error.name !== "AbortError") {
-                setError(error.message);
-                setMessages(prev => prev.slice(0, -1));
+                toast({
+                    variant: "destructive",
+                    title: "Error",
+                    description: error.message,
+                });
+                setMessages((prev) => prev.slice(0, -1));
             }
         } finally {
             setIsLoading(false);
@@ -163,14 +117,12 @@ function App() {
     };
 
     const MessageBubble = ({ message }) => (
-        <div
-            className={`flex ${message.role === "user" ? "justify-end" : "justify-start"} mb-4`}
-        >
+        <div className={`flex ${message.role === "user" ? "justify-end" : "justify-start"} mb-6`}>
             <div
-                className={`max-w-[85%] rounded-lg p-4 ${
+                className={`max-w-[80%] rounded-2xl p-4 shadow-sm ${
                     message.role === "user"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted"
+                        ? "bg-primary text-primary-foreground ml-12"
+                        : "bg-muted mr-12 hover:bg-muted/80 transition-colors"
                 }`}
             >
                 {message.role === "assistant" ? (
@@ -186,17 +138,19 @@ function App() {
 
     return (
         <AuthComponent>
-            <Card className="h-screen flex flex-col">
-                <CardContent className="flex-1 p-4 flex flex-col gap-4">
-                    {error && (
-                        <Alert variant="destructive" className="animate-in slide-in-from-top">
+            <Card className="h-screen flex flex-col border-0 rounded-none shadow-none">
+                <CardContent className="flex-1 p-0 flex flex-col">
+                    {!isValidPage && (
+                        <Alert variant="destructive" className="m-4">
                             <AlertCircle className="h-4 w-4" />
-                            <AlertDescription>{error}</AlertDescription>
+                            <AlertDescription>
+                                Please navigate to a LeetCode problem to use the AI assistant.
+                            </AlertDescription>
                         </Alert>
                     )}
 
-                    <ScrollArea className="flex-1 pr-4">
-                        <div className="space-y-2 py-4">
+                    <ScrollArea className="flex-1 px-4">
+                        <div className="space-y-2 py-6">
                             {messages.map((message, index) => (
                                 <MessageBubble key={index} message={message} />
                             ))}
@@ -204,7 +158,7 @@ function App() {
                         </div>
                     </ScrollArea>
 
-                    <div className="flex flex-col gap-2">
+                    <div className="border-t p-4 space-y-4">
                         <Textarea
                             ref={textAreaRef}
                             placeholder={
@@ -221,14 +175,21 @@ function App() {
                                 }
                             }}
                             disabled={!isValidPage || isLoading}
-                            className="flex-1 min-h-[44px] max-h-[150px] resize-none"
+                            className="resize-none border-0 focus-visible:ring-0 p-3 shadow-none bg-muted"
                             rows={1}
                         />
-                        <div className="flex gap-2 justify-end">
+                        <div className="flex justify-end gap-2">
                             {isLoading && (
-                                <Button 
-                                    variant="outline" 
-                                    onClick={stopResponse}
+                                <Button
+                                    variant="outline"
+                                    onClick={() => {
+                                        abortControllerRef.current?.abort();
+                                        setIsLoading(false);
+                                        toast({
+                                            title: "Response stopped",
+                                            description: "The AI response has been interrupted.",
+                                        });
+                                    }}
                                     className="gap-2"
                                 >
                                     <StopCircle className="h-4 w-4" />

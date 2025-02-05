@@ -102,7 +102,6 @@ def push_to_github(
     access_token: str,
 ) -> dict:
     url = f"https://api.github.com/repos/{owner_name}/{repo_name}/contents/{file_path}"
-    print(url)
     headers = {"Authorization": f"token {access_token}"}
     data = {
         "message": commit_message,
@@ -141,7 +140,9 @@ def create_github_repo(repo_name: str, access_token: str) -> int:
         "auto_init": True,
     }
 
-    repo_names = [repo.get("name") for repo in get_user_repos(access_token=access_token)]
+    repo_names = [
+        repo.get("name") for repo in get_user_repos(access_token=access_token)
+    ]
     if repo_name in repo_names:
         raise HTTPException(
             status_code=400,

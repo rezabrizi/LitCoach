@@ -1,15 +1,15 @@
+from .ai_help import AIHelp
 from .create_repo import CreateRepo
 from .github_code import GithubCode
-from .leetcode_problem import LeetcodeProblem
 from .leetcode_submission import LeetcodeSubmission
 from .usage import Usage
 from .user import User
 
 __all__ = [
+    "AIHelp",
     "CreateRepo",
     "GithubCode",
-    "LeetCodeProblem",
-    "LeetCodeSubmission",
+    "LeetcodeSubmission",
     "Usage",
     "User",
 ]
