@@ -1,4 +1,4 @@
-from .openai import OpenAIClient, get_ai_prompt
+from .openai import AIClient, get_ai_prompt
 from .github import (
     resolve_github_access_token,
     get_user_info_from_github,
@@ -9,7 +9,7 @@ from .github import (
 )
 
 __all__ = [
-    "OpenAIClient",
+    "AIClient",
     "get_ai_prompt",
     "resolve_github_access_token",
     "get_user_info_from_github",

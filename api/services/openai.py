@@ -1,22 +1,34 @@
 from openai import OpenAI, OpenAIError, RateLimitError, AuthenticationError, APIError
 
 
-class OpenAIClient:
-    def __init__(self, API_KEY: str, project_id: str, organization: str = None):
-        self.client = OpenAI(
-            api_key=API_KEY,
-            organization=organization,
-            project=project_id,
+class AIClient:
+    def __init__(
+        self, oa_api_key: str, oa_project_id: str, oa_organization: str, ds_api_key: str
+    ):
+        self.oa_client = OpenAI(
+            api_key=oa_api_key,
+            organization=oa_organization,
+            project=oa_project_id,
         )
+
+        self.ds_client = OpenAI(api_key=ds_api_key, base_url="https://api.deepseek.com")
 
     def call_chat_model(self, model: str, messages: list):
         try:
-            response = self.client.chat.completions.create(
-                model=model,
-                messages=messages,
-                stream=True,
-                stream_options={"include_usage": True},
-            )
+            if model == "deepseek-chat":
+                response = self.ds_client.chat.completions.create(
+                    model=model,
+                    messages=messages,
+                    stream=True,
+                    stream_options={"include_usage": True},
+                )
+            else:
+                response = self.oa_client.chat.completions.create(
+                    model=model,
+                    messages=messages,
+                    stream=True,
+                    stream_options={"include_usage": True},
+                )
 
             for chunk in response:
                 yield chunk

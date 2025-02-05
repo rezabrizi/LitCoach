@@ -3,11 +3,13 @@ from fastapi.responses import StreamingResponse
 from openai import OpenAIError
 from api.models import AIHelp
 from api.db import can_user_use_ai, upsert_user
-from api.services.openai import get_ai_prompt, OpenAIClient
+from api.services.openai import get_ai_prompt, AIClient
 from api.config import settings
 
 
-openai_client = OpenAIClient(settings.OPENAI_KEY, settings.OPENAI_PROJECT_ID)
+openai_client = AIClient(
+    settings.OPENAI_KEY, settings.OPENAI_PROJECT_ID, None, settings.DEEPSEEK_KEY
+)
 router = APIRouter()
 
 
@@ -19,7 +21,7 @@ def ai_help(request: AIHelp):
     #         detail="Insufficient tokens. Please upgrade to premium or buy more tokens.",
     #     )
 
-    if request.llm in ["gpt-4o-mini"]:
+    if request.llm in ["gpt-4o-mini", "deepseek-chat"]:
         try:
             prompt = get_ai_prompt(
                 problem=request.leetcode_problem_description,
@@ -44,6 +46,7 @@ def ai_help(request: AIHelp):
                         total_prompt_tokens += chunk.usage.prompt_tokens
 
                 total_tokens = total_completion_tokens * 4 + total_prompt_tokens
+                print(total_completion_tokens)
                 upsert_user({"user_id": request.user_github_id, "tokens": total_tokens})
 
             return StreamingResponse(generate(), media_type="text/event-stream")

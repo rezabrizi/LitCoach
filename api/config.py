@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     MONGO_DB_USERNAME: str
     MONGO_DB_PASS: str
     OPENAI_KEY: str
+    DEEPSEEK_KEY: str
     OPENAI_PROJECT_ID: str = "proj_tBo3vZb4T5ghUKf96NEzuQNM"
     PROJECT_ID: str = "proj_tBo3vZb4T5ghUKf96NEzuQNM"
     GITHUB_CLIENT_ID: str
