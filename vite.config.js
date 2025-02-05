@@ -20,10 +20,6 @@ const manifest = {
     side_panel: { default_path: "src/sidepanel/index.html" },
     background: { service_worker: "src/background/background.js", type: "module" },
     host_permissions: ["https://leetcode.com/*"],
-    oauth2: {
-        client_id: process.env.GITHUB_CLIENT_ID,
-        scopes: ["repo", "read:user"],
-    },
     key: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtSMOjksdInySjNETVumZ/ref2oP3a80D5EAN+HjqKrvivZyVQF9cLOgtUCOnLch0ZcaSeJwTd0QuO0/Ol/8G805NuE1k153ATUBRsCGyUUhG6/0Pb/WZ4f5xx0H0M8HXUSlonf6zZc+ao/0iAwnq7e9uzLBGWV+auT1iZe59zTYkD+ykp0WloEjfsNJtEcS6ORInzIS5KY6O9Wz5GCwRZGsA8KWOZ54JrQSKAhr9pDAdAEWEodCwiC7+iapr5kIEPaS7l+rl5fKe+GoTL/AKh5u3CnXW66y0comSW4YsJMU1iP6u28gy8GbCtkbmvc+XZ++jGTAaxwLmHXRTyQIqpQIDAQAB",
     version,
     description,
