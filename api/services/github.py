@@ -100,7 +100,7 @@ def push_to_github(
     owner_name: str,
     repo_name: str,
     access_token: str,
-) -> dict:
+) -> None:
     url = f"https://api.github.com/repos/{owner_name}/{repo_name}/contents/{file_path}"
     headers = {"Authorization": f"token {access_token}"}
     data = {
@@ -113,12 +113,16 @@ def push_to_github(
     sha = response.json().get("sha", None)
 
     if sha:
+        existing_content = base64.b64decode(response.json().get("content")).decode(
+            "utf-8"
+        )
+        if existing_content == content:
+            return
         data["sha"] = sha
 
     try:
         response = requests.put(url, json=data, headers=headers)
         response.raise_for_status()
-        return {"status": "success", "file": file_path}
     except requests.RequestException as e:
         raise HTTPException(
             status_code=getattr(e.response, "status_code", 500),

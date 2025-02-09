@@ -1,15 +1,28 @@
 from pydantic import BaseModel
+from typing import Optional
 
 
-class LeetcodeSubmission(BaseModel):
-    question_id: str
-    question_title: str
-    question_content: str
+class LangInfo(BaseModel):
+    name: str
+    verboseName: str
+
+class QuestionInfo(BaseModel):
+    questionId: str
+    title: str
+    titleSlug: str
+    content: str
+    difficulty: str
+
+class LeetCodeSubmission(BaseModel):
+    runtimeDisplay: str
+    runtimePercentile: float
+    memoryDisplay: str
+    memoryPercentile: float
     code: str
-    language: str
+    timestamp: int
+    lang: LangInfo
+    question: QuestionInfo
+    runtimeError: Optional[str] = None
+    compileError: Optional[str] = None
     user_github_id: int
     github_repo_id: int
-    runtime: str
-    runtime_percentile: str
-    memory: str
-    memory_percentile: str
