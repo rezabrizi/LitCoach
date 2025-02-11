@@ -1,235 +1,251 @@
 import { useState, useEffect, useRef } from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Textarea } from "@/components/ui/textarea";
-import { MessageCircle, Send, StopCircle, AlertCircle } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Info, Send, StopCircle } from "lucide-react";
 import { AuthComponent } from "@/components/github-auth";
 import { useToast } from "@/hooks/use-toast";
 import ReactMarkdown from "react-markdown";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import InvalidPage from "@/components/invalid-page";
 
+const OPTINS_PAGE = "chrome-extension://pbkbbpmpbidfjbcapgplbdogiljdechf/src/options/index.html";
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+const MAX_CONTEXT_MESSAGES = 3;
+const MAX_CHAR_LIMIT = 75;
+const SUGGESTIONS = [
+    "Help me optimize this code",
+    "Explain the time complexity",
+    "What's wrong with my approach?",
+    "How can I improve this solution?",
+    "Debug this code",
+    "Suggest a better algorithm",
+    "Explain the edge cases",
+    "Help with space complexity",
+];
 
 function App() {
-  const [messages, setMessages] = useState([]);
-  const [newMessage, setNewMessage] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [isValidPage, setIsValidPage] = useState(false);
-  const messagesEndRef = useRef(null);
-  const abortControllerRef = useRef(null);
-  const textAreaRef = useRef(null);
-  const { toast } = useToast();
+    const [messages, setMessages] = useState([]);
+    const [input, setInput] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
+    const [isValidPage, setIsValidPage] = useState(false);
+    const [selectedModel, setSelectedModel] = useState("gpt-4o-mini");
+    const [suggestions, setSuggestions] = useState([]);
+    const [showSuggestions, setShowSuggestions] = useState(true);
+    const messagesEndRef = useRef(null);
+    const abortControllerRef = useRef(null);
+    const { toast } = useToast();
 
-  useEffect(() => {
-    checkIfLeetCodeProblem();
-    if (textAreaRef.current) {
-      textAreaRef.current.style.height = "auto";
-      textAreaRef.current.style.height = `${Math.min(textAreaRef.current.scrollHeight, 150)}px`;
-    }
-  }, [newMessage]);
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [messages]);
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    useEffect(() => {
+        const updateIsValidPage = (message) => {
+            if (message.isLeetCodeProblem !== undefined) {
+                setIsValidPage(message.isLeetCodeProblem);
+            }
+        };
 
-  const checkIfLeetCodeProblem = async () => {
-    chrome.runtime.sendMessage({ action: "isLeetCodeProblem" }, (response) => {
-      setIsValidPage(response.value);
-    });
-  };
+        chrome.runtime.onMessage.addListener(updateIsValidPage);
 
-  const handleStream = async (response) => {
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-
-    setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
-
-    try {
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-
-        const text = decoder.decode(value);
-        setMessages((prev) => {
-          const newMessages = [...prev];
-          const lastMessage = newMessages[newMessages.length - 1];
-          lastMessage.content += text;
-          return newMessages;
+        chrome.tabs.query({ active: true, currentWindow: true }, ([currentTab]) => {
+            setIsValidPage(currentTab?.url?.startsWith("https://leetcode.com/problems/") || false);
         });
-      }
-    } catch (error) {
-      if (error.name === "AbortError") return;
-      throw error;
-    }
-  };
 
-  const handleSendMessage = async () => {
-    if (!newMessage.trim() || !isValidPage || isLoading) return;
+        const shuffled = [...SUGGESTIONS].sort(() => 0.5 - Math.random());
+        setSuggestions(shuffled.slice(0, 5));
 
-    setIsLoading(true);
-    setMessages((prev) => [...prev, { role: "user", content: newMessage }]);
-    const currentMessage = newMessage;
-    setNewMessage("");
+        return () => {
+            chrome.runtime.onMessage.removeListener(updateIsValidPage);
+        };
+    }, []);
 
-    try {
-      const [codeResponse, descriptionResponse] = await Promise.all([
-        new Promise((resolve) =>
-          chrome.runtime.sendMessage({ action: "getEditorValue" }, resolve)
-        ),
-        new Promise((resolve) =>
-          chrome.runtime.sendMessage(
-            { action: "getProblemDescription" },
-            resolve
-          )
-        ),
-      ]);
+    const handleInputChange = (e) => {
+        setShowSuggestions(false);
+        const newValue = e.target.value;
+        if (newValue.length <= MAX_CHAR_LIMIT) {
+            setInput(newValue);
+        }
+    };
 
-      const github_id = await new Promise((resolve) => {
-        chrome.storage.sync.get(["github_user_id"], resolve);
-      });
+    const handleSendMessage = async () => {
+        if (!input.trim() || isLoading) return;
 
-      abortControllerRef.current = new AbortController();
+        setIsLoading(true);
+        const currentMessage = input;
+        setInput("");
 
-      const response = await fetch(`${API_URL}/ai/get_ai_help`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          leetcode_problem_description: descriptionResponse.value,
-          user_code: codeResponse.value,
-          conversation_context: messages
-            .map((m) => `${m.role}: ${m.content}`)
-            .join("\n"),
-          user_prompt: currentMessage,
-          user_github_id: github_id.github_user_id,
-          llm: "gpt-4o-mini",
-        }),
-        signal: abortControllerRef.current.signal,
-      });
+        try {
+            const [codeRes, descRes, data] = await Promise.all([
+                new Promise((resolve) => chrome.runtime.sendMessage({ action: "getEditorValue" }, resolve)),
+                new Promise((resolve) => chrome.runtime.sendMessage({ action: "getProblemDescription" }, resolve)),
+                new Promise((resolve) => chrome.storage.sync.get(["github_user_id"], resolve)),
+            ]);
 
-      if (!response.ok) throw new Error(await response.text());
+            if (!codeRes.success || !descRes.success) {
+                throw new Error("Failed to fetch code or problem description");
+            }
 
-      await handleStream(response);
-    } catch (error) {
-      if (error.name !== "AbortError") {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: error.message,
-        });
-        setMessages((prev) => prev.slice(0, -1));
-      }
-    } finally {
-      setIsLoading(false);
-      abortControllerRef.current = null;
-    }
-  };
+            if (!data.github_user_id) {
+                throw new Error("Please login to GitHub");
+            }
 
-  const MessageBubble = ({ message }) => (
-    <div
-      className={`flex ${message.role === "user" ? "justify-end" : "justify-start"} mb-6`}
-    >
-      <div
-        className={`max-w-[80%] rounded-2xl p-4 shadow-sm ${
-          message.role === "user"
-            ? "bg-primary text-primary-foreground ml-12"
-            : "bg-muted mr-12 hover:bg-muted/80 transition-colors"
-        }`}
-      >
-        {message.role === "assistant" ? (
-          <div className='prose prose-sm dark:prose-invert max-w-none'>
-            <ReactMarkdown>{message.content}</ReactMarkdown>
-          </div>
-        ) : (
-          <div className='whitespace-pre-wrap'>{message.content}</div>
-        )}
-      </div>
-    </div>
-  );
+            const newMessages = [...messages, { role: "user", content: currentMessage }];
+            setMessages(newMessages);
 
-  return (
-    <AuthComponent>
-      <Card className='h-screen flex flex-col border-0 rounded-none shadow-none'>
-        <CardContent className='flex-1 p-0 flex flex-col'>
-          {!isValidPage && (
-            <Alert variant='destructive' className='m-4'>
-              <AlertCircle className='h-4 w-4' />
-              <AlertDescription>
-                Please navigate to a LeetCode problem to use the AI assistant.
-              </AlertDescription>
-            </Alert>
-          )}
+            const context = newMessages
+                .slice(-MAX_CONTEXT_MESSAGES)
+                .map((m) => `${m.role}: ${m.content}`)
+                .join("\n");
 
-          <ScrollArea className='flex-1 px-4'>
-            <div className='space-y-2 py-6'>
-              {messages.map((message, index) => (
-                <MessageBubble key={index} message={message} />
-              ))}
-              <div ref={messagesEndRef} />
-            </div>
-          </ScrollArea>
+            abortControllerRef.current = new AbortController();
+            const response = await fetch(`${API_URL}/ai/get_ai_help`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    problem_description: descRes.value,
+                    code: codeRes.value,
+                    context: context,
+                    prompt: currentMessage,
+                    github_id: data.github_user_id,
+                    llm: selectedModel,
+                }),
+                signal: abortControllerRef.current.signal,
+            });
 
-          <div className='border-t p-4 space-y-4'>
-            <Textarea
-              ref={textAreaRef}
-              placeholder={
-                isValidPage
-                  ? "Ask for help with this problem..."
-                  : "Navigate to a LeetCode problem to start"
-              }
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSendMessage();
-                }
-              }}
-              disabled={!isValidPage || isLoading}
-              className='resize-none border-0 focus-visible:ring-0 p-3 shadow-none bg-muted'
-              rows={1}
-            />
-            <div className='flex justify-end gap-2'>
-              {isLoading && (
-                <Button
-                  variant='outline'
-                  onClick={() => {
-                    abortControllerRef.current?.abort();
-                    setIsLoading(false);
-                    toast({
-                      title: "Response stopped",
-                      description: "The AI response has been interrupted.",
-                    });
-                  }}
-                  className='gap-2'
-                >
-                  <StopCircle className='h-4 w-4' />
-                  Stop
-                </Button>
-              )}
-              <Button
-                onClick={handleSendMessage}
-                disabled={!isValidPage || isLoading || !newMessage.trim()}
-                className='gap-2'
-              >
-                {isLoading ? (
-                  <>
-                    <MessageCircle className='h-4 w-4 animate-spin' />
-                    Thinking...
-                  </>
+            if (!response.ok) throw new Error(await response.text());
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let assistantMessage = { role: "assistant", content: "" };
+            setMessages((prev) => [...prev, assistantMessage]);
+
+            while (true) {
+                const { value, done } = await reader.read();
+                if (done) break;
+
+                const text = decoder.decode(value);
+                assistantMessage.content += text;
+                setMessages((prev) => [...prev.slice(0, -1), { ...assistantMessage }]);
+            }
+        } catch (error) {
+            if (error.name !== "AbortError") {
+                toast({
+                    variant: "destructive",
+                    title: "Error",
+                    description: error.message,
+                });
+                setMessages((prev) => prev.slice(0, -1));
+            }
+        } finally {
+            setIsLoading(false);
+            abortControllerRef.current = null;
+        }
+    };
+
+    const MessageBubble = ({ message }) => (
+        <div className={`flex ${message.role === "user" ? "justify-end" : "justify-start"} mb-4`}>
+            <div
+                className={`max-w-[80%] rounded-lg p-3 ${
+                    message.role === "user" ? "bg-primary text-primary-foreground shadow-sm" : "bg-muted shadow-sm"
+                }`}
+            >
+                {message.role === "assistant" ? (
+                    <div className="prose prose-sm max-w-none">
+                        <ReactMarkdown>{message.content}</ReactMarkdown>
+                    </div>
                 ) : (
-                  <>
-                    <Send className='h-4 w-4' />
-                    Send
-                  </>
+                    <div className="whitespace-pre-wrap">{message.content}</div>
                 )}
-              </Button>
             </div>
-          </div>
-        </CardContent>
-      </Card>
-    </AuthComponent>
-  );
+        </div>
+    );
+
+    const content = (
+        <div className="h-screen flex flex-col">
+            <div className="p-2 border-b flex items-center justify-between">
+                <Button variant="ghost" size="icon" onClick={() => window.open(OPTINS_PAGE)}>
+                    <Info className="h-5 w-5" />
+                </Button>
+                <Select value={selectedModel} onValueChange={setSelectedModel}>
+                    <SelectTrigger className="w-40">
+                        <SelectValue placeholder="Select Model" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="gpt-4o-mini">gpt-4o-mini</SelectItem>
+                        <SelectItem value="deepseek-chat">deepseek-chat</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+
+            <div className="flex-1 overflow-hidden relative">
+                <ScrollArea className="h-full px-4">
+                    <div className="py-2 space-y-4">
+                        {messages.map((message, index) => (
+                            <MessageBubble key={index} message={message} />
+                        ))}
+                        <div ref={messagesEndRef} />
+                    </div>
+                </ScrollArea>
+
+                {showSuggestions && (
+                    <div className="absolute bottom-4 left-4 flex gap-2 flex-wrap">
+                        {suggestions.map((suggestion, index) => (
+                            <Button
+                                key={index}
+                                variant="outline"
+                                size="sm"
+                                className="text-sm hover:bg-muted"
+                                onClick={() => {
+                                    setInput(suggestion);
+                                    setShowSuggestions(false);
+                                }}
+                            >
+                                {suggestion}
+                            </Button>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            <div className="border-t">
+                <div className="p-4 flex gap-2">
+                    <Input
+                        placeholder={"Ask a question..."}
+                        value={input}
+                        onChange={handleInputChange}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter" && !e.shiftKey) {
+                                e.preventDefault();
+                                handleSendMessage();
+                            }
+                        }}
+                        disabled={isLoading}
+                        className="flex-1"
+                    />
+                    {isLoading ? (
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => {
+                                abortControllerRef.current?.abort();
+                                setIsLoading(false);
+                            }}
+                        >
+                            <StopCircle className="h-5 w-5" />
+                        </Button>
+                    ) : (
+                        <Button size="icon" disabled={!input.trim()} onClick={handleSendMessage}>
+                            <Send className="h-5 w-5" />
+                        </Button>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+
+    return <AuthComponent>{isValidPage ? content : <InvalidPage />}</AuthComponent>;
 }
 
 export default App;

@@ -33,19 +33,26 @@ const LEETCODE_SUBMISSION_DETAILS_QUERY = `
 
 chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(console.error);
 
-// Check if the current tab is a LeetCode problem page
-chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
-    if (message.action === "isLeetCodeProblem") {
-        chrome.tabs.query({ active: true, currentWindow: true }, ([{ url }]) => {
-            if (url.startsWith(LEETCODE_PROBLEM_URL)) {
-                const problemName = url.split(LEETCODE_PROBLEM_URL)[1].split("/")[0];
-                sendResponse({ value: true, problemName });
-            } else {
-                sendResponse({ value: false });
-            }
-        });
-        return true;
+function checkIfLeetCodeProblem(tab) {
+    if (tab.url && tab.url.startsWith(LEETCODE_PROBLEM_URL)) {
+        chrome.runtime.sendMessage({ isLeetCodeProblem: true });
+    } else {
+        chrome.runtime.sendMessage({ isLeetCodeProblem: false });
     }
+}
+
+// Monitor for tab updates
+chrome.tabs.onUpdated.addListener((_, changeInfo, tab) => {
+    if (changeInfo.status === "complete" && tab.url) {
+        checkIfLeetCodeProblem(tab);
+    }
+});
+
+// Monitor for tab switches
+chrome.tabs.onActivated.addListener((activeInfo) => {
+    chrome.tabs.get(activeInfo.tabId, (tab) => {
+        checkIfLeetCodeProblem(tab);
+    });
 });
 
 // Get the editor value from the Monaco editor
@@ -83,29 +90,6 @@ chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
     }
 });
 
-// Monitor for submission result changes
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-    if (tab.url?.startsWith(LEETCODE_PROBLEM_URL) && changeInfo.status === "complete") {
-        chrome.storage.sync.get(["selected_repo_id", "github_user_id"], (data) => {
-            if (!data.selected_repo_id || !data.github_user_id) return;
-
-            const submissionMatch = tab.url.match(/submissions\/(\d+)/);
-            if (submissionMatch) {
-                chrome.scripting.executeScript({
-                    target: { tabId: tabId },
-                    func: (submissionId) => {
-                        chrome.runtime.sendMessage({
-                            action: "submissionAccepted",
-                            submissionId: submissionId,
-                        });
-                    },
-                    args: [submissionMatch[1]],
-                });
-            }
-        });
-    }
-});
-
 // Function to fetch submission details using GraphQL
 async function fetchSubmissionDetails(submissionId) {
     try {
@@ -121,50 +105,49 @@ async function fetchSubmissionDetails(submissionId) {
     }
 }
 
-// Handle submission accepted message
-chrome.runtime.onMessage.addListener((message) => {
-    if (message.action === "submissionAccepted") {
-        chrome.storage.sync.get(["github_user_id", "selected_repo_id"], async (data) => {
-            if (!data.github_user_id || !data.selected_repo_id) {
-                console.error("GitHub user ID or selected repo ID not found");
-                return;
-            }
+// Monitor for submission result changes
+chrome.tabs.onUpdated.addListener((changeInfo, tab) => {
+    if (tab.url?.startsWith(LEETCODE_PROBLEM_URL) && changeInfo.status === "complete") {
+        chrome.storage.sync.get(["selected_repo_id", "github_user_id"], async (data) => {
+            if (!data.selected_repo_id || !data.github_user_id) return;
 
-            const details = await fetchSubmissionDetails(message.submissionId);
-            if (!details) {
-                console.error("Failed to fetch submission details");
-                return;
-            }
+            const submissionMatch = tab.url.match(/submissions\/(\d+)/);
+            if (submissionMatch) {
+                const details = await fetchSubmissionDetails(submissionMatch[1]);
+                if (!details) {
+                    console.error("Failed to fetch submission details");
+                    return;
+                }
 
-            if (details.runtimeError || details.compileError) {
-                console.log("Submission failed with runtime error or compile error");
-                return;
-            }
+                if (details.runtimeError || details.compileError) {
+                    console.log("Submission failed with runtime error or compile error");
+                    return;
+                }
 
-            const now = new Date();
-            const submissionDate = new Date(details.timestamp * 1000);
-            if (
-                submissionDate.getUTCFullYear() !== now.getUTCFullYear() ||
-                submissionDate.getUTCMonth() !== now.getUTCMonth() ||
-                submissionDate.getUTCDate() !== now.getUTCDate() ||
-                submissionDate.getUTCHours() !== now.getUTCHours() ||
-                submissionDate.getUTCMinutes() !== now.getUTCMinutes()
-            ) {
-                console.log("Submission was not made recently");
-                return;
-            }
+                const now = new Date();
+                const submissionDate = new Date(details.timestamp * 1000);
+                if (
+                    submissionDate.getUTCFullYear() !== now.getUTCFullYear() ||
+                    submissionDate.getUTCMonth() !== now.getUTCMonth() ||
+                    submissionDate.getUTCDate() !== now.getUTCDate() ||
+                    submissionDate.getUTCHours() !== now.getUTCHours() ||
+                    submissionDate.getUTCMinutes() !== now.getUTCMinutes()
+                ) {
+                    console.log("Submission was not made recently");
+                    return;
+                }
 
-            try {
-                await axios.post(`${API_URL}/user/submit_problem`, {
-                    ...details,
-                    user_github_id: data.github_user_id,
-                    github_repo_id: data.selected_repo_id,
-                });
-            } catch (error) {
-                console.error(error);
+                try {
+                    await axios.post(`${API_URL}/user/submit_problem`, {
+                        ...details,
+                        user_github_id: data.github_user_id,
+                        github_repo_id: data.selected_repo_id,
+                    });
+                } catch (error) {
+                    console.error(error);
+                }
             }
         });
-        return true;
     }
 });
 
