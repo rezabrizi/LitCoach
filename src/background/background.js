@@ -33,12 +33,20 @@ const LEETCODE_SUBMISSION_DETAILS_QUERY = `
 
 chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(console.error);
 
+// Function to check if the current tab is a LeetCode problem
 function checkIfLeetCodeProblem(tab) {
-    if (tab.url && tab.url.startsWith(LEETCODE_PROBLEM_URL)) {
-        chrome.runtime.sendMessage({ isLeetCodeProblem: true });
-    } else {
-        chrome.runtime.sendMessage({ isLeetCodeProblem: false });
-    }
+    const isLeetCodeProblem = tab.url && tab.url.startsWith(LEETCODE_PROBLEM_URL);
+    chrome.runtime.sendMessage({ isLeetCodeProblem }, () => {
+        const errorMessage = chrome.runtime.lastError?.message;
+        // Ignore these errors since sidepanel may not always be open
+        if (
+            errorMessage &&
+            errorMessage !== "Could not establish connection. Receiving end does not exist." &&
+            errorMessage !== "The message port closed before a response was received."
+        ) {
+            console.error(errorMessage);
+        }
+    });
 }
 
 // Monitor for tab updates
@@ -49,8 +57,8 @@ chrome.tabs.onUpdated.addListener((_, changeInfo, tab) => {
 });
 
 // Monitor for tab switches
-chrome.tabs.onActivated.addListener((activeInfo) => {
-    chrome.tabs.get(activeInfo.tabId, (tab) => {
+chrome.tabs.onActivated.addListener(({ tabId }) => {
+    chrome.tabs.get(tabId, (tab) => {
         checkIfLeetCodeProblem(tab);
     });
 });
@@ -68,7 +76,7 @@ chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
                     return window.monaco.editor.getModels()[0].getValue();
                 },
             });
-            sendResponse(result?.result ? { success: true, value: result.result } : { success: false });
+            sendResponse(result?.result);
         });
         return true;
     }
@@ -84,7 +92,7 @@ chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
                 target: { tabId: id },
                 func: () => document.querySelector('meta[name="description"]')?.content || null,
             });
-            sendResponse(result?.result ? { success: true, value: result.result } : { success: false });
+            sendResponse(result?.result);
         });
         return true;
     }
@@ -106,7 +114,7 @@ async function fetchSubmissionDetails(submissionId) {
 }
 
 // Monitor for submission result changes
-chrome.tabs.onUpdated.addListener((changeInfo, tab) => {
+chrome.tabs.onUpdated.addListener((_, changeInfo, tab) => {
     if (tab.url?.startsWith(LEETCODE_PROBLEM_URL) && changeInfo.status === "complete") {
         chrome.storage.sync.get(["selected_repo_id", "github_user_id"], async (data) => {
             if (!data.selected_repo_id || !data.github_user_id) return;
@@ -143,6 +151,7 @@ chrome.tabs.onUpdated.addListener((changeInfo, tab) => {
                         user_github_id: data.github_user_id,
                         github_repo_id: data.selected_repo_id,
                     });
+                    console.log("Successfully submitted problem to user's github repo");
                 } catch (error) {
                     console.error(error);
                 }
@@ -156,7 +165,7 @@ chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
     if (message.action === "isAuthenticated") {
         chrome.storage.sync.get("github_user_id", async (data) => {
             if (!data.github_user_id) {
-                sendResponse({ authenticated: false });
+                sendResponse(false);
                 return;
             }
 
@@ -164,10 +173,10 @@ chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
                 await axios.get(`${API_URL}/user/valid_user`, {
                     params: { github_id: data.github_user_id },
                 });
-                sendResponse({ authenticated: true });
+                sendResponse(true);
             } catch (error) {
                 console.error(error);
-                sendResponse({ authenticated: false });
+                sendResponse(false);
             }
         });
 
