@@ -9,15 +9,13 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { ToastAction } from "@/components/ui/toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { AuthComponent } from "@/components/github-auth";
+import ReportIssueButton from "@/components/report-issue";
 
-const FEEDBACK_FORM = "https://forms.gle/p2Qv8c7uJSgpK6zB7";
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
 const repoFormSchema = z.object({
@@ -66,19 +64,10 @@ const App = () => {
                         setSelectedRepoName(selectedRepo?.name || "");
                     }
                 }
-            } catch (error) {
-                console.error(error);
+            } catch {
                 toast({
                     title: "An error occurred",
                     description: "Cannot fetch repositories",
-                    action: (
-                        <ToastAction
-                            altText="Report Issue"
-                            onClick={() => window.open(FEEDBACK_FORM, "_blank", "noopener,noreferrer")}
-                        >
-                            Report Issue
-                        </ToastAction>
-                    ),
                 });
             } finally {
                 setLoading(false);
@@ -142,18 +131,10 @@ const App = () => {
                     variant: "destructive",
                 });
             } else {
-                console.error(error);
+                console.error("Error creating repository:", error);
                 toast({
                     title: "An error occurred",
                     description: "Cannot create repository",
-                    action: (
-                        <ToastAction
-                            altText="Report Issue"
-                            onClick={() => window.open(FEEDBACK_FORM, "_blank", "noopener,noreferrer")}
-                        >
-                            Report Issue
-                        </ToastAction>
-                    ),
                 });
             }
         } finally {
@@ -161,107 +142,117 @@ const App = () => {
         }
     };
 
-    const content = (
+    return (
         <div className="min-h-screen flex items-center justify-center">
             {loading ? (
                 <Loader2 className="w-6 h-6 animate-spin" />
             ) : (
-                <Card className="w-full max-w-md">
-                    <CardHeader>
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <FolderGit2 className="w-5 h-5" />
-                                <CardTitle>LeetCode to GitHub</CardTitle>
+                <div className="space-y-4 flex flex-col w-full max-w-md">
+                    <Card>
+                        <CardHeader>
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <FolderGit2 className="w-5 h-5" />
+                                    <CardTitle>LeetCode to GitHub</CardTitle>
+                                </div>
+                                <Badge variant={selectedRepoID ? "default" : "secondary"}>
+                                    {selectedRepoID ? "Active" : "Disabled"}
+                                </Badge>
                             </div>
-                            <Badge variant={selectedRepoID ? "default" : "secondary"}>
-                                {selectedRepoID ? "Active" : "Disabled"}
-                            </Badge>
-                        </div>
-                        <CardDescription className="pb-2">
-                            {selectedRepoName
-                                ? `Currently syncing to: ${selectedRepoName}`
-                                : "Select a repository to start syncing"}
-                        </CardDescription>
-                        <Separator />
-                        <div className="pt-2 flex items-center justify-between">
-                            <div className="space-y-1">
-                                <h4 className="text-sm font-medium">Sync Status</h4>
-                                <p className="text-sm text-muted-foreground">
-                                    Enable or disable automatic syncing
-                                </p>
+                            <CardDescription className="pb-2">
+                                {selectedRepoName
+                                    ? `Currently syncing to: ${selectedRepoName}`
+                                    : "Select a repository to start syncing"}
+                            </CardDescription>
+                            <Separator />
+                            <div className="pt-2 flex items-center justify-between">
+                                <div className="space-y-1">
+                                    <h4 className="text-sm font-medium">Sync Status</h4>
+                                    <p className="text-sm text-muted-foreground">
+                                        Enable or disable automatic syncing
+                                    </p>
+                                </div>
+                                <Switch checked={!!selectedRepoID} onCheckedChange={handleToggleSync} />
                             </div>
-                            <Switch checked={!!selectedRepoID} onCheckedChange={handleToggleSync} />
-                        </div>
-                    </CardHeader>
+                        </CardHeader>
 
-                    {selectedRepoID && (
-                        <CardContent>
-                            <Tabs defaultValue="select">
-                                <TabsList className="grid w-full grid-cols-2">
-                                    <TabsTrigger value="select">
-                                        <Settings2 className="w-4 h-4 mr-2" />
-                                        Select Repo
-                                    </TabsTrigger>
-                                    <TabsTrigger value="create">
-                                        <Plus className="w-4 h-4 mr-2" />
-                                        New Repo
-                                    </TabsTrigger>
-                                </TabsList>
+                        {selectedRepoID && (
+                            <CardContent>
+                                <Tabs defaultValue="select">
+                                    <TabsList className="grid w-full grid-cols-2">
+                                        <TabsTrigger value="select">
+                                            <Settings2 className="w-4 h-4 mr-2" />
+                                            Select Repo
+                                        </TabsTrigger>
+                                        <TabsTrigger value="create">
+                                            <Plus className="w-4 h-4 mr-2" />
+                                            New Repo
+                                        </TabsTrigger>
+                                    </TabsList>
 
-                                <TabsContent value="select" className="mt-4">
-                                    <Select value={selectedRepoID?.toString()} onValueChange={handleRepoSelect}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder={selectedRepoName || "Choose a repository"} />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {repos.map(({ id, name }) => (
-                                                <SelectItem key={id} value={id.toString()}>
-                                                    {name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </TabsContent>
+                                    <TabsContent value="select" className="mt-4">
+                                        <Select
+                                            value={selectedRepoID?.toString()}
+                                            onValueChange={handleRepoSelect}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue
+                                                    placeholder={selectedRepoName || "Choose a repository"}
+                                                />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {repos.map(({ id, name }) => (
+                                                    <SelectItem key={id} value={id.toString()}>
+                                                        {name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </TabsContent>
 
-                                <TabsContent value="create" className="mt-4">
-                                    <Form {...form}>
-                                        <form onSubmit={form.handleSubmit(handleCreateRepo)} className="space-y-4">
-                                            <FormField
-                                                control={form.control}
-                                                name="repoName"
-                                                render={({ field }) => (
-                                                    <FormItem>
-                                                        <FormControl>
-                                                            <Input
-                                                                placeholder="Enter repository name"
-                                                                disabled={creatingRepo}
-                                                                {...field}
-                                                            />
-                                                        </FormControl>
-                                                        <FormMessage />
-                                                    </FormItem>
-                                                )}
-                                            />
-                                            <Button type="submit" disabled={creatingRepo} className="w-full">
-                                                {creatingRepo ? (
-                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                ) : (
-                                                    <Plus className="mr-2 h-4 w-4" />
-                                                )}
-                                                Create Repository
-                                            </Button>
-                                        </form>
-                                    </Form>
-                                </TabsContent>
-                            </Tabs>
-                        </CardContent>
-                    )}
-                </Card>
+                                    <TabsContent value="create" className="mt-4">
+                                        <Form {...form}>
+                                            <form
+                                                onSubmit={form.handleSubmit(handleCreateRepo)}
+                                                className="space-y-4"
+                                            >
+                                                <FormField
+                                                    control={form.control}
+                                                    name="repoName"
+                                                    render={({ field }) => (
+                                                        <FormItem>
+                                                            <FormControl>
+                                                                <Input
+                                                                    placeholder="Enter repository name"
+                                                                    disabled={creatingRepo}
+                                                                    {...field}
+                                                                />
+                                                            </FormControl>
+                                                            <FormMessage />
+                                                        </FormItem>
+                                                    )}
+                                                />
+                                                <Button type="submit" disabled={creatingRepo} className="w-full">
+                                                    {creatingRepo ? (
+                                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                    ) : (
+                                                        <Plus className="mr-2 h-4 w-4" />
+                                                    )}
+                                                    Create Repository
+                                                </Button>
+                                            </form>
+                                        </Form>
+                                    </TabsContent>
+                                </Tabs>
+                            </CardContent>
+                        )}
+                    </Card>
+
+                    <ReportIssueButton />
+                </div>
             )}
         </div>
     );
-
-    return <AuthComponent>{content}</AuthComponent>;
 };
 
 export default App;

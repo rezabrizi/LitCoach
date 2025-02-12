@@ -3,13 +3,12 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { Info, Send, StopCircle } from "lucide-react";
-import { AuthComponent } from "@/components/github-auth";
 import { useToast } from "@/hooks/use-toast";
 import ReactMarkdown from "react-markdown";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import InvalidPage from "@/components/invalid-page";
 
-const OPTINS_PAGE = "chrome-extension://pbkbbpmpbidfjbcapgplbdogiljdechf/src/options/index.html";
+const OPTIONS_PAGE = "chrome-extension://pbkbbpmpbidfjbcapgplbdogiljdechf/src/options/index.html";
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 const MAX_CONTEXT_MESSAGES = 3;
 const MAX_CHAR_LIMIT = 75;
@@ -41,14 +40,6 @@ function App() {
     }, [messages]);
 
     useEffect(() => {
-        const updateIsValidPage = (message) => {
-            if (message.isLeetCodeProblem !== undefined) {
-                setIsValidPage(message.isLeetCodeProblem);
-            }
-        };
-
-        chrome.runtime.onMessage.addListener(updateIsValidPage);
-
         chrome.tabs.query({ active: true, currentWindow: true }, ([currentTab]) => {
             setIsValidPage(currentTab?.url?.startsWith("https://leetcode.com/problems/") || false);
         });
@@ -56,10 +47,17 @@ function App() {
         const shuffled = [...SUGGESTIONS].sort(() => 0.5 - Math.random());
         setSuggestions(shuffled.slice(0, 5));
 
+        chrome.runtime.onMessage.addListener(updateIsValidPage);
         return () => {
             chrome.runtime.onMessage.removeListener(updateIsValidPage);
         };
     }, []);
+
+    const updateIsValidPage = (message) => {
+        if (message.isLeetCodeProblem !== undefined) {
+            setIsValidPage(message.isLeetCodeProblem);
+        }
+    };
 
     const handleInputChange = (e) => {
         setShowSuggestions(false);
@@ -131,6 +129,7 @@ function App() {
             }
         } catch (error) {
             if (error.name !== "AbortError") {
+                console.log("Error fetching AI response:", error);
                 toast({
                     variant: "destructive",
                     title: "Error",
@@ -165,7 +164,7 @@ function App() {
     const content = (
         <div className="h-screen flex flex-col">
             <div className="p-2 border-b flex items-center justify-between">
-                <Button variant="ghost" size="icon" onClick={() => window.open(OPTINS_PAGE)}>
+                <Button variant="ghost" size="icon" onClick={() => window.open(OPTIONS_PAGE)}>
                     <Info className="h-5 w-5" />
                 </Button>
                 <Select value={selectedModel} onValueChange={setSelectedModel}>
@@ -245,7 +244,7 @@ function App() {
         </div>
     );
 
-    return <AuthComponent>{isValidPage ? content : <InvalidPage />}</AuthComponent>;
+    return isValidPage ? content : <InvalidPage />;
 }
 
 export default App;
