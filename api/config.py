@@ -8,11 +8,8 @@ class Settings(BaseSettings):
     MONGO_DB_PASS: str
     OPENAI_KEY: str
     DEEPSEEK_KEY: str
-    OPENAI_PROJECT_ID: str = "proj_tBo3vZb4T5ghUKf96NEzuQNM"
-    PROJECT_ID: str = "proj_tBo3vZb4T5ghUKf96NEzuQNM"
     GITHUB_CLIENT_ID: str
     GITHUB_CLIENT_SECRET: str
-    CUSTOM_VAL: str
     # STRIPE_WEBHOOK_SECRET: str
     # STRIPE_API_KEY: str
     model_config = SettingsConfigDict(env_file=".env", extra="allow")
