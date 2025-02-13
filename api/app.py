@@ -4,7 +4,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from api.routes import router
 from api.config import get_settings
 
-
 app = FastAPI()
 settings = get_settings()
 
@@ -24,4 +23,4 @@ app.include_router(router)
 
 @app.get("/health")
 def health_check():
-    return {"message": "healthy", "?": settings.CUSTOM_VAL}
+    return {"message": "healthy"}

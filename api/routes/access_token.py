@@ -5,14 +5,13 @@ from api.db import user_exists, add_new_user, upsert_user
 from api.services import resolve_github_access_token, get_user_info_from_github
 from api.models import GithubCode
 
-
 router = APIRouter()
 
 
 @router.post("/github_access_token")
-def github_callback(github_code: GithubCode):
+def github_callback(request: GithubCode):
     try:
-        access_token = resolve_github_access_token(github_code.code)
+        access_token = resolve_github_access_token(request.code)
         github_user_info = get_user_info_from_github(access_token)
 
         user_data = {
@@ -47,13 +46,12 @@ def github_callback(github_code: GithubCode):
             )
 
         return JSONResponse(
-            content={"message": "User already exists", "user_id": user_data["user_id"]},
+            content={"message": "User already exists"},
             status_code=203,
         )
     except HTTPException:
         raise
     except Exception as e:
-        print(e)
         raise HTTPException(
             status_code=500, detail=f"An unexpected error occurred: {str(e)}"
         )

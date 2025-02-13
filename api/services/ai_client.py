@@ -2,9 +2,7 @@ from openai import OpenAI, OpenAIError, RateLimitError, AuthenticationError, API
 
 
 class AIClient:
-    def __init__(
-        self, openai_api_key: str, deepseek_api_key: str
-    ):
+    def __init__(self, openai_api_key: str, deepseek_api_key: str):
         self.oa_client = OpenAI(api_key=openai_api_key)
         self.ds_client = OpenAI(
             api_key=deepseek_api_key, base_url="https://api.deepseek.com"

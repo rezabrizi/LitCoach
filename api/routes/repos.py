@@ -3,7 +3,6 @@ from fastapi.responses import JSONResponse
 from api.db import user_exists
 from api.services import get_user_repos
 
-
 router = APIRouter()
 
 
