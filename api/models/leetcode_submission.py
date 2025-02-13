@@ -6,12 +6,14 @@ class LangInfo(BaseModel):
     name: str
     verboseName: str
 
+
 class QuestionInfo(BaseModel):
     questionId: str
     title: str
     titleSlug: str
     content: str
     difficulty: str
+
 
 class LeetCodeSubmission(BaseModel):
     runtimeDisplay: str

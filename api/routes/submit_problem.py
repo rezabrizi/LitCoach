@@ -1,9 +1,9 @@
+import time
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from api.models import LeetCodeSubmission
 from api.db import user_exists
 from api.services import resolve_github_repo_id_to_repo_name, push_to_github
-
 
 router = APIRouter()
 
@@ -68,6 +68,8 @@ def submit_problem(request: LeetCodeSubmission):
             repo_name=repo["name"],
             access_token=user.access_token,
         )
+
+        time.sleep(5)
 
         push_to_github(
             file_path=solution_path,
