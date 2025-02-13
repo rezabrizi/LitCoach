@@ -1,4 +1,4 @@
-from .openai import AIClient, get_ai_prompt
+from .ai_client import AIClient, get_ai_prompt
 from .github import (
     resolve_github_access_token,
     get_user_info_from_github,
