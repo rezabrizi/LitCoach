@@ -2,7 +2,7 @@ import time
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from api.models import LeetCodeSubmission
-from api.db import user_exists
+from api.db import resolve_user
 from api.services import resolve_github_repo_id_to_repo_name, push_to_github
 
 router = APIRouter()
@@ -36,12 +36,12 @@ LANGUAGE_EXTENSIONS = {
 }
 
 
-@router.post("/submit_problem")
-def submit_problem(request: LeetCodeSubmission):
+@router.post("/push_solution_to_github")
+def push_solution_to_github(request: LeetCodeSubmission):
     try:
-        user = user_exists(request.user_github_id)
+        user = resolve_user(request.user_github_id)
         if not user:
-            raise HTTPException(status_code=403, detail="User not found!")
+            raise HTTPException(status_code=404, detail="User not found")
 
         repo = resolve_github_repo_id_to_repo_name(
             request.github_repo_id, user.access_token
@@ -55,7 +55,7 @@ def submit_problem(request: LeetCodeSubmission):
         solution_path = f"{folder_name}/{request.question.titleSlug}.{extension}"
         solution_git_message = f"Time: {request.runtimeDisplay} ({request.runtimePercentile:.2f}%) Space: {request.memoryDisplay} ({request.memoryPercentile:.2f}%)"
         readme_content = f"""
-# [{request.question.title}](https://leetcode.com/problems/{request.question.titleSlug}) ![](https://img.shields.io/badge/{request.question.difficulty}-{DIFFICULTY_MAP[request.question.difficulty]})
+# [{request.question.title}](https://leetcode.com/problems/{request.question.titleSlug}) ![](https://img.shields.io/badge/{request.question.difficulty}-{DIFFICULTY_MAP.get(request.question.difficulty, 'gray')})
 
 {request.question.content}
         """
@@ -63,7 +63,7 @@ def submit_problem(request: LeetCodeSubmission):
         push_to_github(
             file_path=readme_path,
             content=readme_content,
-            commit_message=f"Add problem description for {request.question.title}",
+            commit_message=f"Problem description for {request.question.title}",
             owner_name=repo["owner"],
             repo_name=repo["name"],
             access_token=user.access_token,

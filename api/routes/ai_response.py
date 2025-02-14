@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 from openai import OpenAIError
 from api.models import AIHelp
-from api.db import can_user_use_ai, update_user_tokens
+from api.db import can_user_use_ai, update_user_tokens, resolve_user
 from api.services.ai_client import get_ai_prompt, AIClient
 from api.config import settings
 
@@ -13,12 +13,20 @@ openai_client = AIClient(
 router = APIRouter()
 
 
-@router.post("/get_ai_help")
-def ai_help(request: AIHelp):
-    if not can_user_use_ai(request.github_id):
+@router.post("/generate_ai_response")
+def generate_ai_response(request: AIHelp):
+    user = resolve_user(request.github_id)
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found",
+        )
+
+    can_use, reason = can_user_use_ai(user.user_id)
+    if not can_use:
         raise HTTPException(
             status_code=403,
-            detail="Insufficient tokens. Please upgrade to premium or buy more tokens.",
+            detail=reason,
         )
 
     if request.llm not in ["gpt-4o-mini", "deepseek-chat"]:
@@ -48,7 +56,7 @@ def ai_help(request: AIHelp):
                     total_prompt_tokens += chunk.usage.prompt_tokens
 
             total_tokens = total_completion_tokens * 4 + total_prompt_tokens
-            update_user_tokens(request.github_id, total_tokens)
+            update_user_tokens(user.user_id, total_tokens)
 
         return StreamingResponse(generate(), media_type="text/event-stream")
 

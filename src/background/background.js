@@ -146,7 +146,7 @@ chrome.tabs.onUpdated.addListener((_, changeInfo, tab) => {
                 }
 
                 try {
-                    await axios.post(`${API_URL}/user/submit_problem`, {
+                    await axios.post(`${API_URL}/user/push_solution_to_github`, {
                         ...details,
                         user_github_id: data.github_user_id,
                         github_repo_id: data.selected_repo_id,

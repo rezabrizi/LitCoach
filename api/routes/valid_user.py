@@ -1,7 +1,6 @@
-import requests
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
-from api.db import user_exists
+from api.db import resolve_user
 
 
 router = APIRouter()
@@ -10,8 +9,8 @@ router = APIRouter()
 @router.get("/valid_user")
 def valid_user(github_id: int):
     try:
-        if not user_exists(github_id):
-            raise HTTPException(404, detail="User Does Not Exist")
+        if not resolve_user(github_id):
+            raise HTTPException(404, detail="User not found")
 
         return JSONResponse(
             content={"message": "User is valid"},

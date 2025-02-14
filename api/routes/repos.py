@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
-from api.db import user_exists
+from api.db import resolve_user
 from api.services import get_user_repos
 
 router = APIRouter()
@@ -9,9 +9,9 @@ router = APIRouter()
 @router.get("/repos")
 def get_all_available_repos(github_id: int):
     try:
-        user = user_exists(github_id)
+        user = resolve_user(github_id)
         if not user:
-            raise HTTPException(403, detail="User Does Not Exist")
+            raise HTTPException(404, detail="User not found")
 
         user_repos = get_user_repos(user.access_token)
 
