@@ -3,7 +3,8 @@ name = "api"
 version = "0.1.0"
 description = "LitCoach API"
 authors = [
-    { name = "Reza Tabrizi", email = "rtabrizi03@gmail.com" }
+    { name = "Reza Tabrizi", email = "rtabrizi03@gmail.com" },
+    { name = "Giridhar Nair", email = "giridhar.r.nair@gmail.com" }
 ]
 readme = "README.md"
 requires-python = ">=3.12"
