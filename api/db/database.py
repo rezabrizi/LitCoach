@@ -1,4 +1,4 @@
-from datetime import datetime, timezone, date, timedelta
+from datetime import datetime, timezone, timedelta
 from api.models.user import User
 from pymongo import MongoClient
 import certifi
@@ -17,22 +17,11 @@ def resolve_user(user_id: int) -> User | None:
     if not user_data:
         return None
 
-    for field in [
-        "account_creation_date",
-        "last_monthly_token_reset",
-        "last_5_hour_cooldown_reset",
-    ]:
-        if field in user_data:
-            user_data[field] = user_data[field].replace(tzinfo=timezone.utc)
-
     return User(**user_data)
 
 
-def add_new_user(
-    user_id: str,
-    access_token: str,
-    account_creation_date: date,
-):
+def add_new_user(user_id: str, access_token: str):
+    account_creation_date = datetime.now(timezone.utc).isoformat()
     USERS_COLLECTION.insert_one(
         {
             "user_id": user_id,
@@ -83,9 +72,7 @@ def is_user_premium(user_id: str) -> bool:
         return False
 
     premium_expiry = user.get("premium_expiry")
-    if premium_expiry and datetime.now(timezone.utc) > datetime.fromisoformat(
-        premium_expiry
-    ):
+    if premium_expiry and datetime.fromisoformat(premium_expiry) < datetime.now(timezone.utc):
         USERS_COLLECTION.update_one(
             {"user_id": user_id},
             {"$set": {"is_premium": False, "premium_expiry": None}},
@@ -97,23 +84,23 @@ def is_user_premium(user_id: str) -> bool:
 
 def reset_tokens_if_needed(user: User):
     now = datetime.now(timezone.utc)
-    if now - user.last_monthly_token_reset >= timedelta(days=30):
+    if now - datetime.fromisoformat(user.last_monthly_token_reset) >= timedelta(days=30):
         USERS_COLLECTION.update_one(
             {"user_id": user.user_id},
             {
                 "$set": {
                     "tokens_used_monthly": 0,
-                    "last_monthly_token_reset": now,
+                    "last_monthly_token_reset": now.isoformat(),
                 }
             },
         )
-    if now - user.last_5_hour_cooldown_reset >= timedelta(hours=5):
+    if now - datetime.fromisoformat(user.last_5_hour_cooldown_reset) >= timedelta(hours=5):
         USERS_COLLECTION.update_one(
             {"user_id": user.user_id},
             {
                 "$set": {
                     "tokens_used_in_past_5_hours": 0,
-                    "last_5_hour_cooldown_reset": now,
+                    "last_5_hour_cooldown_reset": now.isoformat(),
                 }
             },
         )
@@ -134,3 +121,21 @@ def can_user_use_ai(user_id: int) -> tuple[bool, str | None]:
         return False, "Exceeded monthly limit"
 
     return True, None
+
+
+def update_premium_status(user_id: int, is_premium: bool, premium_expiry: datetime, subscription_id: str):
+    USERS_COLLECTION.update_one(
+        {"user_id": user_id},
+        {
+            "$set": {
+                "is_premium": is_premium,
+                "premium_expiry": premium_expiry.isoformat(),
+                "subscription_id": subscription_id,
+            }
+        },
+    )
+
+
+def get_user_subscription_id(user_id: int):
+    user = USERS_COLLECTION.find_one({"user_id": user_id})
+    return user.get("subscription_id") if user else None

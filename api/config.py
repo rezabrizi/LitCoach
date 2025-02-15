@@ -8,8 +8,8 @@ class Settings(BaseSettings):
     DEEPSEEK_KEY: str
     GITHUB_CLIENT_ID: str
     GITHUB_CLIENT_SECRET: str
-    # STRIPE_WEBHOOK_SECRET: str
-    # STRIPE_API_KEY: str
+    STRIPE_WEBHOOK_SECRET: str
+    STRIPE_API_KEY: str
     model_config = SettingsConfigDict(env_file=".env", extra="allow")
 
 
