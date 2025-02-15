@@ -2,7 +2,6 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from api.db import resolve_user
 
-
 router = APIRouter()
 
 

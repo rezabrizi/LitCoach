@@ -1,4 +1,3 @@
-from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from api.db import resolve_user, add_new_user, update_user_access_token
@@ -12,34 +11,28 @@ router = APIRouter()
 def github_access_token(request: GithubCode):
     try:
         access_token = resolve_github_access_token(request.code)
-        github_user_info = get_user_info_from_github(access_token)
+        user_id = int(get_user_info_from_github(access_token)["id"])
 
-        user_data = {
-            "user_id": int(github_user_info["id"]),
-            "access_token": access_token,
-            "account_creation_date": datetime.now(timezone.utc),
-        }
-
-        existing_user = resolve_user(user_id=user_data["user_id"])
+        existing_user = resolve_user(user_id=user_id)
 
         if not existing_user:
-            add_new_user(**user_data)
+            add_new_user(user_id=user_id, access_token=access_token)
             return JSONResponse(
                 content={
                     "message": "User added successfully",
-                    "user_id": user_data["user_id"],
+                    "user_id": user_id,
                 },
                 status_code=201,
             )
 
         if existing_user.access_token != access_token:
             update_user_access_token(
-                user_id=user_data["user_id"], access_token=access_token
+                user_id=user_id, access_token=access_token
             )
             return JSONResponse(
                 content={
                     "message": "User already exists; Access Token updated",
-                    "user_id": user_data["user_id"],
+                    "user_id": user_id,
                 },
                 status_code=202,
             )
