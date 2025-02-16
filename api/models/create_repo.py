@@ -2,5 +2,5 @@ from pydantic import BaseModel
 
 
 class CreateRepo(BaseModel):
-    github_id: int
+    user_id: str
     repo_name: str

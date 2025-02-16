@@ -51,7 +51,7 @@ def get_user_info_from_github(access_token: str) -> dict:
         )
 
 
-def get_user_repos(access_token: str) -> List[dict]:
+def get_user_github_repos(access_token: str) -> List[dict]:
     url = "https://api.github.com/user/repos"
     headers = {"Authorization": f"token {access_token}"}
     params = {"affiliation": "owner", "per_page": 100}
@@ -81,7 +81,7 @@ def get_user_repos(access_token: str) -> List[dict]:
 
 
 def resolve_github_repo_id_to_repo_name(repo_id: int, access_token: str) -> dict:
-    repos = get_user_repos(access_token=access_token)
+    repos = get_user_github_repos(access_token=access_token)
 
     for repo in repos:
         if repo.get("id") == repo_id:
@@ -145,7 +145,7 @@ def create_github_repo(repo_name: str, access_token: str) -> int:
     }
 
     repo_names = [
-        repo.get("name") for repo in get_user_repos(access_token=access_token)
+        repo.get("name") for repo in get_user_github_repos(access_token=access_token)
     ]
     if repo_name in repo_names:
         raise HTTPException(

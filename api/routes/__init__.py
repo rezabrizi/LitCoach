@@ -2,29 +2,25 @@ from fastapi import APIRouter
 
 from .access_token import router as access_token_router
 from .create_repo import router as create_repo_router
-from .push_solution import router as push_solution_to_github_router
-from .repos import router as repos_router
+from .leetcode_submission import router as github_sync_router
 from .ai_response import router as ai_response_router
-from .valid_user import router as valid_user_router
 from .stripe_webhook import router as stripe_webhook_router
 from .subscribe import router as subscribe_router
 from .unsubscribe import router as unsubscribe_router
+from .user_info import router as user_info_router
 
 router = APIRouter()
 
-router.include_router(access_token_router, prefix="/auth", tags=["Authentication"])
-router.include_router(ai_response_router, prefix="/ai", tags=["AI Assistance"])
+router.include_router(access_token_router, prefix="/auth") # /auth/github
+router.include_router(ai_response_router, prefix="/ai") # /ai/assistance
 
-router.include_router(create_repo_router, prefix="/user", tags=["Repositories"])
-router.include_router(
-    push_solution_to_github_router, prefix="/user", tags=["Submissions"]
-)
-router.include_router(repos_router, prefix="/user", tags=["Repositories"])
-router.include_router(valid_user_router, prefix="/user", tags=["User Validation"])
+router.include_router(create_repo_router, prefix="/user/github") # /user/github/repo
+router.include_router(github_sync_router, prefix="/user/github") # /user/github/submission
+router.include_router(user_info_router, prefix="/user") # /user/info
 
-router.include_router(stripe_webhook_router, prefix="/payment", tags=["User Payment"])
-router.include_router(subscribe_router, prefix="/payment", tags=["Activate Premium"])
-router.include_router(unsubscribe_router, prefix="/payment", tags=["Cancel Premium"])
+router.include_router(stripe_webhook_router, prefix="/stripe") #/stripe/webhook
+router.include_router(subscribe_router, prefix="/subscription") # /subscription/subscribe
+router.include_router(unsubscribe_router, prefix="/subscription") # /subscription/unsubscribe
 
 __all__ = [
     "router",

@@ -13,16 +13,16 @@ openai_client = AIClient(
 router = APIRouter()
 
 
-@router.post("/generate_ai_response")
-def generate_ai_response(request: AIHelp):
-    user = resolve_user(request.github_id)
+@router.post("/assistance")
+def generate_ai_assistance(request: AIHelp):
+    user = resolve_user(request.user_id)
     if not user:
         raise HTTPException(
             status_code=404,
             detail="User not found",
         )
 
-    can_use, reason = can_user_use_ai(user.user_id)
+    can_use, reason = can_user_use_ai(user.github_id)
     if not can_use:
         raise HTTPException(
             status_code=403,

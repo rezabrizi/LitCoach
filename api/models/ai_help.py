@@ -12,5 +12,5 @@ class AIHelp(BaseModel):
     context: Optional[List[Message]]
     code: str
     prompt: str
-    github_id: int
+    user_id: str
     llm: str

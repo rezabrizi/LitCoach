@@ -12,7 +12,7 @@ MONTHLY_LIMIT = 2000000
 FIVE_HOUR_LIMIT = 66666
 
 
-def resolve_user(user_id: int) -> User | None:
+def resolve_user(user_id: str) -> User | None:
     user_data = USERS_COLLECTION.find_one({"user_id": user_id})
     if not user_data:
         return None
@@ -20,13 +20,22 @@ def resolve_user(user_id: int) -> User | None:
     return User(**user_data)
 
 
-def add_new_user(user_id: str, access_token: str):
+def resolve_user_by_github_id(github_id: str) -> User | None:
+    user_data = USERS_COLLECTION.find_one({"github_id": github_id})
+    if not user_data:
+        return None
+
+    return User(**user_data)
+
+
+def add_new_user(user_id: str, github_id: str, access_token: str):
     account_creation_date = datetime.now(timezone.utc).isoformat()
     USERS_COLLECTION.insert_one(
         {
             "user_id": user_id,
+            "github_id": github_id,
             "access_token": access_token,
-            "is_premium": False,
+            "has_premium": False,
             "premium_expiry": None,
             "account_creation_date": account_creation_date,
             "tokens_used_monthly": 0,
@@ -37,7 +46,7 @@ def add_new_user(user_id: str, access_token: str):
     )
 
 
-def update_user_tokens(user_id: int, new_tokens: int):
+def update_user_tokens(user_id: str, new_tokens: int):
     user = resolve_user(user_id)
     if not user:
         return
@@ -55,27 +64,27 @@ def update_user_tokens(user_id: int, new_tokens: int):
     )
 
 
-def update_user_access_token(user_id: int, access_token: str):
+def update_user_access_token(user_id: str, new_access_token: str):
     user = resolve_user(user_id)
     if not user:
         return
 
     USERS_COLLECTION.update_one(
         {"user_id": user_id},
-        {"$set": {"access_token": access_token}},
+        {"$set": {"access_token": new_access_token}},
     )
 
 
 def is_user_premium(user_id: str) -> bool:
     user = USERS_COLLECTION.find_one({"user_id": user_id})
-    if not user or not user.get("is_premium"):
+    if not user or not user.get("has_premium"):
         return False
 
     premium_expiry = user.get("premium_expiry")
     if premium_expiry and datetime.fromisoformat(premium_expiry) < datetime.now(timezone.utc):
         USERS_COLLECTION.update_one(
             {"user_id": user_id},
-            {"$set": {"is_premium": False, "premium_expiry": None}},
+            {"$set": {"has_premium": False, "premium_expiry": None}},
         )
         return False
 
@@ -106,7 +115,7 @@ def reset_tokens_if_needed(user: User):
         )
 
 
-def can_user_use_ai(user_id: int) -> tuple[bool, str | None]:
+def can_user_use_ai(user_id: str) -> tuple[bool, str | None]:
     user = resolve_user(user_id)
     if not user:
         return False, "User not found"
@@ -123,12 +132,12 @@ def can_user_use_ai(user_id: int) -> tuple[bool, str | None]:
     return True, None
 
 
-def update_premium_status(user_id: int, is_premium: bool, premium_expiry: datetime, subscription_id: str):
+def update_premium_status(user_id: str, has_premium: bool, premium_expiry: datetime, subscription_id: str):
     USERS_COLLECTION.update_one(
         {"user_id": user_id},
         {
             "$set": {
-                "is_premium": is_premium,
+                "has_premium": has_premium,
                 "premium_expiry": premium_expiry.isoformat(),
                 "subscription_id": subscription_id,
             }
@@ -136,6 +145,6 @@ def update_premium_status(user_id: int, is_premium: bool, premium_expiry: dateti
     )
 
 
-def get_user_subscription_id(user_id: int):
+def get_user_subscription_id(user_id: str):
     user = USERS_COLLECTION.find_one({"user_id": user_id})
     return user.get("subscription_id") if user else None

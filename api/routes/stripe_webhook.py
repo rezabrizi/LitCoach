@@ -26,13 +26,11 @@ async def stripe_webhook(request: Request):
         user_id = int(session["metadata"]["user_id"])
         subscription_id = session.get("subscription")
         expiry_date = datetime.now(timezone.utc) + timedelta(days=30)
-
         update_premium_status(user_id, True, expiry_date.isoformat(), subscription_id)
 
     elif event["type"] == "customer.subscription.deleted":
         subscription = event["data"]["object"]
         user_id = int(subscription["metadata"]["user_id"])
-
         update_premium_status(user_id, False, None, None)
 
     return {"status": "success"}

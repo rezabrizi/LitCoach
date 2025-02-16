@@ -36,10 +36,10 @@ LANGUAGE_EXTENSIONS = {
 }
 
 
-@router.post("/push_solution_to_github")
-def push_solution_to_github(request: LeetCodeSubmission):
+@router.post("/submission")
+def leetcode_submission(request: LeetCodeSubmission):
     try:
-        user = resolve_user(request.user_github_id)
+        user = resolve_user(request.user_id)
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
@@ -47,7 +47,7 @@ def push_solution_to_github(request: LeetCodeSubmission):
             request.github_repo_id, user.access_token
         )
         if not repo:
-            raise HTTPException(status_code=404, detail="GitHub repository not found!")
+            raise HTTPException(status_code=404, detail="GitHub repository not found")
 
         folder_name = f"{request.question.questionId}-{request.question.titleSlug}"
         readme_path = f"{folder_name}/README.md"
@@ -69,8 +69,6 @@ def push_solution_to_github(request: LeetCodeSubmission):
             access_token=user.access_token,
         )
 
-        time.sleep(5)
-
         push_to_github(
             file_path=solution_path,
             content=request.code,
@@ -83,7 +81,6 @@ def push_solution_to_github(request: LeetCodeSubmission):
         return JSONResponse(
             content={
                 "message": "Problem and solution successfully added to GitHub!",
-                "problem": folder_name,
             },
             status_code=201,
         )

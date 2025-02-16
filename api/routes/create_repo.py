@@ -7,10 +7,10 @@ from api.models import CreateRepo
 router = APIRouter()
 
 
-@router.post("/create_repo")
+@router.post("/repo")
 def create_repo(request: CreateRepo):
     try:
-        user = resolve_user(request.github_id)
+        user = resolve_user(request.user_id)
         if not user:
             raise HTTPException(status_code=403, details="User not found")
 
