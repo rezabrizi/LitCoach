@@ -24,8 +24,8 @@ def subscribe(request: SubscribeRequest):
                 }
             ],
             mode="subscription",
-            success_url="https://www.leetcode.com/success",
-            cancel_url="https://www.leetcode.com/cancel",
+            success_url="https://www.leetcode.com/",
+            cancel_url="https://www.leetcode.com/",
             metadata={"user_id": str(request.user_id)},
         )
 

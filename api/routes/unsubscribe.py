@@ -2,7 +2,7 @@ import stripe
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from api.config import settings
-from api.db.database import get_user_subscription_id
+from api.db.database import resolve_user
 from api.models import UnsubscribeRequest
 
 router = APIRouter()
@@ -12,13 +12,17 @@ stripe.api_key = settings.STRIPE_API_KEY
 @router.post("/unsubscribe")
 def unsubscribe(request: UnsubscribeRequest):
     try:
-        subscription_id = get_user_subscription_id(request.user_id)
-        if not subscription_id:
+        user = resolve_user(request.user_id)
+        if not user.subscription_id:
             raise HTTPException(
                 status_code=400, detail="User does not have an active subscription"
             )
 
-        stripe.Subscription.modify(subscription_id, cancel_at_period_end=True)
+        stripe.Subscription.modify(
+            user.subscription_id,
+            cancel_at_period_end=True,
+            metadata={"user_id": request.user_id}
+        )
 
         return JSONResponse(
             status_code=200,

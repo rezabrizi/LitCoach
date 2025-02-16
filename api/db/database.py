@@ -37,7 +37,6 @@ def add_new_user(user_id: str, github_id: str, access_token: str):
             "access_token": access_token,
             "has_premium": False,
             "premium_expiry": None,
-            "account_creation_date": account_creation_date,
             "tokens_used_monthly": 0,
             "last_monthly_token_reset": account_creation_date,
             "tokens_used_in_past_5_hours": 0,
@@ -64,33 +63,15 @@ def update_user_tokens(user_id: str, new_tokens: int):
     )
 
 
-def update_user_access_token(user_id: str, new_access_token: str):
-    user = resolve_user(user_id)
+def update_user_access_token_and_uuid(github_id: str, new_uuid: str, new_access_token: str):
+    user = resolve_user_by_github_id(github_id)
     if not user:
         return
 
     USERS_COLLECTION.update_one(
-        {"user_id": user_id},
-        {"$set": {"access_token": new_access_token}},
+        {"github_id": github_id},
+        {"$set": {"user_id": new_uuid, "access_token": new_access_token}},
     )
-
-
-def is_user_premium(user_id: str) -> bool:
-    user = USERS_COLLECTION.find_one({"user_id": user_id})
-    if not user or not user.get("has_premium"):
-        return False
-
-    premium_expiry = user.get("premium_expiry")
-    if premium_expiry and datetime.fromisoformat(premium_expiry) < datetime.now(
-        timezone.utc
-    ):
-        USERS_COLLECTION.update_one(
-            {"user_id": user_id},
-            {"$set": {"has_premium": False, "premium_expiry": None}},
-        )
-        return False
-
-    return True
 
 
 def reset_tokens_if_needed(user: User):
@@ -127,7 +108,7 @@ def can_user_use_ai(user_id: str) -> tuple[bool, str | None]:
         return False, "User not found"
 
     reset_tokens_if_needed(user)
-    if is_user_premium(user_id):
+    if user.get("has_premium"):
         return True, None
 
     if user.tokens_used_in_past_5_hours >= FIVE_HOUR_LIMIT:

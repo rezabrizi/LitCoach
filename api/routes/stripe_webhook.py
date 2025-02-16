@@ -21,16 +21,16 @@ async def stripe_webhook(request: Request):
     except stripe.error.SignatureVerificationError:
         raise HTTPException(status_code=400, detail="Invalid signature")
 
-    if event["type"] == "checkout.session.completed":
+    if event["type"] == "customer.subscription.created":
         session = event["data"]["object"]
-        user_id = int(session["metadata"]["user_id"])
-        subscription_id = session.get("subscription")
+        user_id = session["metadata"]["user_id"]
+        subscription_id = session.get("id")
         expiry_date = datetime.now(timezone.utc) + timedelta(days=30)
-        update_premium_status(user_id, True, expiry_date.isoformat(), subscription_id)
+        update_premium_status(user_id, True, expiry_date, subscription_id)
 
     elif event["type"] == "customer.subscription.deleted":
         subscription = event["data"]["object"]
-        user_id = int(subscription["metadata"]["user_id"])
-        update_premium_status(user_id, False, None, None)
+        user_id = subscription["metadata"]["user_id"]
+        update_premium_status(user_id, False, None)
 
     return {"status": "success"}
