@@ -81,7 +81,9 @@ def is_user_premium(user_id: str) -> bool:
         return False
 
     premium_expiry = user.get("premium_expiry")
-    if premium_expiry and datetime.fromisoformat(premium_expiry) < datetime.now(timezone.utc):
+    if premium_expiry and datetime.fromisoformat(premium_expiry) < datetime.now(
+        timezone.utc
+    ):
         USERS_COLLECTION.update_one(
             {"user_id": user_id},
             {"$set": {"has_premium": False, "premium_expiry": None}},
@@ -93,7 +95,9 @@ def is_user_premium(user_id: str) -> bool:
 
 def reset_tokens_if_needed(user: User):
     now = datetime.now(timezone.utc)
-    if now - datetime.fromisoformat(user.last_monthly_token_reset) >= timedelta(days=30):
+    if now - datetime.fromisoformat(user.last_monthly_token_reset) >= timedelta(
+        days=30
+    ):
         USERS_COLLECTION.update_one(
             {"user_id": user.user_id},
             {
@@ -103,7 +107,9 @@ def reset_tokens_if_needed(user: User):
                 }
             },
         )
-    if now - datetime.fromisoformat(user.last_5_hour_cooldown_reset) >= timedelta(hours=5):
+    if now - datetime.fromisoformat(user.last_5_hour_cooldown_reset) >= timedelta(
+        hours=5
+    ):
         USERS_COLLECTION.update_one(
             {"user_id": user.user_id},
             {
@@ -132,7 +138,9 @@ def can_user_use_ai(user_id: str) -> tuple[bool, str | None]:
     return True, None
 
 
-def update_premium_status(user_id: str, has_premium: bool, premium_expiry: datetime, subscription_id: str):
+def update_premium_status(
+    user_id: str, has_premium: bool, premium_expiry: datetime, subscription_id: str
+):
     USERS_COLLECTION.update_one(
         {"user_id": user_id},
         {

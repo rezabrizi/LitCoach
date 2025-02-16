@@ -5,7 +5,7 @@ from .database import (
     update_user_tokens,
     update_user_access_token,
     can_user_use_ai,
-    update_premium_status
+    update_premium_status,
 )
 
 __all__ = [
@@ -15,5 +15,5 @@ __all__ = [
     "update_user_tokens",
     "can_user_use_ai",
     "update_user_access_token",
-    "update_premium_status"
+    "update_premium_status",
 ]
