@@ -25,8 +25,6 @@ def user_info(user_id: str):
             "avatar_url": user_info.get("avatar_url"),
             "has_premium": user.has_premium,
             "premium_expiry": user.premium_expiry,
-            "tokens_used_monthly": user.tokens_used_monthly,
-            "tokens_used_in_past_5_hours": user.tokens_used_in_past_5_hours,
             "repos": user_repos_names_and_ids,
         }
 
