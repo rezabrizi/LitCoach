@@ -78,14 +78,14 @@ function App() {
             const [codeRes, descRes, data] = await Promise.all([
                 new Promise((resolve) => chrome.runtime.sendMessage({ action: "getEditorValue" }, resolve)),
                 new Promise((resolve) => chrome.runtime.sendMessage({ action: "getProblemDescription" }, resolve)),
-                new Promise((resolve) => chrome.storage.sync.get(["github_user_id"], resolve)),
+                new Promise((resolve) => chrome.storage.sync.get(["user_id"], resolve)),
             ]);
 
             if (!codeRes || !descRes) {
                 throw new Error("Failed to fetch code or problem description");
             }
 
-            if (!data.github_user_id) {
+            if (!data.user_id) {
                 throw new Error("Please login to GitHub");
             }
 
@@ -93,15 +93,15 @@ function App() {
             setMessages(newMessages);
 
             abortControllerRef.current = new AbortController();
-            const response = await fetch(`${API_URL}/ai/generate_ai_response`, {
+            const response = await fetch(`${API_URL}/ai/assistance`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     problem_description: descRes,
-                    code: codeRes,
                     context: messages.slice(-MAX_CONTEXT_MESSAGES) || [],
+                    code: codeRes,
                     prompt: currentMessage,
-                    github_id: data.github_user_id,
+                    user_id: data.user_id,
                     llm: selectedModel,
                 }),
                 signal: abortControllerRef.current.signal,
@@ -124,7 +124,6 @@ function App() {
             }
         } catch (error) {
             if (error.name !== "AbortError") {
-                console.error("Error fetching AI response:", error);
                 toast({
                     variant: "destructive",
                     title: "Error",

@@ -7,6 +7,14 @@ from .github import (
     push_to_github,
     create_github_repo,
 )
+from .stripe import (
+    has_active_subscription,
+    get_next_billing_date,
+    unsubscribe_user,
+    renew_subscription,
+    create_checkout_session,
+    handle_webhook_event,
+)
 
 __all__ = [
     "AIClient",
@@ -17,4 +25,10 @@ __all__ = [
     "resolve_github_repo_id_to_repo_name",
     "push_to_github",
     "create_github_repo",
+    "has_active_subscription",
+    "get_next_billing_date",
+    "unsubscribe_user",
+    "renew_subscription",
+    "create_checkout_session",
+    "handle_webhook_event",
 ]

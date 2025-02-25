@@ -53,12 +53,12 @@ export const AuthComponent = ({ children }) => {
             if (!code) throw new Error("No authorization code received");
 
             const { data } = await axios.post(
-                `${API_URL}/auth/github_access_token`,
+                `${API_URL}/auth/github`,
                 { code },
                 { headers: { "Content-Type": "application/json" } },
             );
 
-            await chrome.storage.sync.set({ github_user_id: data.user_id });
+            await chrome.storage.sync.set({ user_id: data.user_id });
             await checkAuthentication();
             chrome.runtime.openOptionsPage();
 

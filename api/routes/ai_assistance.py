@@ -22,7 +22,7 @@ def generate_ai_assistance(request: AIHelp):
             detail="User not found",
         )
 
-    can_use, reason = can_user_use_ai(user.github_id)
+    can_use, reason = can_user_use_ai(user.user_id)
     if not can_use:
         raise HTTPException(
             status_code=403,

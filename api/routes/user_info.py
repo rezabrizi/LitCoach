@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from api.db import resolve_user
-from api.services import get_user_info_from_github, get_user_github_repos
+from api.services import get_user_info_from_github, get_user_github_repos, get_next_billing_date
 
 router = APIRouter()
 
@@ -27,6 +27,10 @@ def user_info(user_id: str):
             "premium_expiry": user.premium_expiry,
             "repos": user_repos_names_and_ids,
         }
+
+        if user.subscription_id:
+            billing_date = get_next_billing_date(user.subscription_id)
+            user_data["billing_date"] = billing_date
 
         return JSONResponse(
             content=user_data,

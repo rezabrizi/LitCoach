@@ -7,26 +7,45 @@ from .ai_assistance import router as ai_response_router
 from .stripe_webhook import router as stripe_webhook_router
 from .subscribe import router as subscribe_router
 from .unsubscribe import router as unsubscribe_router
+from .redirect import router as redirect_router
+from .renew_subscription import router as renew_subscription_router
+from .next_billing import router as next_billing_router
 from .user_info import router as user_info_router
 
 router = APIRouter()
 
-router.include_router(access_token_router, prefix="/auth")  # /auth/github
-router.include_router(ai_response_router, prefix="/ai")  # /ai/assistance
+# /auth/github
+router.include_router(access_token_router, prefix="/auth")
 
-router.include_router(create_repo_router, prefix="/user/github")  # /user/github/repo
-router.include_router(
-    github_sync_router, prefix="/user/github"
-)  # /user/github/submission
-router.include_router(user_info_router, prefix="/user")  # /user/info
+# /ai/assistance
+router.include_router(ai_response_router, prefix="/ai")
 
-router.include_router(stripe_webhook_router, prefix="/stripe")  # /stripe/webhook
-router.include_router(
-    subscribe_router, prefix="/subscription"
-)  # /subscription/subscribe
-router.include_router(
-    unsubscribe_router, prefix="/subscription"
-)  # /subscription/unsubscribe
+# /user/github/repo
+router.include_router(create_repo_router, prefix="/user/github")
+
+# /user/github/submission
+router.include_router(github_sync_router, prefix="/user/github")
+
+# /user/info
+router.include_router(user_info_router, prefix="/user")
+
+# /stripe/webhook
+router.include_router(stripe_webhook_router, prefix="/stripe")
+
+# /subscription/subscribe
+router.include_router(subscribe_router, prefix="/subscription")
+
+# /subscription/unsubscribe
+router.include_router(unsubscribe_router, prefix="/subscription")
+
+# /subscription/renew
+router.include_router(renew_subscription_router, prefix="/subscription")
+
+# /subscription/redirect
+router.include_router(redirect_router, prefix="/subscription")
+
+# /subscription/billing_date
+router.include_router(next_billing_router, prefix="/subscription")
 
 __all__ = [
     "router",

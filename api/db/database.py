@@ -3,6 +3,7 @@ from api.models.user import User
 from pymongo import MongoClient
 import certifi
 from api.config import settings
+from api.services import has_active_subscription
 
 client = MongoClient(settings.MONGO_DB_URI, tlsCAFile=certifi.where())
 DB = client["LITCOACH"]
@@ -36,7 +37,6 @@ def add_new_user(user_id: str, github_id: str, access_token: str):
             "github_id": github_id,
             "access_token": access_token,
             "has_premium": False,
-            "premium_expiry": None,
             "tokens_used_monthly": 0,
             "last_monthly_token_reset": account_creation_date,
             "tokens_used_in_past_5_hours": 0,
@@ -63,7 +63,9 @@ def update_user_tokens(user_id: str, new_tokens: int):
     )
 
 
-def update_user_access_token_and_uuid(github_id: str, new_uuid: str, new_access_token: str):
+def update_user_access_token_and_uuid(
+    github_id: str, new_uuid: str, new_access_token: str
+):
     user = resolve_user_by_github_id(github_id)
     if not user:
         return
@@ -108,7 +110,7 @@ def can_user_use_ai(user_id: str) -> tuple[bool, str | None]:
         return False, "User not found"
 
     reset_tokens_if_needed(user)
-    if user.get("has_premium"):
+    if user.has_premium or has_active_subscription(user_id):
         return True, None
 
     if user.tokens_used_in_past_5_hours >= FIVE_HOUR_LIMIT:
@@ -120,17 +122,20 @@ def can_user_use_ai(user_id: str) -> tuple[bool, str | None]:
 
 
 def update_premium_status(
-    user_id: str, has_premium: bool, premium_expiry: datetime, subscription_id: str
+    user_id: str,
+    has_premium: bool,
+    subscription_id: str = None,
 ):
+    data = {
+        "has_premium": has_premium,
+    }
+
+    if subscription_id:
+        data["subscription_id"] = subscription_id
+
     USERS_COLLECTION.update_one(
         {"user_id": user_id},
-        {
-            "$set": {
-                "has_premium": has_premium,
-                "premium_expiry": premium_expiry.isoformat(),
-                "subscription_id": subscription_id,
-            }
-        },
+        {"$set": data},
     )
 
 
