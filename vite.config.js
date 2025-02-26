@@ -1,8 +1,11 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { crx } from "@crxjs/vite-plugin";
-import { resolve } from "path";
+import { resolve, dirname } from "path";
+import { fileURLToPath } from "url";
 import fs from "fs";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const { version, description } = JSON.parse(fs.readFileSync("package.json", "utf-8"));
 

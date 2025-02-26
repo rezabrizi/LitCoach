@@ -1,7 +1,4 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
-import { Loader2, Settings2, Plus } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@components/ui/alert";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@components/ui/select";
 import { Switch } from "@components/ui/switch";
@@ -15,6 +12,9 @@ import ReportIssueButton from "@components/report-issue";
 import SubscriptionCard from "@components/subscription-card";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useToast } from "@hooks/use-toast";
+import axios from "axios";
+import { Loader2, Settings2, Plus } from "lucide-react";
 import { z } from "zod";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
@@ -133,7 +133,7 @@ const App = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center">
+        <div className="min-h-screen flex items-center justify-center p-3">
             <div className="space-y-4 flex flex-col w-full max-w-md">
                 <Card>
                     <CardHeader>
@@ -216,13 +216,20 @@ const App = () => {
                                                     </FormItem>
                                                 )}
                                             />
-                                            <Button type="submit" variant="outline" disabled={creatingRepo} className="w-full">
+                                            <Button
+                                                type="submit"
+                                                variant="outline"
+                                                disabled={creatingRepo}
+                                                className="w-full"
+                                            >
                                                 {creatingRepo ? (
-                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                    <Loader2 className="w-4 animate-spin" />
                                                 ) : (
-                                                    <Plus className="mr-2 h-4 w-4" />
+                                                    <>
+                                                        <Plus className="h-4 w-4" />
+                                                        Create Repository
+                                                    </>
                                                 )}
-                                                Create Repository
                                             </Button>
                                         </form>
                                     </Form>
@@ -231,7 +238,7 @@ const App = () => {
                         </CardContent>
                     )}
                 </Card>
-                <SubscriptionCard />
+                <SubscriptionCard userID={userData.userID} />
                 <ReportIssueButton />
             </div>
         </div>

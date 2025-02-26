@@ -109,14 +109,28 @@ def can_user_use_ai(user_id: str) -> tuple[bool, str | None]:
     if not user:
         return False, "User not found"
 
-    reset_tokens_if_needed(user)
     if user.has_premium or has_active_subscription(user_id):
         return True, None
 
+    reset_tokens_if_needed(user)
+
     if user.tokens_used_in_past_5_hours >= FIVE_HOUR_LIMIT:
-        return False, "Exceeded 5-hour limit"
+        next_use_time = datetime.fromisoformat(
+            user.last_5_hour_cooldown_reset
+        ) + timedelta(hours=5)
+        return (
+            False,
+            f"Exceeded 5-hour limit. You can get AI assistance again on {next_use_time.isoformat()}",
+        )
+
     if user.tokens_used_monthly >= MONTHLY_LIMIT:
-        return False, "Exceeded monthly limit"
+        next_use_time = datetime.fromisoformat(
+            user.last_monthly_token_reset
+        ) + timedelta(days=30)
+        return (
+            False,
+            f"Exceeded monthly limit. You can get AI assistance again on {next_use_time.isoformat()}",
+        )
 
     return True, None
 

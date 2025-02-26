@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { Card, CardContent, CardHeader, CardDescription, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardDescription, CardTitle } from "@components/ui/card";
+import { Button } from "@components/ui/button";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -12,40 +12,38 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
     AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+} from "@components/ui/alert-dialog";
 import { Crown, Loader2 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@hooks/use-toast";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
-function SubscriptionCard() {
+function SubscriptionCard({ userID }) {
     const { toast } = useToast();
     const [isLoading, setIsLoading] = useState(false);
     const [userData, setUserData] = useState({
-        userID: "",
         hasPremium: false,
         billingDate: null,
     });
 
     useEffect(() => {
         const fetchUserData = async () => {
-            const result = await chrome.storage.sync.get(["user_id", "user_data"]);
+            const storage = await chrome.storage.sync.get("user_data");
             setUserData({
-                userID: result.user_id,
-                hasPremium: result.user_data.has_premium,
-                billingDate: result.user_data.billing_date,
+                hasPremium: storage.user_data.has_premium,
+                billingDate: storage.user_data.billing_date,
             });
         };
 
         fetchUserData();
-    }, [toast]); 
+    }, [toast]);
 
     const handleSubscribe = async () => {
         try {
             setIsLoading(true);
-            const response = await axios.post(`${API_URL}/subscription/subscribe`, { user_id: userData.userID });
+            const response = await axios.post(`${API_URL}/subscription/subscribe`, { user_id: userID });
             window.location.href = response.data.url;
-        } catch (error) {
+        } catch {
             toast({
                 title: "Error",
                 description: "Could not process subscription request",
@@ -59,12 +57,12 @@ function SubscriptionCard() {
     const handleUnsubscribe = async () => {
         try {
             setIsLoading(true);
-            await axios.post(`${API_URL}/subscription/unsubscribe`, { user_id: userData.userID });
+            await axios.post(`${API_URL}/subscription/unsubscribe`, { user_id: userID });
             setUserData({
                 ...userData,
                 hasPremium: false,
             });
-        } catch (error) {
+        } catch {
             toast({
                 title: "Error",
                 description: "Could not process cancellation request",
@@ -78,12 +76,12 @@ function SubscriptionCard() {
     const handleRenew = async () => {
         try {
             setIsLoading(true);
-            await axios.post(`${API_URL}/subscription/renew`, { user_id: userData.userID });
+            await axios.post(`${API_URL}/subscription/renew`, { user_id: userID });
             setUserData({
                 ...userData,
                 hasPremium: true,
             });
-        } catch (error) {
+        } catch {
             toast({
                 title: "Error",
                 description: "Could not process renewal request",
@@ -112,19 +110,23 @@ function SubscriptionCard() {
                             <Button variant="outline" size="sm" className="w-full" disabled={isLoading}>
                                 {isLoading ? (
                                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                ) : "Cancel Subscription"}
+                                ) : (
+                                    "Cancel Subscription"
+                                )}
                             </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                             <AlertDialogHeader>
                                 <AlertDialogTitle>Cancel Premium Subscription?</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                    You'll lose access to premium features at the end of your billing period.
+                                    You&apos;ll lose your access to unlimited AI assistance on LeetCode.
                                 </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                                 <AlertDialogCancel>Keep Subscription</AlertDialogCancel>
-                                <AlertDialogAction onClick={handleUnsubscribe}>Cancel Subscription</AlertDialogAction>
+                                <AlertDialogAction onClick={handleUnsubscribe}>
+                                    Cancel Subscription
+                                </AlertDialogAction>
                             </AlertDialogFooter>
                         </AlertDialogContent>
                     </AlertDialog>
@@ -141,19 +143,19 @@ function SubscriptionCard() {
                         <Crown className="w-5 h-5 text-amber-500 mr-2" />
                         Premium Expiring
                     </CardTitle>
-                    <CardDescription>Expires: {new Date(userData.billingDate).toLocaleDateString()}</CardDescription>
+                    <CardDescription>
+                        Expires: {new Date(userData.billingDate).toLocaleDateString()}
+                    </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <Button 
-                        variant="outline" 
-                        onClick={handleRenew} 
-                        className="w-full" 
+                    <Button
+                        variant="outline"
+                        onClick={handleRenew}
+                        className="w-full"
                         size="sm"
                         disabled={isLoading}
                     >
-                        {isLoading ? (
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        ) : "Renew Premium"}
+                        {isLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : "Renew Premium"}
                     </Button>
                 </CardContent>
             </Card>
@@ -176,16 +178,14 @@ function SubscriptionCard() {
                     <span className="text-3xl font-semibold">$1.99</span>
                     <span className="text-muted-foreground ml-1">/ month</span>
                 </div>
-                <Button 
-                    variant="outline" 
-                    onClick={handleSubscribe} 
-                    className="w-full" 
+                <Button
+                    variant="outline"
+                    onClick={handleSubscribe}
+                    className="w-full"
                     size="sm"
                     disabled={isLoading}
                 >
-                    {isLoading ? (
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : "Get Premium"}
+                    {isLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : "Get Premium"}
                 </Button>
             </CardContent>
         </Card>

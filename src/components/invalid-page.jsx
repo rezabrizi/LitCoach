@@ -1,9 +1,9 @@
 import { useState } from "react";
 import axios from "axios";
 import { Shuffle, Info, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import ReportIssueButton from "./report-issue";
+import { Button } from "@components/ui/button";
+import { useToast } from "@hooks/use-toast";
+import ReportIssueButton from "@components/report-issue";
 
 const OPTIONS_PAGE = "chrome-extension://pbkbbpmpbidfjbcapgplbdogiljdechf/src/options/index.html";
 const LEETCODE_GRAPHQL_URL = "https://leetcode.com/graphql";
@@ -36,8 +36,7 @@ const InvalidPage = () => {
             }
 
             window.open(`https://leetcode.com/problems/${randomProblemId}`, "_blank");
-        } catch (error) {
-            console.error("Error fetching random problem:", error);
+        } catch {
             toast({
                 variant: "destructive",
                 title: "Error",

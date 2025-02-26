@@ -1,12 +1,14 @@
 import { useState, useEffect, useRef } from "react";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Input } from "@/components/ui/input";
+import { Button } from "@components/ui/button";
+import { ScrollArea } from "@components/ui/scroll-area";
+import { Input } from "@components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@components/ui/select";
+import InvalidPage from "@components/invalid-page";
+import GetPremium from "@components/get-premium";
+import { useToast } from "@hooks/use-toast";
 import { Info, Send, StopCircle } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 import ReactMarkdown from "react-markdown";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import InvalidPage from "@/components/invalid-page";
+import SyntaxHighlighter from "react-syntax-highlighter/dist/esm/default-highlight";
 
 const OPTIONS_PAGE = "chrome-extension://pbkbbpmpbidfjbcapgplbdogiljdechf/src/options/index.html";
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
@@ -24,6 +26,10 @@ const SUGGESTIONS = [
 ];
 
 function App() {
+    const { toast } = useToast();
+    const messagesEndRef = useRef(null);
+    const abortControllerRef = useRef(null);
+    const [userID, setUserID] = useState(null);
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -31,9 +37,10 @@ function App() {
     const [selectedModel, setSelectedModel] = useState("gpt-4o-mini");
     const [suggestions, setSuggestions] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(true);
-    const messagesEndRef = useRef(null);
-    const abortControllerRef = useRef(null);
-    const { toast } = useToast();
+    const [premiumAlert, setPremiumAlert] = useState({
+        open: false,
+        alertMessage: null,
+    });
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -42,6 +49,10 @@ function App() {
     useEffect(() => {
         chrome.tabs.query({ active: true, currentWindow: true }, ([currentTab]) => {
             setIsValidPage(currentTab?.url?.startsWith("https://leetcode.com/problems/") || false);
+        });
+
+        chrome.storage.sync.get(["user_id"], ({ user_id }) => {
+            setUserID(user_id);
         });
 
         const shuffled = [...SUGGESTIONS].sort(() => 0.5 - Math.random());
@@ -59,11 +70,24 @@ function App() {
         }
     };
 
+    const getPageData = async () => {
+        const [code, description] = await Promise.all([
+            new Promise((resolve) => chrome.runtime.sendMessage({ action: "getEditorValue" }, resolve)),
+            new Promise((resolve) => chrome.runtime.sendMessage({ action: "getProblemDescription" }, resolve)),
+        ]);
+
+        if (!code || !description) {
+            throw new Error("Failed to fetch code or problem description");
+        }
+
+        return { code, description };
+    };
+
     const handleInputChange = (e) => {
-        setShowSuggestions(false);
         const newValue = e.target.value;
         if (newValue.length <= MAX_CHAR_LIMIT) {
             setInput(newValue);
+            setShowSuggestions(false);
         }
     };
 
@@ -75,44 +99,46 @@ function App() {
         setInput("");
 
         try {
-            const [codeRes, descRes, data] = await Promise.all([
-                new Promise((resolve) => chrome.runtime.sendMessage({ action: "getEditorValue" }, resolve)),
-                new Promise((resolve) => chrome.runtime.sendMessage({ action: "getProblemDescription" }, resolve)),
-                new Promise((resolve) => chrome.storage.sync.get(["user_id"], resolve)),
-            ]);
-
-            if (!codeRes || !descRes) {
-                throw new Error("Failed to fetch code or problem description");
-            }
-
-            if (!data.user_id) {
-                throw new Error("Please login to GitHub");
-            }
-
             const newMessages = [...messages, { role: "user", content: currentMessage }];
             setMessages(newMessages);
 
+            const { code, description } = await getPageData();
+
             abortControllerRef.current = new AbortController();
+
             const response = await fetch(`${API_URL}/ai/assistance`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                },
                 body: JSON.stringify({
-                    problem_description: descRes,
-                    context: messages.slice(-MAX_CONTEXT_MESSAGES) || [],
-                    code: codeRes,
+                    problem_description: description,
+                    context: newMessages.slice(-MAX_CONTEXT_MESSAGES),
+                    code: code,
                     prompt: currentMessage,
-                    user_id: data.user_id,
+                    user_id: userID,
                     llm: selectedModel,
                 }),
                 signal: abortControllerRef.current.signal,
             });
 
-            if (!response.ok) throw new Error(await response.text());
+            if (!response.ok) {
+                if (response.status === 403) {
+                    const errorData = await response.json();
+                    setPremiumAlert({
+                        open: true,
+                        alertMessage: errorData.detail,
+                    });
+                    return;
+                }
+                throw new Error(`Server responded with ${response.status}`);
+            }
+
+            const assistantMessage = { role: "assistant", content: "" };
+            setMessages((prev) => [...prev, assistantMessage]);
 
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
-            let assistantMessage = { role: "assistant", content: "" };
-            setMessages((prev) => [...prev, assistantMessage]);
 
             while (true) {
                 const { value, done } = await reader.read();
@@ -127,9 +153,9 @@ function App() {
                 toast({
                     variant: "destructive",
                     title: "Error",
-                    description: error.message,
+                    description: "Could not process AI request",
                 });
-                setMessages((prev) => prev.slice(0, -1));
+                setMessages((prev) => (prev[prev.length - 1]?.role === "assistant" ? prev.slice(0, -1) : prev));
             }
         } finally {
             setIsLoading(false);
@@ -145,9 +171,28 @@ function App() {
                 }`}
             >
                 {message.role === "assistant" ? (
-                    <div className="prose prose-sm max-w-none">
-                        <ReactMarkdown>{message.content}</ReactMarkdown>
-                    </div>
+                    <ReactMarkdown
+                        className="prose prose-sm max-w-none"
+                        components={{
+                            pre({ ...props }) {
+                                return props.children;
+                            },
+                            code({ className, ...props }) {
+                                const match = /language-(\w+)/.exec(className || "");
+                                return match ? (
+                                    <div className="relative">
+                                        <SyntaxHighlighter language={match[1]} {...props} />
+                                    </div>
+                                ) : (
+                                    <span className="bg-secondary p-[3px] rounded text-sm font-mono">
+                                        {props.children}
+                                    </span>
+                                );
+                            },
+                        }}
+                    >
+                        {message.content}
+                    </ReactMarkdown>
                 ) : (
                     <div className="whitespace-pre-wrap">{message.content}</div>
                 )}
@@ -235,6 +280,13 @@ function App() {
                     )}
                 </div>
             </div>
+
+            <GetPremium
+                userID={userID}
+                isOpen={premiumAlert.open}
+                message={premiumAlert.alertMessage}
+                onClose={() => setPremiumAlert({ open: false })}
+            />
         </div>
     );
 

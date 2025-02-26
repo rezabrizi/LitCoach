@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
+import { Button } from "@components/ui/button";
+import { useToast } from "@hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import ReportIssueButton from "./report-issue";
 import axios from "axios";
@@ -26,8 +26,7 @@ export const AuthComponent = ({ children }) => {
             });
 
             setIsAuthenticated(response);
-        } catch (err) {
-            console.log(err);
+        } catch {
             setIsAuthenticated(false);
         } finally {
             setIsLoading(false);
@@ -66,8 +65,7 @@ export const AuthComponent = ({ children }) => {
                 title: "Authentication Success",
                 description: "Successfully authenticated with GitHub",
             });
-        } catch (error) {
-            console.error(error);
+        } catch {
             toast({
                 title: "Authentication Failed",
                 description: "Failed to authenticate with GitHub",
