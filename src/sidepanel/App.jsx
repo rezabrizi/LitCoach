@@ -4,7 +4,7 @@ import { ScrollArea } from "@components/ui/scroll-area";
 import { Input } from "@components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@components/ui/select";
 import InvalidPage from "@components/invalid-page";
-import GetPremium from "@components/get-premium";
+import GetPremiumPopUp from "@components/get-premium";
 import { useToast } from "@hooks/use-toast";
 import { Info, Send, StopCircle } from "lucide-react";
 import ReactMarkdown from "react-markdown";
@@ -19,10 +19,10 @@ const SUGGESTIONS = [
     "Explain the time complexity",
     "What's wrong with my approach?",
     "How can I improve this solution?",
-    "Debug this code",
-    "Suggest a better algorithm",
-    "Explain the edge cases",
-    "Help with space complexity",
+    "Why is my solution not working?",
+    "Are there better solutions?",
+    "Can you explain the edge cases?",
+    "What is the time complexity?",
 ];
 
 function App() {
@@ -47,13 +47,21 @@ function App() {
     }, [messages]);
 
     useEffect(() => {
-        chrome.tabs.query({ active: true, currentWindow: true }, ([currentTab]) => {
-            setIsValidPage(currentTab?.url?.startsWith("https://leetcode.com/problems/") || false);
-        });
+        const fetchData = async () => {
+            const [currentTab] = await new Promise((resolve) => {
+                chrome.tabs.query({ active: true, currentWindow: true }, resolve);
+            });
 
-        chrome.storage.sync.get(["user_id"], ({ user_id }) => {
-            setUserID(user_id);
-        });
+            setIsValidPage(currentTab?.url?.startsWith("https://leetcode.com/problems/") || false);
+
+            const data = await new Promise((resolve) => {
+                chrome.storage.sync.get(["user_id"], resolve);
+            });
+
+            setUserID(data.user_id);
+        };
+
+        fetchData();
 
         const shuffled = [...SUGGESTIONS].sort(() => 0.5 - Math.random());
         setSuggestions(shuffled.slice(0, 5));
@@ -202,7 +210,7 @@ function App() {
 
     const content = (
         <div className="h-screen flex flex-col">
-            <div className="p-2 border-b flex items-center justify-between">
+            <div className="p-2 border-b flex justify-between">
                 <Button variant="ghost" size="icon" onClick={() => window.open(OPTIONS_PAGE)}>
                     <Info className="h-5 w-5" />
                 </Button>
@@ -281,7 +289,7 @@ function App() {
                 </div>
             </div>
 
-            <GetPremium
+            <GetPremiumPopUp
                 userID={userID}
                 isOpen={premiumAlert.open}
                 message={premiumAlert.alertMessage}

@@ -15,28 +15,25 @@ import axios from "axios";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
-function GetPremium({ userID, isOpen, message, onClose }) {
+function GetPremiumPopUp({ userID, isOpen, message, onClose }) {
     const { toast } = useToast();
     const [formattedTime, setFormattedTime] = useState("");
 
     useEffect(() => {
-        if (!message) return;
+        if (!isOpen) return;
 
         const timestampMatch = message.match(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+\+\d{2}:\d{2}/);
         if (timestampMatch) {
-            const utcTimestamp = timestampMatch[0];
-            const date = new Date(utcTimestamp);
-            const options = {
-                weekday: "short",
-                month: "short",
-                day: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-                timeZoneName: "short",
-            };
-            const localTime = date.toLocaleString(undefined, options);
-            const newMessage = message.replace(utcTimestamp, localTime);
-            setFormattedTime(newMessage);
+            const date = new Date(timestampMatch[0]);
+            const now = new Date();
+            const timeDifference = date - now;
+
+            const options = timeDifference <= 5 * 60 * 60 * 1000
+                ? { hour: "2-digit", minute: "2-digit" }
+                : { month: "2-digit", day: "2-digit", year: "numeric" };
+
+            const formattedDate = date.toLocaleString(undefined, options);
+            setFormattedTime(message.replace(timestampMatch[0], formattedDate));
         } else {
             setFormattedTime(message);
         }
@@ -64,7 +61,7 @@ function GetPremium({ userID, isOpen, message, onClose }) {
                         Upgrade to Premium
                     </AlertDialogTitle>
                     <AlertDialogDescription className="space-y-4">
-                        <p className="md:justify-start justify-center">{formattedTime}</p>
+                        <div className="md:justify-start justify-center">{formattedTime}</div>
                         <div className="bg-amber-50 p-4 rounded-lg border border-amber-200 space-y-2">
                             <div className="text-sm text-center text-muted-foreground">
                                 Get unlimited AI assistance to ace your coding interviews!
@@ -93,4 +90,4 @@ function GetPremium({ userID, isOpen, message, onClose }) {
     );
 }
 
-export default GetPremium;
+export default GetPremiumPopUp;

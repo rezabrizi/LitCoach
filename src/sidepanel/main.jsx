@@ -1,15 +1,15 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "@sidepanel/App.jsx";
-import { AuthComponent } from "@components/auth";
+import { GitHubAuth } from "@components/github-auth";
 import { Toaster } from "@components/ui/toaster";
 import "@styles/index.css";
 
 createRoot(document.getElementById("root")).render(
     <StrictMode>
-        <AuthComponent>
+        <GitHubAuth>
             <App />
-        </AuthComponent>
+        </GitHubAuth>
         <Toaster />
     </StrictMode>,
 );

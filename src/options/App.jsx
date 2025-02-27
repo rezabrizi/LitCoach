@@ -47,11 +47,11 @@ const App = () => {
 
     useEffect(() => {
         const fetchUserData = async () => {
-            const { user_data, user_id, selected_repo_id } = await chrome.storage.sync.get([
-                "user_data",
-                "user_id",
-                "selected_repo_id",
-            ]);
+            const data = await new Promise((resolve) => {
+                chrome.storage.sync.get(["user_data", "user_id", "selected_repo_id"], resolve);
+            });
+
+            const { user_data, user_id, selected_repo_id } = data;
 
             setUserData({
                 userID: user_id,
@@ -78,17 +78,23 @@ const App = () => {
 
     const handleRepoSelect = async (repoId) => {
         const selected = userData.repos.find((repo) => repo.id.toString() === repoId.toString());
-        await chrome.storage.sync.set({ selected_repo_id: repoId });
+        await new Promise((resolve) => {
+            chrome.storage.sync.set({ selected_repo_id: repoId }, resolve);
+        });
         setSelectedRepo({ id: repoId, name: selected?.name || "" });
     };
 
     const handleToggleSync = async (checked) => {
         if (!checked) {
-            await chrome.storage.sync.remove("selected_repo_id");
+            await new Promise((resolve) => {
+                chrome.storage.sync.remove("selected_repo_id", resolve);
+            });
             setSelectedRepo({ id: null, name: "" });
         } else if (userData.repos.length > 0) {
             const firstRepo = userData.repos[0];
-            await chrome.storage.sync.set({ selected_repo_id: firstRepo.id });
+            await new Promise((resolve) => {
+                chrome.storage.sync.set({ selected_repo_id: firstRepo.id }, resolve);
+            });
             setSelectedRepo({ id: firstRepo.id, name: firstRepo.name });
         }
     };
@@ -96,16 +102,10 @@ const App = () => {
     const handleCreateRepo = async (values) => {
         try {
             setCreatingRepo(true);
-            const response = await axios.post(
-                `${API_URL}/user/github/repo`,
-                {
-                    user_id: userData.userID,
-                    repo_name: values.repoName,
-                },
-                {
-                    headers: { "Content-Type": "application/json" },
-                },
-            );
+            const response = await axios.post(`${API_URL}/user/github/repo`, {
+                user_id: userData.userID,
+                repo_name: values.repoName,
+            });
 
             const newRepo = { id: response.data.repo_id, name: values.repoName };
 
@@ -114,7 +114,9 @@ const App = () => {
                 repos: [...prev.repos, newRepo],
             }));
             setSelectedRepo(newRepo);
-            await chrome.storage.sync.set({ selected_repo_id: newRepo.id });
+            await new Promise((resolve) => {
+                chrome.storage.sync.set({ selected_repo_id: newRepo.id }, resolve);
+            });
 
             form.reset();
             toast({

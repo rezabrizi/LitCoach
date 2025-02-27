@@ -2,13 +2,13 @@ import { useState, useEffect } from "react";
 import { Button } from "@components/ui/button";
 import { useToast } from "@hooks/use-toast";
 import { Loader2 } from "lucide-react";
-import ReportIssueButton from "./report-issue";
+import ReportIssueButton from "@components/report-issue";
 import axios from "axios";
 
 const GITHUB_CLIENT_ID = import.meta.env.VITE_GITHUB_CLIENT_ID;
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
-export const AuthComponent = ({ children }) => {
+export const GitHubAuth = ({ children }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const { toast } = useToast();
@@ -51,11 +51,7 @@ export const AuthComponent = ({ children }) => {
             const code = new URLSearchParams(new URL(responseUrl).search).get("code");
             if (!code) throw new Error("No authorization code received");
 
-            const { data } = await axios.post(
-                `${API_URL}/auth/github`,
-                { code },
-                { headers: { "Content-Type": "application/json" } },
-            );
+            const { data } = await axios.post(`${API_URL}/auth/github`, { code });
 
             await chrome.storage.sync.set({ user_id: data.user_id });
             await checkAuthentication();
@@ -78,7 +74,7 @@ export const AuthComponent = ({ children }) => {
     if (isLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center p-4">
-                <Loader2 className="h-6 w-6 animate-spin" />
+                <Loader2 className="animate-spin" />
             </div>
         );
     }
@@ -91,9 +87,9 @@ export const AuthComponent = ({ children }) => {
 
                 <Button onClick={handleGitHubAuth} className="w-full" variant="outline" disabled={isLoading}>
                     {isLoading ? (
-                        <Loader2 className="mr-2 h-6 w-6 animate-spin" />
+                        <Loader2 className="animate-spin" />
                     ) : (
-                        <img src="/github_octocat.svg" alt="GitHub Logo" className="mr-2 h-4 w-4" />
+                        <img src="/github_octocat.svg" alt="GitHub Logo" className="mr-1 h-4 w-4" />
                     )}
                     {isLoading ? "Signing in..." : "Sign in with GitHub"}
                 </Button>

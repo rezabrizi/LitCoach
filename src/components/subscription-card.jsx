@@ -28,7 +28,9 @@ function SubscriptionCard({ userID }) {
 
     useEffect(() => {
         const fetchUserData = async () => {
-            const storage = await chrome.storage.sync.get("user_data");
+            const storage = await new Promise((resolve) => {
+                chrome.storage.sync.get(["user_data"], resolve);
+            });
             setUserData({
                 hasPremium: storage.user_data.has_premium,
                 billingDate: storage.user_data.billing_date,
@@ -36,7 +38,7 @@ function SubscriptionCard({ userID }) {
         };
 
         fetchUserData();
-    }, [toast]);
+    }, []);
 
     const handleSubscribe = async () => {
         try {
