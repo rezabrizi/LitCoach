@@ -4,6 +4,7 @@ from fastapi.responses import JSONResponse
 from api.models import LeetCodeSubmission
 from api.db import resolve_user
 from api.services import resolve_github_repo_id_to_repo_name, push_to_github
+from api.config import logger
 
 router = APIRouter()
 
@@ -84,7 +85,9 @@ def leetcode_submission(request: LeetCodeSubmission):
             },
             status_code=201,
         )
-    except HTTPException:
+    except HTTPException as e:
+        logger.error(e)
         raise
     except Exception as e:
+        logger.error(e)
         raise HTTPException(status_code=500, detail=f"Unexpected Error: {str(e)}")

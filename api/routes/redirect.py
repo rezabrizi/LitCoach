@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import HTMLResponse
+from api.config import logger
 
 router = APIRouter()
 
@@ -21,4 +22,5 @@ def redirect_to_extension():
         """
         return HTMLResponse(content=html_content)
     except Exception as e:
+        logger.error(e)
         raise HTTPException(status_code=500, detail=str(e))

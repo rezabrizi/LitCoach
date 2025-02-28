@@ -6,6 +6,7 @@ from api.services import (
     get_user_github_repos,
     get_next_billing_date,
 )
+from api.config import logger
 
 router = APIRouter()
 
@@ -41,7 +42,9 @@ def user_info(user_id: str):
             status_code=200,
         )
 
-    except HTTPException:
+    except HTTPException as e:
+        logger.error(e)
         raise
     except Exception as e:
+        logger.error(e)
         raise HTTPException(500, detail=f"Unexpected Error: {str(e)}")

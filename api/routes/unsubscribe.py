@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse
 from api.models import UnsubscribeRequest
 from api.services import unsubscribe_user
 from api.db import resolve_user, update_premium_status
+from api.config import logger
 
 router = APIRouter()
 
@@ -27,9 +28,11 @@ def unsubscribe(request: UnsubscribeRequest):
             status_code=200,
             content={"message": "Successfully unsubscribed from premium"},
         )
-    except HTTPException:
+    except HTTPException as e:
+        logger.error(e)
         raise
     except Exception as e:
+        logger.error(e)
         raise HTTPException(
             status_code=500, detail=f"An unexpected error occurred: {str(e)}"
         )

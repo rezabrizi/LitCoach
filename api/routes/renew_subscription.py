@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse
 from api.services import renew_subscription
 from api.models import SubscribeRequest
 from api.db import resolve_user, update_premium_status
+from api.config import logger
 
 router = APIRouter()
 
@@ -21,9 +22,11 @@ def subscribe(request: SubscribeRequest):
             status_code=200,
             content={"message": "Subscription renewed successfully"},
         )
-    except HTTPException:
+    except HTTPException as e:
+        logger.error(e)
         raise
     except Exception as e:
+        logger.error(e)
         raise HTTPException(
             status_code=500, detail=f"An unexpected error occurred: {str(e)}"
         )

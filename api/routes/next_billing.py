@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from api.services import get_next_billing_date
 from api.db import resolve_user
+from api.config import logger
 
 
 router = APIRouter()
@@ -22,9 +23,11 @@ def next_billing_date(user_id: str):
             status_code=200,
             content={"billing_date": billing_date},
         )
-    except HTTPException:
+    except HTTPException as e:
+        logger.error(e)
         raise
     except Exception as e:
+        logger.error(e)
         raise HTTPException(
             status_code=500, detail=f"An unexpected error occurred: {str(e)}"
         )

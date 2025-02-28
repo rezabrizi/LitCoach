@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse
 from api.services import create_github_repo
 from api.db import resolve_user
 from api.models import CreateRepo
+from api.config import logger
 
 router = APIRouter()
 
@@ -23,7 +24,9 @@ def create_repo(request: CreateRepo):
             content={"message": "Repository created successfully", "repo_id": repo_id},
             status_code=201,
         )
-    except HTTPException:
+    except HTTPException as e:
+        logger.error(e)
         raise
     except Exception as e:
+        logger.error(e)
         raise HTTPException(status_code=500, detail=f"Unexpected Error: {str(e)}")

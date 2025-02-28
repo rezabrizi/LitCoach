@@ -4,7 +4,7 @@ from openai import OpenAIError
 from api.models import AIHelp
 from api.db import can_user_use_ai, update_user_tokens, resolve_user
 from api.services.ai_client import get_ai_prompt, AIClient
-from api.config import settings
+from api.config import settings, logger
 
 openai_client = AIClient(
     openai_api_key=settings.OPENAI_KEY,
@@ -61,12 +61,14 @@ def generate_ai_assistance(request: AIHelp):
         return StreamingResponse(generate(), media_type="text/event-stream")
 
     except OpenAIError as e:
+        logger.error(e)
         raise HTTPException(
             status_code=502,
             detail=f"OpenAI service error: {str(e)}",
         )
 
     except Exception as e:
+        logger.error(e)
         raise HTTPException(
             status_code=500,
             detail=f"An unexpected error occurred: {str(e)}",

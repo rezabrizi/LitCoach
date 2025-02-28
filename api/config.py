@@ -1,5 +1,17 @@
 from functools import lru_cache
 from pydantic_settings import BaseSettings, SettingsConfigDict
+import logging
+import sys
+
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    handlers=[logging.StreamHandler(sys.stdout)],
+)
+
+logger = logging.getLogger("backend")
+logger.setLevel(logging.INFO)
 
 
 class Settings(BaseSettings):
@@ -20,3 +32,4 @@ def get_settings() -> Settings:
 
 
 settings = get_settings()
+logger.log("Settings Loaded.")

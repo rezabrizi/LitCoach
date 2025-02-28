@@ -8,6 +8,7 @@ from api.db import (
 )
 from api.services import resolve_github_access_token, get_user_info_from_github
 from api.models import GithubCode
+from api.config import logger
 
 router = APIRouter()
 
@@ -49,9 +50,11 @@ def github_auth(request: GithubCode):
             content={"message": "User already exists"},
             status_code=203,
         )
-    except HTTPException:
+    except HTTPException as e:
+        logger.error(e)
         raise
     except Exception as e:
+        logger.error(e)
         raise HTTPException(
             status_code=500, detail=f"An unexpected error occurred: {str(e)}"
         )

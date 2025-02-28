@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse
 from api.services import create_checkout_session
 from api.models import SubscribeRequest
 from api.db import resolve_user
+from api.config import logger
 
 router = APIRouter()
 
@@ -21,8 +22,10 @@ def subscribe(request: SubscribeRequest):
             content={"url": url},
         )
     except HTTPException:
+        logger.error(e)
         raise
     except Exception as e:
+        logger.error(e)
         raise HTTPException(
             status_code=500, detail=f"An unexpected error occurred: {str(e)}"
         )
