@@ -75,7 +75,7 @@ def create_checkout_session(user_id: str):
             metadata={"user_id": str(user_id)},
         )
 
-        return {"url": session.url}
+        return session.url
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

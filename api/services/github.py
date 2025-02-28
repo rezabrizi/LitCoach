@@ -130,7 +130,7 @@ def push_to_github(
         )
 
 
-def create_github_repo(repo_name: str, access_token: str) -> int:
+def create_github_repo(repo_name: str, access_token: str, tags: List[str]) -> int:
     url = "https://api.github.com/user/repos"
     headers = {
         "Authorization": f"token {access_token}",
@@ -156,7 +156,19 @@ def create_github_repo(repo_name: str, access_token: str) -> int:
     try:
         response = requests.post(url, headers=headers, json=data)
         response.raise_for_status()
-        return response.json().get("id")
+        repo_id = response.json().get("id")
+
+        if tags:
+            tags_url = f"https://api.github.com/repos/{response.json().get('owner').get('login')}/{repo_name}/topics"
+            tags_headers = {
+                "Authorization": f"token {access_token}",
+                "Accept": "application/vnd.github.mercy-preview+json",
+            }
+            tags_data = {"names": tags}
+            tags_response = requests.put(tags_url, headers=tags_headers, json=tags_data)
+            tags_response.raise_for_status()
+
+        return repo_id
     except requests.RequestException as e:
         raise HTTPException(
             status_code=getattr(e.response, "status_code", 500),

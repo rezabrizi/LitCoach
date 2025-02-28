@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import JSONResponse
 from api.services import create_checkout_session
 from api.models import SubscribeRequest
 from api.db import resolve_user
@@ -13,7 +14,12 @@ def subscribe(request: SubscribeRequest):
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
-        return create_checkout_session(user.user_id)
+        url = create_checkout_session(user.user_id)
+
+        return JSONResponse(
+            status_code=200,
+            content={"url": url},
+        )
     except HTTPException:
         raise
     except Exception as e:

@@ -14,7 +14,11 @@ def create_repo(request: CreateRepo):
         if not user:
             raise HTTPException(status_code=403, details="User not found")
 
-        repo_id = create_github_repo(request.repo_name, user.access_token)
+        repo_id = create_github_repo(
+            repo_name=request.repo_name,
+            access_token=user.access_token,
+            tags=["data-structures-and-algorithms", "leetcode-solutions"],
+        )
         return JSONResponse(
             content={"message": "Repository created successfully", "repo_id": repo_id},
             status_code=201,
