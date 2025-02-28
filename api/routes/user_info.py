@@ -5,6 +5,7 @@ from api.services import (
     get_user_info_from_github,
     get_user_github_repos,
     get_next_billing_date,
+    has_active_subscription,
 )
 from api.config import logger
 
@@ -32,7 +33,7 @@ def user_info(user_id: str):
             "repos": user_repos_names_and_ids,
         }
 
-        if user.has_premium and user.subscription_id:
+        if user.subscription_id and has_active_subscription(user.subscription_id):
             billing_date = get_next_billing_date(user.subscription_id)
             user_data["billing_date"] = billing_date
 
