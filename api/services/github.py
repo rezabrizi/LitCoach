@@ -156,8 +156,8 @@ def create_github_repo(repo_name: str, access_token: str, tags: List[str]) -> in
     try:
         response = requests.post(url, headers=headers, json=data)
         response.raise_for_status()
-        repo_id = response.json().get("id")
-
+        repo_info = response.json()
+        repo_id = repo_info.get("id")
         if tags:
             tags_url = f"https://api.github.com/repos/{response.json().get('owner').get('login')}/{repo_name}/topics"
             tags_headers = {
