@@ -32,4 +32,4 @@ def get_settings() -> Settings:
 
 
 settings = get_settings()
-logger.log("Settings Loaded.")
+logger.info("Settings Loaded.")
