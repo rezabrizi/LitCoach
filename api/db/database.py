@@ -109,7 +109,7 @@ def can_user_use_ai(user_id: str) -> tuple[bool, str | None]:
     if not user:
         return False, "User not found"
 
-    if user.has_premium or has_active_subscription(user_id):
+    if user.has_premium or has_active_subscription(user.subscription_id):
         return True, None
 
     reset_tokens_if_needed(user)

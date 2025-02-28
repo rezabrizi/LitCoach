@@ -6,10 +6,7 @@ from api.db import can_user_use_ai, update_user_tokens, resolve_user
 from api.services.ai_client import get_ai_prompt, AIClient
 from api.config import settings, logger
 
-openai_client = AIClient(
-    openai_api_key=settings.OPENAI_KEY,
-    deepseek_api_key=settings.DEEPSEEK_KEY,
-)
+openai_client = AIClient(openai_api_key=settings.OPENAI_KEY)
 router = APIRouter()
 
 
@@ -29,9 +26,6 @@ def generate_ai_assistance(request: AIHelp):
             detail=reason,
         )
 
-    if request.llm not in ["gpt-4o-mini", "deepseek-chat"]:
-        raise HTTPException(status_code=400, detail="Invalid model")
-
     try:
         prompt = get_ai_prompt(
             problem=request.problem_description,
@@ -41,7 +35,6 @@ def generate_ai_assistance(request: AIHelp):
         )
 
         response = openai_client.call_chat_model(
-            model=request.llm,
             messages=prompt,
         )
 

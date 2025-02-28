@@ -13,4 +13,3 @@ class AIHelp(BaseModel):
     code: str
     prompt: str
     user_id: str
-    llm: str

@@ -29,11 +29,10 @@ def user_info(user_id: str):
             "github_name": user_info.get("login"),
             "avatar_url": user_info.get("avatar_url"),
             "has_premium": user.has_premium,
-            "premium_expiry": user.premium_expiry,
             "repos": user_repos_names_and_ids,
         }
 
-        if user.subscription_id:
+        if user.has_premium and user.subscription_id:
             billing_date = get_next_billing_date(user.subscription_id)
             user_data["billing_date"] = billing_date
 
