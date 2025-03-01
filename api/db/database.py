@@ -108,11 +108,10 @@ def can_user_use_ai(user_id: str) -> tuple[bool, str | None]:
     user = resolve_user(user_id)
     if not user:
         return False, "User not found"
+    reset_tokens_if_needed(user)
 
     if user.has_premium or has_active_subscription(user.subscription_id):
         return True, None
-
-    reset_tokens_if_needed(user)
 
     if user.tokens_used_in_past_5_hours >= FIVE_HOUR_LIMIT:
         next_use_time = datetime.fromisoformat(
