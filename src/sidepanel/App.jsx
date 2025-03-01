@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@components/ui/button";
 import { ScrollArea } from "@components/ui/scroll-area";
 import { Input } from "@components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@components/ui/select";
 import InvalidPage from "@components/invalid-page";
 import GetPremiumPopUp from "@components/get-premium";
 import { useToast } from "@hooks/use-toast";
@@ -12,8 +11,7 @@ import SyntaxHighlighter from "react-syntax-highlighter/dist/esm/default-highlig
 
 const OPTIONS_PAGE = "chrome-extension://pbkbbpmpbidfjbcapgplbdogiljdechf/src/options/index.html";
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
-const MAX_CONTEXT_MESSAGES = 3;
-const MAX_CHAR_LIMIT = 75;
+const MAX_CHAR_LIMIT = 275;
 const SUGGESTIONS = [
     "Help me optimize this code",
     "Explain the time complexity",
@@ -34,7 +32,6 @@ function App() {
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [isValidPage, setIsValidPage] = useState(false);
-    const [selectedModel, setSelectedModel] = useState("gpt-4o-mini");
     const [suggestions, setSuggestions] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(true);
     const [premiumAlert, setPremiumAlert] = useState({
@@ -103,29 +100,21 @@ function App() {
         if (!input.trim() || isLoading) return;
 
         setIsLoading(true);
-        const currentMessage = input;
         setInput("");
 
         try {
-            const newMessages = [...messages, { role: "user", content: currentMessage }];
-            setMessages(newMessages);
-
             const { code, description } = await getPageData();
-
             abortControllerRef.current = new AbortController();
 
             const response = await fetch(`${API_URL}/ai/assistance`, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     problem_description: description,
-                    context: newMessages.slice(-MAX_CONTEXT_MESSAGES),
-                    code: code,
-                    prompt: currentMessage,
+                    context: messages,
+                    code,
+                    prompt: input,
                     user_id: userID,
-                    llm: selectedModel,
                 }),
                 signal: abortControllerRef.current.signal,
             });
@@ -133,37 +122,29 @@ function App() {
             if (!response.ok) {
                 if (response.status === 403) {
                     const errorData = await response.json();
-                    setPremiumAlert({
-                        open: true,
-                        alertMessage: errorData.detail,
-                    });
+                    setPremiumAlert({ open: true, alertMessage: errorData.detail });
                     return;
                 }
                 throw new Error(`Server responded with ${response.status}`);
             }
 
-            const assistantMessage = { role: "assistant", content: "" };
-            setMessages((prev) => [...prev, assistantMessage]);
-
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
+            let assistantMessage = { role: "assistant", content: "" };
+
+            setMessages((prev) => [...prev, { role: "user", content: input }, assistantMessage]);
 
             while (true) {
                 const { value, done } = await reader.read();
                 if (done) break;
 
-                const text = decoder.decode(value);
-                assistantMessage.content += text;
+                assistantMessage.content += decoder.decode(value);
                 setMessages((prev) => [...prev.slice(0, -1), { ...assistantMessage }]);
             }
         } catch (error) {
             if (error.name !== "AbortError") {
-                toast({
-                    variant: "destructive",
-                    title: "Error",
-                    description: "Could not process AI request",
-                });
-                setMessages((prev) => (prev[prev.length - 1]?.role === "assistant" ? prev.slice(0, -1) : prev));
+                toast({ variant: "destructive", title: "Error", description: "Could not process AI request" });
+                setMessages((prev) => prev.slice(0, -1));
             }
         } finally {
             setIsLoading(false);
@@ -214,15 +195,6 @@ function App() {
                 <Button variant="ghost" size="icon" onClick={() => window.open(OPTIONS_PAGE)}>
                     <Info className="h-5 w-5" />
                 </Button>
-                <Select value={selectedModel} onValueChange={setSelectedModel}>
-                    <SelectTrigger className="w-40">
-                        <SelectValue placeholder="Select Model" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="gpt-4o-mini">gpt-4o-mini</SelectItem>
-                        <SelectItem value="deepseek-chat">deepseek-chat</SelectItem>
-                    </SelectContent>
-                </Select>
             </div>
 
             <div className="flex-1 overflow-hidden relative">

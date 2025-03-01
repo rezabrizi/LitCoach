@@ -39,6 +39,7 @@ const App = () => {
     });
     const [selectedRepo, setSelectedRepo] = useState({ id: null, name: "" });
     const [creatingRepo, setCreatingRepo] = useState(false);
+    const [syncEnabled, setSyncEnabled] = useState(false);
 
     const form = useForm({
         resolver: zodResolver(repoFormSchema),
@@ -48,10 +49,10 @@ const App = () => {
     useEffect(() => {
         const fetchUserData = async () => {
             const data = await new Promise((resolve) => {
-                chrome.storage.sync.get(["user_data", "user_id", "selected_repo_id"], resolve);
+                chrome.storage.sync.get(["user_data", "user_id", "selected_repo_id", "sync_enabled"], resolve);
             });
 
-            const { user_data, user_id, selected_repo_id } = data;
+            const { user_data, user_id, selected_repo_id, sync_enabled } = data;
 
             setUserData({
                 userID: user_id,
@@ -61,6 +62,8 @@ const App = () => {
                 repos: user_data.repos,
                 billingDate: user_data.billing_date,
             });
+
+            setSyncEnabled(!!sync_enabled);
 
             if (selected_repo_id) {
                 const selectedRepo = user_data.repos.find(
@@ -85,6 +88,11 @@ const App = () => {
     };
 
     const handleToggleSync = async (checked) => {
+        await new Promise((resolve) => {
+            chrome.storage.sync.set({ sync_enabled: checked }, resolve);
+        });
+        setSyncEnabled(checked);
+
         if (!checked) {
             await new Promise((resolve) => {
                 chrome.storage.sync.remove("selected_repo_id", resolve);
@@ -146,19 +154,21 @@ const App = () => {
                             </Avatar>
                             <CardTitle>{userData.githubName}</CardTitle>
                         </div>
-                        <div className="flex items-center justify-between pt-3">
+                        <div className="flex items-center justify-between pt-3 space-x-8">
                             <p className="text-sm text-muted-foreground">
-                                {selectedRepo.id
-                                    ? `Currently syncing with: ${selectedRepo.name}`
-                                    : "Enable to start syncing with a repository"}
+                                {syncEnabled
+                                    ? selectedRepo.id
+                                        ? `Currently syncing with: ${selectedRepo.name}`
+                                        : "Create a repository to start syncing"
+                                    : "Enable to start syncing LeetCode submissions to a GitHub repository"}
                             </p>
-                            <Switch checked={!!selectedRepo.id} onCheckedChange={handleToggleSync} />
+                            <Switch checked={syncEnabled} onCheckedChange={handleToggleSync} />
                         </div>
                     </CardHeader>
 
-                    {selectedRepo.id && (
+                    {syncEnabled && (
                         <CardContent>
-                            <Tabs defaultValue="select">
+                            <Tabs defaultValue={userData.repos.length > 0 ? "select" : "create"}>
                                 <TabsList className="grid w-full grid-cols-2">
                                     <TabsTrigger value="select">
                                         <Settings2 className="w-4 h-4 mr-2" />
