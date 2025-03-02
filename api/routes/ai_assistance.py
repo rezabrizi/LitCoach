@@ -45,12 +45,18 @@ def generate_ai_assistance(request: AIHelp):
             )
 
     try:
+        response_style = (
+            request.response_style
+            if request.response_style in ("normal", "interview", "concise")
+            else "normal"
+        )
+
         prompt = get_ai_prompt(
             problem=request.problem_description,
             chat_context=request.context,
             user_code=request.code,
             question=request.prompt,
-            response_style=request.response_style,
+            response_style=response_style,
         )
 
         response = openai_client.call_chat_model(
