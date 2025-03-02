@@ -67,7 +67,7 @@ function GetPremiumPopUp({ userID, isOpen, message, onClose }) {
                                 Get unlimited AI assistance to ace your coding interviews!
                             </div>
                             <div className="flex items-baseline justify-center">
-                                <span className="text-2xl font-semibold">$1.99</span>
+                                <span className="text-2xl font-semibold">$3.99</span>
                                 <span className="ml-1">/ month</span>
                             </div>
                         </div>

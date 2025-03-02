@@ -4,7 +4,6 @@ console.log("Background script running!");
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 const LEETCODE_PROBLEM_URL = "https://leetcode.com/problems/";
-const LEETCODE_CONTEST_URL_REGEX = /^https:\/\/leetcode\.com\/contest\/[^/]+\/problems$/;
 const LEETCODE_GRAPHQL_URL = "https://leetcode.com/graphql";
 const LEETCODE_SUBMISSION_DETAILS_QUERY = `
     query submissionDetails($submissionId: Int!) {
@@ -36,8 +35,7 @@ chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(consol
 
 // Function to check if the current tab is a LeetCode problem
 function checkIfLeetCodeProblem(tab) {
-    const isLeetCodeProblem =
-        tab.url && (tab.url.startsWith(LEETCODE_PROBLEM_URL) || tab.url.startsWith(LEETCODE_CONTEST_URL_REGEX));
+    const isLeetCodeProblem = tab.url && tab.url.startsWith(LEETCODE_PROBLEM_URL);
     chrome.runtime.sendMessage({ isLeetCodeProblem }, () => {
         const errorMessage = chrome.runtime.lastError?.message;
         // Ignore these errors since sidepanel may not always be open

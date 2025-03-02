@@ -177,7 +177,7 @@ function SubscriptionCard({ userID }) {
             </CardHeader>
             <CardContent className="space-y-3">
                 <div className="flex items-baseline justify-center">
-                    <span className="text-3xl font-semibold">$1.99</span>
+                    <span className="text-3xl font-semibold">$3.99</span>
                     <span className="text-muted-foreground ml-1">/ month</span>
                 </div>
                 <Button

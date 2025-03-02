@@ -1,10 +1,17 @@
 from pydantic import BaseModel
 from typing import List, Optional
+from enum import Enum
 
 
 class Message(BaseModel):
     role: str
     content: str
+
+
+class ResponseStyle(str, Enum):
+    normal = "normal"
+    concise = "concise"
+    interview = "interview"
 
 
 class AIHelp(BaseModel):
@@ -13,4 +20,4 @@ class AIHelp(BaseModel):
     code: str
     prompt: str
     user_id: str
-    response_style: Optional[str] = "normal"
+    response_style: Optional[ResponseStyle] = ResponseStyle.normal
