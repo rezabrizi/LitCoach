@@ -63,7 +63,7 @@ def create_checkout_session(user_id: str):
                     "price_data": {
                         "currency": "usd",
                         "product_data": {"name": "LitCoach Premium Subscription"},
-                        "unit_amount": 199,
+                        "unit_amount": 399,
                         "recurring": {"interval": "month"},
                     },
                     "quantity": 1,

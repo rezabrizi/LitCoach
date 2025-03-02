@@ -1,13 +1,17 @@
+from datetime import datetime, timedelta
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 from openai import OpenAIError
 from api.models import AIHelp
-from api.db import can_user_use_ai, update_user_tokens, resolve_user
-from api.services.ai_client import get_ai_prompt, AIClient
+from api.db import update_user_tokens, resolve_user, reset_tokens_if_needed
+from api.services import get_ai_prompt, AIClient, has_active_subscription
 from api.config import settings, logger
 
 openai_client = AIClient(openai_api_key=settings.OPENAI_KEY)
 router = APIRouter()
+
+MONTHLY_LIMIT = 2000000
+FIVE_HOUR_LIMIT = 66666
 
 
 @router.post("/assistance")
@@ -19,12 +23,26 @@ def generate_ai_assistance(request: AIHelp):
             detail="User not found",
         )
 
-    can_use, reason = can_user_use_ai(user.user_id)
-    if not can_use:
-        raise HTTPException(
-            status_code=403,
-            detail=reason,
-        )
+    reset_tokens_if_needed(user)
+
+    if not user.has_premium and not has_active_subscription(user.subscription_id):
+        if user.tokens_used_in_past_5_hours >= FIVE_HOUR_LIMIT:
+            next_use_time = datetime.fromisoformat(
+                user.last_5_hour_cooldown_reset
+            ) + timedelta(hours=5)
+            raise HTTPException(
+                status_code=403,
+                detail=f"Exceeded 5-hour limit. You can get AI assistance again on {next_use_time.isoformat()}",
+            )
+
+        if user.tokens_used_monthly >= MONTHLY_LIMIT:
+            next_use_time = datetime.fromisoformat(
+                user.last_monthly_token_reset
+            ) + timedelta(days=30)
+            raise HTTPException(
+                status_code=403,
+                detail=f"Exceeded monthly limit. You can get AI assistance again on {next_use_time.isoformat()}",
+            )
 
     try:
         prompt = get_ai_prompt(
