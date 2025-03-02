@@ -3,14 +3,10 @@ from api.models.user import User
 from pymongo import MongoClient
 import certifi
 from api.config import settings
-from api.services import has_active_subscription
 
 client = MongoClient(settings.MONGO_DB_URI, tlsCAFile=certifi.where())
 DB = client["LITCOACH"]
 USERS_COLLECTION = DB["users"]
-
-MONTHLY_LIMIT = 2000000
-FIVE_HOUR_LIMIT = 66666
 
 
 def resolve_user(user_id: str) -> User | None:
@@ -102,36 +98,6 @@ def reset_tokens_if_needed(user: User):
                 }
             },
         )
-
-
-def can_user_use_ai(user_id: str) -> tuple[bool, str | None]:
-    user = resolve_user(user_id)
-    if not user:
-        return False, "User not found"
-    reset_tokens_if_needed(user)
-
-    if user.has_premium or has_active_subscription(user.subscription_id):
-        return True, None
-
-    if user.tokens_used_in_past_5_hours >= FIVE_HOUR_LIMIT:
-        next_use_time = datetime.fromisoformat(
-            user.last_5_hour_cooldown_reset
-        ) + timedelta(hours=5)
-        return (
-            False,
-            f"Exceeded 5-hour limit. You can get AI assistance again on {next_use_time.isoformat()}",
-        )
-
-    if user.tokens_used_monthly >= MONTHLY_LIMIT:
-        next_use_time = datetime.fromisoformat(
-            user.last_monthly_token_reset
-        ) + timedelta(days=30)
-        return (
-            False,
-            f"Exceeded monthly limit. You can get AI assistance again on {next_use_time.isoformat()}",
-        )
-
-    return True, None
 
 
 def update_premium_status(
