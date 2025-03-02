@@ -50,6 +50,7 @@ def generate_ai_assistance(request: AIHelp):
             chat_context=request.context,
             user_code=request.code,
             question=request.prompt,
+            response_style=request.response_style,
         )
 
         response = openai_client.call_chat_model(

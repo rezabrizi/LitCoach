@@ -13,3 +13,4 @@ class AIHelp(BaseModel):
     code: str
     prompt: str
     user_id: str
+    response_style: Optional[str] = "normal"

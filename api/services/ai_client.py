@@ -1,4 +1,5 @@
 from openai import OpenAI, OpenAIError, RateLimitError, AuthenticationError, APIError
+from api.config import PROMPTS
 
 MAX_CONTEXT_MSGS = 4
 
@@ -23,19 +24,17 @@ class AIClient:
             raise OpenAIError(f"An unexpected error occurred: {str(e)}")
 
 
-def get_ai_prompt(problem: str, chat_context: list, user_code: str, question: str):
+def get_ai_prompt(
+    problem: str,
+    chat_context: list,
+    user_code: str,
+    question: str,
+    response_style: str = "normal",
+):
+
     system_message = {
         "role": "system",
-        "content": """
-            You are an AI assistant specializing in technical interview tutoring, particularly for LeetCode-style coding problems. 
-            Your primary role is to guide users in understanding their mistakes and improving problem-solving skills rather than 
-            directly providing solutions. You analyze users' code for logical errors, inefficiencies, or syntax issues and explain 
-            them clearly without immediately offering corrections. You provide hints and suggest strategies while encouraging independent 
-            problem-solving. Only when explicitly asked should you provide complete solutions or corrected code.  
-            If the user solves the problem close to optimal then you should acknowledge that the user's solution is correct.
-            You should respond like a friend. Be educational and focus on constructive feedback. Get straight to the point in your response.
-            Always aim for short responses as much as possible.
-        """,
+        "content": PROMPTS.get("concise"),
     }
     user_message = {
         "role": "user",
