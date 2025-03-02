@@ -11,6 +11,9 @@ settings = get_settings()
 
 @app.middleware("http")
 async def restrict_origins(request: Request, call_next):
+    if request.url.path == "/health":
+        return await call_next(request)
+    
     allowed_origins = {
         "chrome-extension://pbkbbpmpbidfjbcapgplbdogiljdechf",
     }
