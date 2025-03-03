@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@components/ui/button";
 import { useToast } from "@hooks/use-toast";
 import { Loader2 } from "lucide-react";
@@ -7,10 +7,45 @@ import axios from "axios";
 
 const GITHUB_CLIENT_ID = import.meta.env.VITE_GITHUB_CLIENT_ID;
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+const quotes = [
+    {
+        quote: "C makes it easy to shoot yourself in the foot; C++ makes it harder, but when you do, it blows your whole leg off.",
+        by: "Bjarne Stroustrup",
+    },
+    {
+        quote: "There are only two kinds of programming languages: those people always complain about and those nobody uses.",
+        by: "Bjarne Stroustrup",
+    },
+    {
+        quote: "If you can’t solve a problem, then there is an easier problem you can solve: find it.",
+        by: "George Polya",
+    },
+    {
+        quote: "Talk is cheap. Show me the code.",
+        by: "Linus Torvalds",
+    },
+    {
+        quote: "The question of whether computers can think is like the question of whether submarines can swim.",
+        by: "Ken Thompson",
+    },
+    {
+        quote: "The computing scientist’s main challenge is not to get confused by the complexities of his own making",
+        by: "Edsger Dijkstra",
+    },
+    {
+        quote: "The world needs more dreamers and doers, not just talkers",
+        by: "Jensen Huang",
+    },
+    {
+        quote: "There are only two hard problems in Computer Science: cache invalidation and naming things",
+        by: "Phil Karlton",
+    },
+];
 
 export const GitHubAuth = ({ children }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const quote = useMemo(() => quotes[Math.floor(Math.random() * quotes.length)], []);
     const { toast } = useToast();
 
     useEffect(() => {
@@ -74,8 +109,14 @@ export const GitHubAuth = ({ children }) => {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center p-4">
-                <Loader2 className="animate-spin" />
+            <div className="min-h-screen flex flex-col items-center justify-center p-4">
+                <Loader2 className="animate-spin mb-4 h-8 w-8" />
+
+                <div className="max-w-md mx-auto text-center">
+                    <p className="text-xs text-muted-foreground italic">
+                        {quote.quote} — {quote.by}
+                    </p>
+                </div>
             </div>
         );
     }
@@ -88,7 +129,9 @@ export const GitHubAuth = ({ children }) => {
 
                 <Button onClick={handleGitHubAuth} className="w-full" variant="outline" disabled={isLoading}>
                     {isLoading ? (
-                        <Loader2 className="animate-spin" />
+                        <div className="min-h-screen flex flex-col items-center justify-center p-4 text-center">
+                            <Loader2 className="animate-spin mb-4" />
+                        </div>
                     ) : (
                         <img src="/github_octocat.svg" alt="GitHub Logo" className="mr-1 h-4 w-4" />
                     )}
