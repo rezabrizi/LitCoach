@@ -34,7 +34,7 @@ def get_ai_prompt(
 
     system_message = {
         "role": "system",
-        "content": PROMPTS.get("concise"),
+        "content": PROMPTS.get(response_style),
     }
     user_message = {
         "role": "user",
