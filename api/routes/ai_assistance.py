@@ -44,19 +44,19 @@ def generate_ai_assistance(request: AIHelp):
                 detail=f"Exceeded monthly limit. You can get AI assistance again on {next_use_time.isoformat()}",
             )
 
-    try:
-        response_style = (
-            request.response_style
-            if request.response_style in ("normal", "interview", "concise")
-            else "normal"
+    if request.response_style not in ["normal", "concise", "interview"]:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid response style. Must be one of 'normal', 'concise', or 'interview'",
         )
 
+    try:
         prompt = get_ai_prompt(
             problem=request.problem_description,
             chat_context=request.context,
             user_code=request.code,
             question=request.prompt,
-            response_style=response_style,
+            response_style=request.response_style,
         )
 
         response = openai_client.call_chat_model(
