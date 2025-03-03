@@ -9,6 +9,18 @@ import { useToast } from "@hooks/use-toast";
 import { Info, Send, StopCircle } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import SyntaxHighlighter from "react-syntax-highlighter/dist/esm/default-highlight";
+import rehypeKatex from "rehype-katex";
+import remarkMath from "remark-math";
+import "katex/dist/katex.min.css";
+
+export const preprocessLaTeX = (content) => {
+    const blockProcessedContent = content.replace(/\\\[(.*?)\\\]/gs, (_, equation) => `$$${equation}$$`);
+    const inlineProcessedContent = blockProcessedContent.replace(
+        /\\\((.*?)\\\)/gs,
+        (_, equation) => `$${equation}$`,
+    );
+    return inlineProcessedContent;
+};
 
 const OPTIONS_PAGE = "chrome-extension://pbkbbpmpbidfjbcapgplbdogiljdechf/src/options/index.html";
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
@@ -186,42 +198,49 @@ function App() {
         }
     };
 
-    const MessageBubble = ({ message }) => (
-        <div className={`flex ${message.role === "user" ? "justify-end" : "justify-start"} mb-4`}>
-            <div
-                className={`max-w-[80%] rounded-lg p-3 ${
-                    message.role === "user" ? "bg-primary text-primary-foreground shadow-sm" : "bg-muted shadow-sm"
-                }`}
-            >
-                {message.role === "assistant" ? (
-                    <ReactMarkdown
-                        className="prose prose-sm max-w-none"
-                        components={{
-                            pre({ ...props }) {
-                                return props.children;
-                            },
-                            code({ className, ...props }) {
-                                const match = /language-(\w+)/.exec(className || "");
-                                return match ? (
-                                    <div className="relative">
-                                        <SyntaxHighlighter language={match[1]} {...props} />
-                                    </div>
-                                ) : (
-                                    <span className="bg-secondary p-[3px] rounded text-sm font-mono">
-                                        {props.children}
-                                    </span>
-                                );
-                            },
-                        }}
-                    >
-                        {message.content}
-                    </ReactMarkdown>
-                ) : (
-                    <div className="whitespace-pre-wrap">{message.content}</div>
-                )}
+    const MessageBubble = ({ message }) => {
+        const formattedContent = message.role === "assistant" ? preprocessLaTeX(message.content) : message.content;
+        return (
+            <div className={`flex ${message.role === "user" ? "justify-end" : "justify-start"} mb-4`}>
+                <div
+                    className={`max-w-[80%] rounded-lg p-3 ${
+                        message.role === "user"
+                            ? "bg-primary text-primary-foreground shadow-sm"
+                            : "bg-muted shadow-sm"
+                    }`}
+                >
+                    {message.role === "assistant" ? (
+                        <ReactMarkdown
+                            remarkPlugins={[remarkMath]}
+                            rehypePlugins={[rehypeKatex]}
+                            className="prose prose-sm max-w-none"
+                            components={{
+                                pre({ ...props }) {
+                                    return props.children;
+                                },
+                                code({ className, ...props }) {
+                                    const match = /language-(\w+)/.exec(className || "");
+                                    return match ? (
+                                        <div className="relative">
+                                            <SyntaxHighlighter language={match[1]} {...props} />
+                                        </div>
+                                    ) : (
+                                        <span className="bg-secondary p-[3px] rounded text-sm font-mono">
+                                            {props.children}
+                                        </span>
+                                    );
+                                },
+                            }}
+                        >
+                            {formattedContent}
+                        </ReactMarkdown>
+                    ) : (
+                        <div className="whitespace-pre-wrap">{message.content}</div>
+                    )}
+                </div>
             </div>
-        </div>
-    );
+        );
+    };
 
     const content = (
         <div className="h-screen flex flex-col">
