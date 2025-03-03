@@ -70,8 +70,8 @@ def create_checkout_session(user_id: str):
                 }
             ],
             mode="subscription",
-            success_url=f"{BASE_URL}/subscription/redirect",
-            cancel_url=f"{BASE_URL}/subscription/redirect",
+            success_url="https://leetcode.com/problems/two-sum",
+            cancel_url="https://leetcode.com/problems/two-sum",
             metadata={"user_id": str(user_id)},
         )
 

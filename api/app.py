@@ -22,7 +22,7 @@ async def restrict_origins(request: Request, call_next):
     }
     origin = request.headers.get("origin")
 
-    if not origin or origin not in allowed_origins:
+    if not origin or (origin not in allowed_origins and "stripe.com" not in origin):
         return JSONResponse(status_code=403, content={"detail": "Forbidden origin"})
 
     return await call_next(request)
