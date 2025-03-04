@@ -13,15 +13,6 @@ import rehypeKatex from "rehype-katex";
 import remarkMath from "remark-math";
 import "katex/dist/katex.min.css";
 
-export const preprocessLaTeX = (content) => {
-    const blockProcessedContent = content.replace(/\\\[(.*?)\\\]/gs, (_, equation) => `$$${equation}$$`);
-    const inlineProcessedContent = blockProcessedContent.replace(
-        /\\\((.*?)\\\)/gs,
-        (_, equation) => `$${equation}$`,
-    );
-    return inlineProcessedContent;
-};
-
 const OPTIONS_PAGE = "chrome-extension://pbkbbpmpbidfjbcapgplbdogiljdechf/src/options/index.html";
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 const MAX_CHAR_LIMIT = 275;
@@ -199,7 +190,6 @@ function App() {
     };
 
     const MessageBubble = ({ message }) => {
-        const formattedContent = message.role === "assistant" ? preprocessLaTeX(message.content) : message.content;
         return (
             <div className={`flex ${message.role === "user" ? "justify-end" : "justify-start"} mb-4`}>
                 <div
@@ -222,7 +212,12 @@ function App() {
                                     const match = /language-(\w+)/.exec(className || "");
                                     return match ? (
                                         <div className="relative">
-                                            <SyntaxHighlighter language={match[1]} {...props} />
+                                            <SyntaxHighlighter
+                                                language={match[1]}
+                                                wrapLongLines={true}
+                                                showInlineLineNumbers={true}
+                                                {...props}
+                                            />
                                         </div>
                                     ) : (
                                         <span className="bg-secondary p-[3px] rounded text-sm font-mono">
@@ -232,7 +227,7 @@ function App() {
                                 },
                             }}
                         >
-                            {formattedContent}
+                            {message.content}
                         </ReactMarkdown>
                     ) : (
                         <div className="whitespace-pre-wrap">{message.content}</div>

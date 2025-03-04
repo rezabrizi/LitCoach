@@ -8,39 +8,24 @@ const RESPONSE_STYLES = [
     {
         value: "normal",
         label: "Normal",
-        description: "Helpful guidance with explanations",
-        details: [
-            "Analyzes code for errors and inefficiencies",
-            "Provides clear explanations and hints",
-            "Encourages independent problem-solving",
-            "Gives full solutions only if explicitly requested",
-        ],
+        description:
+            "Provides detailed, mentor-like guidance with step-by-step explanations and optimization strategies while avoiding direct solutions",
     },
     {
         value: "interview",
         label: "Interview",
-        description: "Simulates a real technical interview",
-        details: [
-            "Minimal guidance; provides hints only when asked",
-            "Does not reveal algorithm names unless requested repeatedly",
-            "Never reveals complete solutions",
-            "Asks follow-up questions about complexity and optimizations",
-        ],
+        description:
+            "Simulates a technical interview by giving minimal hints, probing reasoning, and focusing on solution evaluation and complexity analysis",
     },
     {
         value: "concise",
         label: "Concise",
-        description: "Direct, bullet-pointed guidance",
-        details: [
-            "Very short responses with minimal explanation",
-            "Quick feedback with only essential details",
-            "Confirms correct solutions efficiently",
-            "Avoids unnecessary elaboration",
-        ],
+        description:
+            "Delivers rapid, to-the-point feedback with minimal elaboration, emphasizing efficiency and self-correction",
     },
 ];
 
-const ResponseStyleSelector = ({ value = "normal", onValueChange }) => {
+const ResponseStyleSelector = ({ value, onValueChange }) => {
     const [open, setOpen] = useState(false);
     const [hoveredStyle, setHoveredStyle] = useState(null);
 
@@ -60,7 +45,7 @@ const ResponseStyleSelector = ({ value = "normal", onValueChange }) => {
                 </Button>
             </PopoverTrigger>
 
-            <PopoverContent className="w-72 p-0" align="end">
+            <PopoverContent className="w-48 p-0" align="end">
                 <Command>
                     <CommandList>
                         <CommandEmpty>No styles found.</CommandEmpty>
@@ -87,30 +72,12 @@ const ResponseStyleSelector = ({ value = "normal", onValueChange }) => {
                     </CommandList>
                 </Command>
 
-                <StyleDescription style={styleToDisplay} />
+                <div className="border-t p-3">
+                    <p className="text-xs text-muted-foreground">{styleToDisplay.description}</p>
+                </div>
             </PopoverContent>
         </Popover>
     );
 };
-
-const StyleDescription = ({ style }) => (
-    <div className="border-t p-3">
-        <div className="mb-2">
-            <h3 className="font-medium text-sm">{style.label}</h3>
-            <p className="text-xs text-muted-foreground">{style.description}</p>
-        </div>
-        <div>
-            <h4 className="text-xs font-medium mb-1 text-muted-foreground">WHAT TO EXPECT</h4>
-            <ul className="text-xs space-y-1">
-                {style.details.map((detail, index) => (
-                    <li key={index} className="flex items-start gap-1.5">
-                        <span className="text-primary text-xs">•</span>
-                        <span>{detail}</span>
-                    </li>
-                ))}
-            </ul>
-        </div>
-    </div>
-);
 
 export default ResponseStyleSelector;

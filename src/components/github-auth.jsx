@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@components/ui/button";
 import { useToast } from "@hooks/use-toast";
 import { Loader2 } from "lucide-react";
@@ -7,45 +7,19 @@ import axios from "axios";
 
 const GITHUB_CLIENT_ID = import.meta.env.VITE_GITHUB_CLIENT_ID;
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
-const quotes = [
-    {
-        quote: "C makes it easy to shoot yourself in the foot; C++ makes it harder, but when you do, it blows your whole leg off.",
-        by: "Bjarne Stroustrup",
-    },
-    {
-        quote: "There are only two kinds of programming languages: those people always complain about and those nobody uses.",
-        by: "Bjarne Stroustrup",
-    },
-    {
-        quote: "If you can’t solve a problem, then there is an easier problem you can solve: find it.",
-        by: "George Polya",
-    },
-    {
-        quote: "Talk is cheap. Show me the code.",
-        by: "Linus Torvalds",
-    },
-    {
-        quote: "The question of whether computers can think is like the question of whether submarines can swim.",
-        by: "Ken Thompson",
-    },
-    {
-        quote: "The computing scientist’s main challenge is not to get confused by the complexities of his own making",
-        by: "Edsger Dijkstra",
-    },
-    {
-        quote: "The world needs more dreamers and doers, not just talkers",
-        by: "Jensen Huang",
-    },
-    {
-        quote: "There are only two hard problems in Computer Science: cache invalidation and naming things",
-        by: "Phil Karlton",
-    },
+const FACTS = [
+    "The Apollo 11 mission's onboard computer had 145,000 lines of code, handwritten by Margaret Hamilton's team at MIT. It had only 64KB of memory and helped land humans on the Moon.",
+    "The web search revolution began with Larry Page and Sergey Brin's PageRank algorithm, which ranks websites based on backlinks, a direct application of graph theory.",
+    "Microsoft buried a copy of all public GitHub repositories in an Arctic vault designed to last 1,000 years—just in case civilization collapses.",
+    "In 2038, Unix-based systems will face a catastrophic overflow issue, much like Y2K, due to time being stored as a 32-bit integer. Some old systems may crash or reset to 1901!",
+    "The modern internet runs on protocols designed in the 1970s, yet no one fully understands the entire system. It evolved too complexly for any single person to grasp.",
+    "The first computer bug was a literal moth that short-circuited an early electromechanical computer. Grace Hopper coined the term 'debugging' to describe fixing it.",
+    "TempleOS, created by Terry A. Davis, is a bizarre operating system built over a decade. Davis, believing God commanded him, wrote it in his own language, HolyC. Despite his mental health struggles, TempleOS remains a unique testament to his vision.",
 ];
 
 export const GitHubAuth = ({ children }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
-    const quote = useMemo(() => quotes[Math.floor(Math.random() * quotes.length)], []);
     const { toast } = useToast();
 
     useEffect(() => {
@@ -109,12 +83,12 @@ export const GitHubAuth = ({ children }) => {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center p-4">
-                <Loader2 className="animate-spin mb-4 h-8 w-8" />
+            <div className="min-h-screen flex flex-col items-center justify-center p-4 space-y-2">
+                <Loader2 className="animate-spin h-8 w-8" />
 
                 <div className="max-w-md mx-auto text-center">
                     <p className="text-xs text-muted-foreground italic">
-                        {quote.quote} — {quote.by}
+                        {FACTS[Math.floor(Math.random() * FACTS.length)]}
                     </p>
                 </div>
             </div>
@@ -123,7 +97,7 @@ export const GitHubAuth = ({ children }) => {
 
     if (!isAuthenticated) {
         return (
-            <div className="flex flex-col h-screen items-center justify-center space-y-3 p-6 text-center max-w-sm mx-auto">
+            <div className="flex flex-col h-screen items-center justify-center space-y-3 p-4 text-center max-w-sm mx-auto">
                 <h2 className="text-2xl font-semibold text-foreground">Authentication Required</h2>
                 <p className="text-sm text-muted-foreground">Authenticate with GitHub to use this extension</p>
 
