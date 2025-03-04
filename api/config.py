@@ -2,7 +2,6 @@ from functools import lru_cache
 from pydantic_settings import BaseSettings, SettingsConfigDict
 import logging
 import sys
-import yaml
 
 logging.basicConfig(
     level=logging.INFO,
@@ -31,7 +30,5 @@ def get_settings() -> Settings:
 
 
 settings = get_settings()
-with open("api/prompts.yaml", "r") as f:
-    PROMPTS = yaml.safe_load(f)
 
 logger.info("Settings Loaded.")
