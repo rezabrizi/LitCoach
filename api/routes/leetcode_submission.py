@@ -50,7 +50,9 @@ def leetcode_submission(request: LeetCodeSubmission):
         if not repo:
             raise HTTPException(status_code=404, detail="GitHub repository not found")
 
-        folder_name = f"{request.question.questionId}-{request.question.titleSlug}"
+        folder_name = (
+            f"{int(request.question.questionId):04d}-{request.question.titleSlug}"
+        )
         readme_path = f"{folder_name}/README.md"
         extension = LANGUAGE_EXTENSIONS.get(request.lang.verboseName, "txt")
         solution_path = f"{folder_name}/{request.question.titleSlug}.{extension}"
