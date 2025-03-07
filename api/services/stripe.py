@@ -6,7 +6,7 @@ from api.config import settings
 stripe.api_key = settings.STRIPE_API_KEY
 WEBHOOK_SECRET = settings.STRIPE_WEBHOOK_SECRET
 
-CHECKOUT_IMAGE_URL = "https://raw.githubusercontent.com/rezabrizi/LitCoach/main/assets/marquee-promo-tile.jpg"
+CHECKOUT_IMAGE_URL = "https://i.imgur.com/JQcWNmw.png"
 
 
 def has_active_subscription(subscription_id: str) -> bool:
