@@ -1,58 +1,47 @@
-<p align="center">
-    <img src="assets/small-promo-tile.png" alt="LitCoach" width="600"/>
+https://chromewebstore.google.com/detail/litcoach/pbkbbpmpbidfjbcapgplbdogiljdechf?hl=en&authuser=0
 
-</p>
+### Prerequisites  
+Ensure the following are installed:  
+- Node.js
+- Python  
+- Poetry  
 
-[![Chrome Web Store](https://img.shields.io/badge/Available_on-Chrome_Web_Store-cce7e8?style=for-the-badge)](https://chromewebstore.google.com/detail/litcoach/pbkbbpmpbidfjbcapgplbdogiljdechf?hl=en&authuser=0)
+### Environment Variables  
+Set up the following environment variables. 
+There is a `.env.example` file in the root of the project that you can use as a template.
 
-Chrome extension that uses Google's Gemini 1.5-Flash AI model to provide real-time feedback and hints for LeetCode problems, reducing problem-solving time and improving user productivity.
+#### **Frontend**  
+```plaintext
+VITE_API_URL=http://127.0.0.1:8000
+VITE_GITHUB_CLIENT_ID=
+```  
 
-## Development Setup
+#### **Backend**  
+```plaintext
+MONGO_DB_URI=
+OPENAI_KEY=
+GITHUB_CLIENT_ID=
+GITHUB_CLIENT_SECRET=
+STRIPE_WEBHOOK_SECRET=
+STRIPE_API_KEY=
+BASE_URL=http://127.0.0.1:8000
+```  
 
-### Prerequisites
+### Installation  
 
-Get your API key from [Google AI](https://ai.google.dev/) and add it to the `.env` file:
-
-```bash
-VITE_GEMINI_API_KEY='YOUR_API_KEY'
-```
-
-Ensure [Node.js](https://nodejs.org/) is installed.
-
-### Installation Steps
-
-1. **Clone the repository**:
-
-    ```bash
-    git clone https://github.com/rezabrizi/LitCoach.git
-    ```
-
-2. **Navigate to the project directory**:
-
-    ```bash
-    cd LitCoach
-    ```
-
-3. **Install dependencies**:
-
-    ```bash
-    npm install
-    ```
-
-4. **Start the development server**:
-
-    ```bash
-    npm run dev
-    ```
-
-5. **Enable Developer Mode in Chrome**:
-
-    - Go to `chrome://extensions/`.
-    - Enable **Developer Mode**.
-
-6. **Load the extension**:
-
-    - Click **Load unpacked**.
-    - Select the `dist` folder.
-
-You're now ready to test and develop the extension locally!
+1. Clone the repository:  
+   ```bash
+   git clone https://github.com/rezabrizi/LitCoach.git && cd LitCoach
+   ```  
+2. Install dependencies:  
+   ```bash
+   npm install
+   ```  
+3. Start the development server:  
+   ```bash
+   npm run start
+   ```  
+4. Load the extension in Chrome:  
+   - Go to `chrome://extensions/`  
+   - Enable Developer Mode  
+   - Click Load unpacked and select the `dist` folder  

@@ -5,10 +5,11 @@ from api.config import settings
 
 stripe.api_key = settings.STRIPE_API_KEY
 WEBHOOK_SECRET = settings.STRIPE_WEBHOOK_SECRET
-BASE_URL = settings.BASE_URL
+
+CHECKOUT_IMAGE_URL = "https://raw.githubusercontent.com/rezabrizi/LitCoach/main/assets/marquee-promo-tile.jpg"
 
 
-def has_active_subscription(subscription_id: str):
+def has_active_subscription(subscription_id: str) -> bool:
     try:
         subscription = stripe.Subscription.retrieve(subscription_id)
         return subscription["status"] == "active"
@@ -16,7 +17,7 @@ def has_active_subscription(subscription_id: str):
         return False
 
 
-def get_next_billing_date(subscription_id: str):
+def get_next_billing_date(subscription_id: str) -> str:
     try:
         subscription = stripe.Subscription.retrieve(subscription_id)
         if subscription["status"] != "active":
@@ -54,7 +55,7 @@ def renew_subscription(subscription_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-def create_checkout_session(user_id: str):
+def create_checkout_session(user_id: str) -> str:
     try:
         session = stripe.checkout.Session.create(
             payment_method_types=["card"],
@@ -62,7 +63,10 @@ def create_checkout_session(user_id: str):
                 {
                     "price_data": {
                         "currency": "usd",
-                        "product_data": {"name": "LitCoach Premium Subscription"},
+                        "product_data": {
+                            "name": "LitCoach Premium Subscription",
+                            "images": [CHECKOUT_IMAGE_URL],
+                        },
                         "unit_amount": 399,
                         "recurring": {"interval": "month"},
                     },

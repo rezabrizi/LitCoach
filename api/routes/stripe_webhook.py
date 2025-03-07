@@ -20,3 +20,24 @@ async def stripe_webhook(request: Request):
             update_premium_status(
                 user_id=user_id, has_premium=True, subscription_id=subscription_id
             )
+
+    elif event["type"] == "customer.subscription.updated":
+        subscription = event["data"]["object"]
+        user_id = subscription.get("metadata", {}).get("user_id")
+
+        if user_id:
+            is_active = subscription["status"] in ["active", "trialing"]
+            update_premium_status(
+                user_id=user_id,
+                has_premium=is_active,
+                subscription_id=subscription["id"],
+            )
+
+    elif event["type"] == "customer.subscription.deleted":
+        subscription = event["data"]["object"]
+        user_id = subscription.get("metadata", {}).get("user_id")
+
+        if user_id:
+            update_premium_status(
+                user_id=user_id, has_premium=False, subscription_id=None
+            )
