@@ -69,10 +69,12 @@ const App = () => {
                 const selectedRepo = user_data.repos.find(
                     (repo) => repo.id.toString() === selected_repo_id.toString(),
                 );
-                setSelectedRepo({
-                    id: selected_repo_id,
-                    name: selectedRepo?.name || "",
-                });
+                if (selectedRepo) {
+                    setSelectedRepo({
+                        id: selected_repo_id,
+                        name: selectedRepo.name,
+                    });
+                }
             }
         };
 
@@ -159,7 +161,7 @@ const App = () => {
                                 {syncEnabled
                                     ? selectedRepo.id
                                         ? `Currently syncing with: ${selectedRepo.name}`
-                                        : "Create a repository to start syncing"
+                                        : "Select or create a repository to start syncing"
                                     : "Enable to start syncing LeetCode submissions to a GitHub repository"}
                             </p>
                             <Switch checked={syncEnabled} onCheckedChange={handleToggleSync} />

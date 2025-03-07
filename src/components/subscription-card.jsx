@@ -121,7 +121,8 @@ function SubscriptionCard({ userID }) {
                             <AlertDialogHeader>
                                 <AlertDialogTitle>Cancel Premium Subscription?</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                    You&apos;ll lose your access to unlimited AI assistance on LeetCode.
+                                    You&apos;ll lose your access to unlimited AI assistance on LeetCode after the
+                                    current billing cycle ends
                                 </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>

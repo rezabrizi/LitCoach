@@ -8,13 +8,16 @@ import axios from "axios";
 const GITHUB_CLIENT_ID = import.meta.env.VITE_GITHUB_CLIENT_ID;
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 const FACTS = [
-    "The Apollo 11 mission's onboard computer had 145,000 lines of code, handwritten by Margaret Hamilton's team at MIT. It had only 64KB of memory and helped land humans on the Moon.",
-    "The web search revolution began with Larry Page and Sergey Brin's PageRank algorithm, which ranks websites based on backlinks, a direct application of graph theory.",
-    "Microsoft buried a copy of all public GitHub repositories in an Arctic vault designed to last 1,000 years—just in case civilization collapses.",
-    "In 2038, Unix-based systems will face a catastrophic overflow issue, much like Y2K, due to time being stored as a 32-bit integer. Some old systems may crash or reset to 1901!",
-    "The modern internet runs on protocols designed in the 1970s, yet no one fully understands the entire system. It evolved too complexly for any single person to grasp.",
-    "The first computer bug was a literal moth that short-circuited an early electromechanical computer. Grace Hopper coined the term 'debugging' to describe fixing it.",
-    "TempleOS, created by Terry A. Davis, is a bizarre operating system built over a decade. Davis, believing God commanded him, wrote it in his own language, HolyC. Despite his mental health struggles, TempleOS remains a unique testament to his vision.",
+    "DNA sequencing algorithms use suffix trees to efficiently find patterns in genomes.",
+    "Financial markets use Fenwick trees for real-time stock price aggregation and updates.",
+    "Air traffic control systems use interval trees to detect potential aircraft collisions.",
+    "Databases use B-Trees instead of binary trees to optimize disk reads and writes.",
+    "Cache eviction policies like LRU (Least Recently Used) rely on linked hash maps to track usage efficiently.",
+    "Ride-sharing apps use bipartite graph matching to optimally pair riders with drivers in real-time.",
+    "Music streaming services use locality-sensitive hashing (LSH) to identify similar songs for recommendations.",
+    "Computer vision algorithms use k-d trees to speed up nearest neighbor searches in image recognition.",
+    "Cybersecurity systems use Merkle trees to verify data integrity in blockchain transactions.",
+    "Video compression techniques use Huffman coding to reduce file sizes without quality loss."
 ];
 
 export const GitHubAuth = ({ children }) => {

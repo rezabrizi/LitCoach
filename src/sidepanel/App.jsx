@@ -9,9 +9,6 @@ import { useToast } from "@hooks/use-toast";
 import { Info, Send, StopCircle } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import SyntaxHighlighter from "react-syntax-highlighter/dist/esm/default-highlight";
-import rehypeKatex from "rehype-katex";
-import remarkMath from "remark-math";
-import "katex/dist/katex.min.css";
 
 const OPTIONS_PAGE = "chrome-extension://pbkbbpmpbidfjbcapgplbdogiljdechf/src/options/index.html";
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
@@ -201,8 +198,6 @@ function App() {
                 >
                     {message.role === "assistant" ? (
                         <ReactMarkdown
-                            remarkPlugins={[remarkMath]}
-                            rehypePlugins={[rehypeKatex]}
                             className="prose prose-sm max-w-none"
                             components={{
                                 pre({ ...props }) {
