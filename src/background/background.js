@@ -108,7 +108,7 @@ async function fetchSubmissionDetails(submissionId) {
 
         return response.data.data.submissionDetails;
     } catch (error) {
-        console.error("Error fetching LeetCode submission details");
+        console.error("Error fetching LeetCode submission details", error);
         return null;
     }
 }
@@ -153,7 +153,7 @@ chrome.tabs.onUpdated.addListener((_, changeInfo, tab) => {
                     });
                     console.log("Successfully submitted problem to user's selected github repo");
                 } catch (error) {
-                    console.error("Error submitting problem to user's selected github repo");
+                    console.error("Error submitting problem to user's selected github repo", error);
                 }
             }
         });
@@ -173,7 +173,7 @@ chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
                 await chrome.storage.sync.set({ user_data: data });
                 sendResponse(true);
             } catch (error) {
-                console.error("User may not be authenticated");
+                console.error("User may not be authenticated", error);
                 sendResponse(false);
             }
         });
