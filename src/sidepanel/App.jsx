@@ -6,7 +6,7 @@ import InvalidPage from "@components/invalid-page";
 import GetPremiumPopUp from "@components/get-premium";
 import ResponseStyleSelector from "@components/response-style";
 import { useToast } from "@hooks/use-toast";
-import { Info, Send, StopCircle } from "lucide-react";
+import { Info, Send, StopCircle, Loader2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import SyntaxHighlighter from "react-syntax-highlighter/dist/esm/default-highlight";
 
@@ -132,6 +132,10 @@ function App() {
         setInput("");
 
         try {
+            const userMessage = { role: "user", content: input };
+            const assistantMessage = { role: "assistant", content: "" };
+            setMessages((prev) => [...prev, userMessage, assistantMessage]);
+
             const { code, description } = await getPageData();
             abortControllerRef.current = new AbortController();
 
@@ -153,6 +157,7 @@ function App() {
                 if (response.status === 403) {
                     const errorData = await response.json();
                     setPremiumAlert({ open: true, alertMessage: errorData.detail });
+                    setMessages((prev) => prev.slice(0, -1));
                     return;
                 }
                 throw new Error(`Server responded with ${response.status}`);
@@ -160,9 +165,6 @@ function App() {
 
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
-            let assistantMessage = { role: "assistant", content: "" };
-
-            setMessages((prev) => [...prev, { role: "user", content: input }, assistantMessage]);
 
             while (true) {
                 const { value, done } = await reader.read();
@@ -186,7 +188,8 @@ function App() {
         }
     };
 
-    const MessageBubble = ({ message }) => {
+    const MessageBubble = ({ message, index }) => {
+        const isLastMessage = index === messages.length - 1;
         return (
             <div className={`flex ${message.role === "user" ? "justify-end" : "justify-start"} mb-4`}>
                 <div
@@ -196,7 +199,9 @@ function App() {
                             : "bg-muted shadow-sm"
                     }`}
                 >
-                    {message.role === "assistant" ? (
+                    {message.role === "assistant" && !message.content && isLoading && isLastMessage ? (
+                        <Loader2 className="animate-spin w-4" />
+                    ) : message.role === "assistant" ? (
                         <ReactMarkdown
                             className="prose prose-sm max-w-none"
                             components={{
@@ -206,7 +211,7 @@ function App() {
                                 code({ className, ...props }) {
                                     const match = /language-(\w+)/.exec(className || "");
                                     return match ? (
-                                        <div className="relative">
+                                        <div className="relative overflow-x-auto">
                                             <SyntaxHighlighter
                                                 language={match[1]}
                                                 wrapLongLines={true}
@@ -215,7 +220,7 @@ function App() {
                                             />
                                         </div>
                                     ) : (
-                                        <span className="bg-secondary p-[3px] rounded text-sm font-mono">
+                                        <span className="bg-secondary p-[3px] rounded text-sm font-mono whitespace-pre-wrap break-words">
                                             {props.children}
                                         </span>
                                     );
@@ -245,7 +250,7 @@ function App() {
                 <ScrollArea className="h-full px-4">
                     <div className="py-2 space-y-4">
                         {messages.map((message, index) => (
-                            <MessageBubble key={index} message={message} />
+                            <MessageBubble key={index} message={message} index={index} />
                         ))}
                         <div ref={messagesEndRef} />
                     </div>

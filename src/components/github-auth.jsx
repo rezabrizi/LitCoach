@@ -18,6 +18,11 @@ const FACTS = [
     "Computer vision algorithms use k-d trees to speed up nearest neighbor searches in image recognition.",
     "Cybersecurity systems use Merkle trees to verify data integrity in blockchain transactions.",
     "Video compression techniques use Huffman coding to reduce file sizes without quality loss.",
+    "Search engines use inverted indexes to quickly retrieve documents containing specific words.",
+    "Social networks use graph databases to efficiently manage and query relationships between users.",
+    "Recommendation systems use collaborative filtering to suggest products based on user behavior.",
+    "Natural language processing uses Markov chains to model and predict text sequences.",
+    "Robotics uses A* algorithm for pathfinding to navigate through obstacles efficiently.",
 ];
 
 export const GitHubAuth = ({ children }) => {
