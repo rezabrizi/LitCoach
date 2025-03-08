@@ -2,7 +2,7 @@
     "name": "litcoach",
     "description": "Chrome extension to help you with LeetCode problems",
     "private": true,
-    "version": "0.0.4",
+    "version": "0.0.5",
     "type": "module",
     "scripts": {
         "start": "concurrently \"npm run dev\" \"npm run api\"",

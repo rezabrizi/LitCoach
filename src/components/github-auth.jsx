@@ -17,7 +17,7 @@ const FACTS = [
     "Music streaming services use locality-sensitive hashing (LSH) to identify similar songs for recommendations.",
     "Computer vision algorithms use k-d trees to speed up nearest neighbor searches in image recognition.",
     "Cybersecurity systems use Merkle trees to verify data integrity in blockchain transactions.",
-    "Video compression techniques use Huffman coding to reduce file sizes without quality loss."
+    "Video compression techniques use Huffman coding to reduce file sizes without quality loss.",
 ];
 
 export const GitHubAuth = ({ children }) => {
