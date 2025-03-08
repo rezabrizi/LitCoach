@@ -10,8 +10,8 @@ from api.config import settings, logger
 openai_client = AIClient(openai_api_key=settings.OPENAI_KEY)
 router = APIRouter()
 
-MONTHLY_LIMIT = 2000000
-FIVE_HOUR_LIMIT = 66666
+MONTHLY_LIMIT = 200000
+FIVE_HOUR_LIMIT = 20000
 
 
 @router.post("/assistance")
