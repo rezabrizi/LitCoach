@@ -20,7 +20,6 @@ class Settings(BaseSettings):
     GITHUB_CLIENT_SECRET: str
     STRIPE_WEBHOOK_SECRET: str
     STRIPE_API_KEY: str
-    BASE_URL: str
     model_config = SettingsConfigDict(env_file=".env", extra="allow")
 
 
