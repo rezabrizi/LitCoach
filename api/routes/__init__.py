@@ -8,7 +8,6 @@ from .stripe_webhook import router as stripe_webhook_router
 from .subscribe import router as subscribe_router
 from .unsubscribe import router as unsubscribe_router
 from .renew_subscription import router as renew_subscription_router
-from .next_billing import router as next_billing_router
 from .user_info import router as user_info_router
 
 router = APIRouter()
@@ -39,9 +38,6 @@ router.include_router(unsubscribe_router, prefix="/subscription")
 
 # /subscription/renew
 router.include_router(renew_subscription_router, prefix="/subscription")
-
-# /subscription/billing_date
-router.include_router(next_billing_router, prefix="/subscription")
 
 __all__ = [
     "router",

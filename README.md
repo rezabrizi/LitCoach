@@ -7,20 +7,21 @@ Ensure the following are installed:
 -   Node.js
 -   Python
 -   Poetry
+-   Stripe CLI
 
 ### Environment Variables
 
 Set up the following environment variables.
 There is a `.env.example` file in the root of the project that you can use as a template.
 
-#### **Frontend**
+#### Frontend
 
 ```plaintext
 VITE_API_URL=http://127.0.0.1:8000
 VITE_GITHUB_CLIENT_ID=
 ```
 
-#### **Backend**
+#### Backend
 
 ```plaintext
 MONGO_DB_URI=
@@ -45,7 +46,7 @@ STRIPE_API_KEY=
         ```
     - Using `conda`:
         ```bash
-        conda create --name litcoach python=3.8
+        conda create --name litcoach python=3.12
         conda activate litcoach
         ```
 3. Install dependencies:
@@ -56,7 +57,12 @@ STRIPE_API_KEY=
     ```bash
     npm run start
     ```
-5. Load the extension in Chrome:
+5. Set up Stripe webhook forwarding:
+    ```bash
+    stripe listen --forward-to http://localhost:8000/stripe/webhook
+    ```
+6. Load the extension in Chrome:
     - Go to `chrome://extensions/`
     - Enable Developer Mode
     - Click Load unpacked and select the `dist` folder
+
