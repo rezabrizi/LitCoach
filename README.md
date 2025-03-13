@@ -61,7 +61,7 @@ STRIPE_API_KEY=
     ```bash
     npm run start
     ```
-    > This project uses the `concurrently` npm package to run the server and extension concurrently
+    > This command will start the backend server and the frontend server concurrently.
 6. Set up Stripe webhook forwarding:
     ```bash
     stripe listen --forward-to http://localhost:8000/stripe/webhook
@@ -70,4 +70,3 @@ STRIPE_API_KEY=
     - Go to `chrome://extensions/`
     - Enable Developer Mode
     - Click Load unpacked and select the `dist` folder
-
