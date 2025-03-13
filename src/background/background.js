@@ -44,7 +44,7 @@ function checkIfLeetCodeProblem(tab) {
             errorMessage !== "Could not establish connection. Receiving end does not exist." &&
             errorMessage !== "The message port closed before a response was received."
         ) {
-            console.error("Error checking if tab is a LeetCode problem");
+            console.error("Error checking if tab is a LeetCode problem", errorMessage);
         }
     });
 }

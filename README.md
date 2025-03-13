@@ -53,15 +53,20 @@ STRIPE_API_KEY=
     ```bash
     npm install
     ```
-4. Start the development server:
+4. Install the backend dependencies:
+    ```bash
+    poetry install
+    ```
+5. Start the development server:
     ```bash
     npm run start
     ```
-5. Set up Stripe webhook forwarding:
+    > This project uses the `concurrently` npm package to run the server and extension concurrently
+6. Set up Stripe webhook forwarding:
     ```bash
     stripe listen --forward-to http://localhost:8000/stripe/webhook
     ```
-6. Load the extension in Chrome:
+7. Load the extension in Chrome:
     - Go to `chrome://extensions/`
     - Enable Developer Mode
     - Click Load unpacked and select the `dist` folder
