@@ -49,6 +49,12 @@ def generate_ai_assistance(request: AIHelp):
             status_code=400,
             detail="Invalid response style. Must be one of 'normal', 'concise', or 'interview'",
         )
+    
+    if request.model_name not in ["gpt-4o", "o3-mini"]:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid model name. Must be one of 'gpt-4o', or 'o3-mini'",
+        )
 
     try:
         prompt = get_ai_prompt(
@@ -60,7 +66,7 @@ def generate_ai_assistance(request: AIHelp):
         )
 
         response = openai_client.call_chat_model(
-            messages=prompt,
+            messages=prompt, model_name=request.model_name
         )
 
         def generate():

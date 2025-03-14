@@ -13,6 +13,10 @@ class ResponseStyle(str, Enum):
     concise = "concise"
     interview = "interview"
 
+class modelName(str, Enum):
+    gpt_4o = "gpt-4o"
+    o3_mini = "o3-mini"
+
 
 class AIHelp(BaseModel):
     problem_description: str
@@ -21,3 +25,4 @@ class AIHelp(BaseModel):
     prompt: str
     user_id: str
     response_style: Optional[ResponseStyle] = ResponseStyle.normal
+    model_name: Optional[modelName] = modelName.gpt_4o

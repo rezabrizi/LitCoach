@@ -5,6 +5,7 @@ import { Input } from "@components/ui/input";
 import InvalidPage from "@components/invalid-page";
 import GetPremiumPopUp from "@components/get-premium";
 import ResponseStyleSelector from "@components/response-style";
+import ModelSelector from "@components/ai_model";
 import { useToast } from "@hooks/use-toast";
 import { Info, Send, StopCircle, Loader2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
@@ -61,6 +62,7 @@ function App() {
         alertMessage: null,
     });
     const [responseStyle, setResponseStyle] = useState("normal");
+    const [modelName, setModelName] = useState("o3-mini");
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -149,6 +151,7 @@ function App() {
                     prompt: input,
                     user_id: userID,
                     response_style: responseStyle,
+                    model_name: modelName
                 }),
                 signal: abortControllerRef.current.signal,
             });
@@ -243,7 +246,10 @@ function App() {
                 <Button variant="ghost" size="icon" onClick={() => window.open(OPTIONS_PAGE)}>
                     <Info className="h-5 w-5" />
                 </Button>
-                <ResponseStyleSelector value={responseStyle} onValueChange={handleResponseStyleChange} />
+                <div className="flex gap-2">
+                    <ModelSelector value={modelName} onValueChange={setModelName} />
+                    <ResponseStyleSelector value={responseStyle} onValueChange={handleResponseStyleChange} />
+                </div>
             </div>
 
             <div className="flex-1 overflow-hidden relative">

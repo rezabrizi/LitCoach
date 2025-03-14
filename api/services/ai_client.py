@@ -131,10 +131,10 @@ class AIClient:
     def __init__(self, openai_api_key: str):
         self.oa_client = OpenAI(api_key=openai_api_key)
 
-    def call_chat_model(self, messages: list):
+    def call_chat_model(self, messages: list, model_name: str = "gpt-4o"):
         try:
             response = self.oa_client.chat.completions.create(
-                model="gpt-4o",
+                model=model_name,
                 messages=messages,
                 stream=True,
                 stream_options={"include_usage": True},
