@@ -45,7 +45,8 @@ function SubscriptionCard({ userID }) {
             setIsLoading(true);
             const response = await axios.post(`${API_URL}/subscription/subscribe`, { user_id: userID });
             window.location.href = response.data.url;
-        } catch {
+        } catch (error) {
+            console.error("Failed to process subscription request", error);
             toast({
                 title: "Error",
                 description: "Could not process subscription request",
@@ -64,7 +65,8 @@ function SubscriptionCard({ userID }) {
                 ...userData,
                 hasPremium: false,
             });
-        } catch {
+        } catch (error) {
+            console.error("Failed to process cancellation request", error);
             toast({
                 title: "Error",
                 description: "Could not process cancellation request",
@@ -83,7 +85,8 @@ function SubscriptionCard({ userID }) {
                 ...userData,
                 hasPremium: true,
             });
-        } catch {
+        } catch (error) {
+            console.error("Failed to process renewal request", error);
             toast({
                 title: "Error",
                 description: "Could not process renewal request",

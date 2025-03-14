@@ -43,7 +43,8 @@ function GetPremiumPopUp({ userID, isOpen, message, onClose }) {
         try {
             const { data } = await axios.post(`${API_URL}/subscription/subscribe`, { user_id: userID });
             window.open(data.url, "_blank", "noopener,noreferrer");
-        } catch {
+        } catch (error) {
+            console.error("Failed to process subscription request", error);
             toast({
                 title: "Error",
                 description: "Could not process subscription request",

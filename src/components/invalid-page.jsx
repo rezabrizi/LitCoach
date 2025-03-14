@@ -50,7 +50,8 @@ const InvalidPage = () => {
             }
 
             window.open(`https://leetcode.com/problems/${randomProblemId}`, "_blank");
-        } catch {
+        } catch (error) {
+            console.error("Failed to fetch a random problem.", error);
             toast({
                 variant: "destructive",
                 title: "Error",

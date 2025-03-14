@@ -79,7 +79,8 @@ export const GitHubAuth = ({ children }) => {
                 title: "Authentication Success",
                 description: "Successfully authenticated with GitHub",
             });
-        } catch {
+        } catch (error) {
+            console.error("Failed to authenticate with GitHub", error);
             toast({
                 title: "Authentication Failed",
                 description: "Failed to authenticate with GitHub",

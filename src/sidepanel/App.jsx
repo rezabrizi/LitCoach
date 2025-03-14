@@ -151,7 +151,7 @@ function App() {
                     prompt: input,
                     user_id: userID,
                     response_style: responseStyle,
-                    model_name: modelName
+                    model_name: modelName,
                 }),
                 signal: abortControllerRef.current.signal,
             });
@@ -178,6 +178,7 @@ function App() {
             }
         } catch (error) {
             if (error.name !== "AbortError") {
+                console.error("Error occurred when generating response", error);
                 toast({
                     variant: "destructive",
                     title: "An error occurred",

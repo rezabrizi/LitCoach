@@ -18,7 +18,7 @@ def create_repo(request: CreateRepo):
         repo_id = create_github_repo(
             repo_name=request.repo_name,
             access_token=user.access_token,
-            tags=["data-structures-and-algorithms", "leetcode-solutions"],
+            tags=["data-structures-and-algorithms", "leetcode-solutions", "litcoach"],
         )
         return JSONResponse(
             content={"message": "Repository created successfully", "repo_id": repo_id},

@@ -39,7 +39,7 @@ const ResponseStyleSelector = ({ value, onValueChange }) => {
     return (
         <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
-                <Button variant="outline" role="combobox" aria-expanded={open} className="w-40 justify-between">
+                <Button variant="outline" role="combobox" aria-expanded={open} className="w-32 justify-between">
                     {selectedStyle.label}
                     <ChevronsUpDown className="h-3 w-3 opacity-50" />
                 </Button>

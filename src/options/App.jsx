@@ -134,6 +134,7 @@ const App = () => {
                 description: `Created and selected repository: ${values.repoName}`,
             });
         } catch (error) {
+            console.error("Error creating repository", error);
             toast({
                 title: "Error",
                 description: error.status === 400 ? "Repository name already exists" : "Cannot create repository",

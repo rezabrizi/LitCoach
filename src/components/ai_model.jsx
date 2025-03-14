@@ -7,19 +7,17 @@ import { Button } from "@components/ui/button";
 const MODELS = [
     {
         value: "gpt-4o",
-        label: "GPT 4o",
-        description:
-            "Great for most questions",
+        label: "gpt-4o",
+        description: "Thorough and detailed, best for deep explanations and complex problem breakdowns",
     },
     {
         value: "o3-mini",
         label: "o3-mini",
-        description:
-            "Fast, flexible, intelligent reasoning model",
+        description: "Fast and responsive, great for quick hints and step-by-step guidance",
     },
 ];
 
-const ModelSelector = ({value, onValueChange}) => {
+const ModelSelector = ({ value, onValueChange }) => {
     const [open, setOpen] = useState(false);
     const [hoveredModel, setHoveredModel] = useState(null);
 
@@ -33,13 +31,13 @@ const ModelSelector = ({value, onValueChange}) => {
     return (
         <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
-                <Button variant="outline" role="combobox" aria-expanded={open} className="w-24 justify-between">
+                <Button variant="outline" role="combobox" aria-expanded={open} className="w-32 justify-between">
                     {selectedModel.label}
                     <ChevronsUpDown className="h-3 w-3 opacity-50" />
                 </Button>
             </PopoverTrigger>
 
-            <PopoverContent className="w-24 p-0" align="end">
+            <PopoverContent className="w-48 p-0" align="end">
                 <Command>
                     <CommandList>
                         <CommandEmpty>No models found.</CommandEmpty>
@@ -75,4 +73,3 @@ const ModelSelector = ({value, onValueChange}) => {
 };
 
 export default ModelSelector;
-    
