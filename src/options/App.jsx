@@ -10,7 +10,8 @@ import { Input } from "@components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
 import ReportIssueButton from "@components/report-issue";
 import SubscriptionCard from "@components/subscription-card";
-import DeleteAccountButton from "@/components/delete_account";
+import DeleteAccountButton from "@components/delete-account";
+import PrivacyPolicyButton from "@components/privacy-policy";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@hooks/use-toast";
@@ -258,6 +259,7 @@ const App = () => {
                 <div className="flex mx-auto">
                     <ReportIssueButton />
                     <DeleteAccountButton />
+                    <PrivacyPolicyButton />
                 </div>
             </div>
         </div>

@@ -2,7 +2,12 @@
     "compilerOptions": {
         "baseUrl": ".",
         "paths": {
-            "@/*": ["./src/*"]
+            "@/*": ["./src/*"],
+            "@styles/*": ["./src/styles/*"],
+            "@hooks/*": ["./src/hooks/*"],
+            "@components/*": ["./src/components/*"],
+            "@options/*": ["./src/options/*"],
+            "@sidepanel/*": ["./src/sidepanel/*"]
         }
     }
 }

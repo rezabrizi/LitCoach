@@ -3,6 +3,7 @@ import { Button } from "@components/ui/button";
 import { useToast } from "@hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import ReportIssueButton from "@components/report-issue";
+import PrivacyPolicyButton from "@components/privacy-policy";
 import axios from "axios";
 
 const GITHUB_CLIENT_ID = import.meta.env.VITE_GITHUB_CLIENT_ID;
@@ -120,8 +121,10 @@ export const GitHubAuth = ({ children }) => {
                     )}
                     {isLoading ? "Signing in..." : "Sign in with GitHub"}
                 </Button>
-
-                <ReportIssueButton />
+                <div>
+                    <ReportIssueButton />
+                    <PrivacyPolicyButton />
+                </div>
             </div>
         );
     }

@@ -18,8 +18,8 @@ function DeleteAccountButton() {
                     <p className="text-sm">Remove LitCoach OAuth</p>
                     <p className="text-xs text-muted-foreground">
                         To delete your account, remove LitCoach as an authorized OAuth app from your GitHub
-                        account. This will revoke LitCoach&apos;s access to the inital permissions we requested and
-                        log you out of the extension.
+                        account. This will revoke LitCoach&apos;s access to the initial permissions we requested
+                        and log you out of the extension.
                     </p>
                     <Button
                         size="small"
