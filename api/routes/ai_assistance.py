@@ -24,6 +24,7 @@ def generate_ai_assistance(request: AIHelp):
         )
 
     reset_tokens_if_needed(user)
+    user = resolve_user(request.user_id)
 
     if not user.has_premium and not has_active_subscription(user.subscription_id):
         if user.tokens_used_in_past_5_hours >= FIVE_HOUR_LIMIT:
