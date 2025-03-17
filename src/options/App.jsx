@@ -10,6 +10,7 @@ import { Input } from "@components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
 import ReportIssueButton from "@components/report-issue";
 import SubscriptionCard from "@components/subscription-card";
+import DeleteAccountButton from "@/components/delete_account";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@hooks/use-toast";
@@ -254,7 +255,10 @@ const App = () => {
                     )}
                 </Card>
                 <SubscriptionCard userID={userData.userID} />
-                <ReportIssueButton />
+                <div className="flex mx-auto">
+                    <ReportIssueButton />
+                    <DeleteAccountButton />
+                </div>
             </div>
         </div>
     );

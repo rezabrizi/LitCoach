@@ -7,10 +7,10 @@ function ReportIssueButton() {
     return (
         <Button
             variant="link"
-            className="font-light w-full h-5"
+            className="font-light h-5"
             onClick={() => window.open(FEEDBACK_FORM, "_blank", "noopener,noreferrer")}
         >
-            <ExternalLink className="w-4 h-4" />
+            <ExternalLink />
             Report Issue?
         </Button>
     );
