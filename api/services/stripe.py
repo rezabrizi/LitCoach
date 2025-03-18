@@ -67,7 +67,7 @@ def create_checkout_session(user_id: str) -> str:
                             "name": "LitCoach Premium Subscription",
                             "images": [CHECKOUT_IMAGE_URL],
                         },
-                        "unit_amount": 399,
+                        "unit_amount": 199,
                         "recurring": {"interval": "month"},
                     },
                     "quantity": 1,
