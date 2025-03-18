@@ -1,4 +1,3 @@
-import time
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from api.models import LeetCodeSubmission
@@ -58,7 +57,7 @@ def leetcode_submission(request: LeetCodeSubmission):
         solution_path = f"{folder_name}/{request.question.titleSlug}.{extension}"
         solution_git_message = f"Time: {request.runtimeDisplay} ({request.runtimePercentile:.2f}%) Space: {request.memoryDisplay} ({request.memoryPercentile:.2f}%)"
         readme_content = f"""
-# [{request.question.title}](https://leetcode.com/problems/{request.question.titleSlug}) ![](https://img.shields.io/badge/{request.question.difficulty}-{DIFFICULTY_MAP.get(request.question.difficulty, 'gray')})
+# [{request.question.title}](https://leetcode.com/problems/{request.question.titleSlug}) ![](https://img.shields.io/badge/{request.question.difficulty}-{DIFFICULTY_MAP.get(request.question.difficulty, "gray")})
 
 {request.question.content}
         """

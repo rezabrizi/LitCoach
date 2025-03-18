@@ -21,7 +21,7 @@ def subscribe(request: SubscribeRequest):
             status_code=200,
             content={"url": url},
         )
-    except HTTPException:
+    except HTTPException as e:
         logger.error(e)
         raise
     except Exception as e:

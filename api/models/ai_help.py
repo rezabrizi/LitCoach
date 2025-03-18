@@ -13,6 +13,7 @@ class ResponseStyle(str, Enum):
     concise = "concise"
     interview = "interview"
 
+
 class modelName(str, Enum):
     gpt_4o = "gpt-4o"
     o3_mini = "o3-mini"

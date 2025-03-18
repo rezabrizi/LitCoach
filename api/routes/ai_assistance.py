@@ -50,7 +50,7 @@ def generate_ai_assistance(request: AIHelp):
             status_code=400,
             detail="Invalid response style. Must be 'normal', 'concise', or 'interview'",
         )
-    
+
     if request.model_name not in ["gpt-4o", "o3-mini"]:
         raise HTTPException(
             status_code=400,
