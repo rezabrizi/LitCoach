@@ -2,28 +2,25 @@ https://chromewebstore.google.com/detail/litcoach/pbkbbpmpbidfjbcapgplbdogiljdec
 
 ### Prerequisites
 
-Ensure the following are installed:
+Ensure you have:
 
 -   Node.js
 -   Python
 -   Poetry
 -   Stripe CLI
+-   GitHub OAuth App
+-   Stripe Account
+-   MongoDB Cluster
+-   OpenAI API Key
 
 ### Environment Variables
 
-Set up the following environment variables.
-There is a `.env.example` file in the root of the project that you can use as a template.
-
-#### Frontend
+Copy `.env.example` to `.env` and fill in:
 
 ```plaintext
 VITE_API_URL=http://127.0.0.1:8000
 VITE_GITHUB_CLIENT_ID=
-```
 
-#### Backend
-
-```plaintext
 MONGO_DB_URI=
 OPENAI_KEY=
 GITHUB_CLIENT_ID=
@@ -34,39 +31,44 @@ STRIPE_API_KEY=
 
 ### Installation
 
-1. Clone the repository:
+1. Clone the repo:
+
     ```bash
     git clone https://github.com/rezabrizi/LitCoach.git && cd LitCoach
     ```
-2. Create a virtual environment:
-    - Using `venv`:
-        ```bash
-        python -m venv venv
-        source venv/bin/activate  # On Windows use `venv\Scripts\activate`
-        ```
-    - Using `conda`:
-        ```bash
-        conda create --name litcoach python=3.12
-        conda activate litcoach
-        ```
+
+2. Set up Python environment:
+
+    ```bash
+    python -m venv venv && source venv/bin/activate  # or use conda
+    ```
+
 3. Install dependencies:
+
     ```bash
     npm install
-    ```
-4. Install the backend dependencies:
-    ```bash
     poetry install
     ```
-5. Start the development server:
+
+4. Start the frontend server:
+
     ```bash
     npm run start
     ```
-    > This command will start the backend server and the frontend server concurrently.
-6. Set up Stripe webhook forwarding:
+
+5. Start the backend server:
+
+    ```bash
+    uvicorn api.app:app --reload
+    ```
+
+6. Set up Stripe webhook:
+
     ```bash
     stripe listen --forward-to http://localhost:8000/stripe/webhook
     ```
-7. Load the extension in Chrome:
+
+7. Load the extension:
     - Go to `chrome://extensions/`
     - Enable Developer Mode
-    - Click Load unpacked and select the `dist` folder
+    - Click **Load unpacked** and select the `dist` folder.

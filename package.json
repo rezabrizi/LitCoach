@@ -1,6 +1,6 @@
 {
     "name": "litcoach",
-    "description": "Chrome extension that integrates AI-powered assistance to LeetCode and automatically syncs successful submissions to GitHub",
+    "description": "Provides AI-powered assistance on LeetCode and automatically syncs your successful submissions to GitHub",
     "private": true,
     "version": "0.0.7",
     "type": "module",

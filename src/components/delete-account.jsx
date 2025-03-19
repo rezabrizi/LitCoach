@@ -30,6 +30,10 @@ function DeleteAccountButton() {
                         <ExternalLink />
                         GitHub OAuth Removal Guide
                     </Button>
+                    <p className="text-xs text-muted-foreground">
+                        Make sure to cancel your subscription if you have an active premium plan. Deleting your
+                        account will not automatically cancel your subscription.
+                    </p>
                 </div>
             </HoverCardContent>
         </HoverCard>
