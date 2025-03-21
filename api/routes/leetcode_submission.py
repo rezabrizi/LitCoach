@@ -33,6 +33,11 @@ LANGUAGE_EXTENSIONS = {
     "Racket": "rkt",
     "Erlang": "erl",
     "Elixir": "ex",
+    "MySQL": "sql",
+    "Pandas": "py",
+    "MS SQL Server": "sql",
+    "Oracle": "sql",
+    "PostgreSQL": "sql",
 }
 
 
@@ -54,6 +59,7 @@ def leetcode_submission(request: LeetCodeSubmission):
         )
         readme_path = f"{folder_name}/README.md"
         extension = LANGUAGE_EXTENSIONS.get(request.lang.verboseName, "txt")
+        print(request.lang.verboseName)
         solution_path = f"{folder_name}/{request.question.titleSlug}.{extension}"
         solution_git_message = f"Time: {request.runtimeDisplay} ({request.runtimePercentile:.2f}%) Space: {request.memoryDisplay} ({request.memoryPercentile:.2f}%)"
         readme_content = f"""
