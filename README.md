@@ -53,7 +53,7 @@ STRIPE_API_KEY=
 4. Start the frontend server:
 
     ```bash
-    npm run start
+    npm run dev
     ```
 
 5. Start the backend server:
