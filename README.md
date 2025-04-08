@@ -1,46 +1,67 @@
-https://chromewebstore.google.com/detail/litcoach/pbkbbpmpbidfjbcapgplbdogiljdechf?hl=en&authuser=0
+LitCoach is a Chrome extension that provides real-time feedback on LeetCode problems and automatically syncs your solutions to a GitHub repository—making it easy to track your progress.
+
+https://chromewebstore.google.com/detail/litcoach/pbkbbpmpbidfjbcapgplbdogiljdechf
+
+![LitCoach Diagram](assets/diagram.png)  
+Image from gitdiagram.com
 
 ### Prerequisites
 
-Ensure you have:
+Make sure you have the following installed and set up:
 
--   Node.js
--   Python
--   Poetry
--   Stripe CLI
--   GitHub OAuth App
--   Stripe Account
--   MongoDB Cluster
--   OpenAI API Key
+-   [Node.js](https://nodejs.org/)
+-   [Python 3.12+](https://www.python.org/downloads/)
+-   [Poetry](https://python-poetry.org/docs/#installation)
+-   [Stripe CLI](https://stripe.com/docs/stripe-cli)
+-   [MongoDB Atlas](https://www.mongodb.com/atlas/database)
+-   [OpenAI API Key](https://platform.openai.com/account/api-keys)
+-   [GitHub OAuth App](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/creating-an-oauth-app)
+-   [Stripe Account](https://dashboard.stripe.com/register)
 
-### Environment Variables
+### Environment Setup
 
-Copy `.env.example` to `.env` and fill in:
+1. Copy the example environment file:
 
-```plaintext
-VITE_API_URL=http://127.0.0.1:8000
-VITE_GITHUB_CLIENT_ID=
+    ```bash
+    cp .env.example .env
+    ```
 
-MONGO_DB_URI=
-OPENAI_KEY=
-GITHUB_CLIENT_ID=
-GITHUB_CLIENT_SECRET=
-STRIPE_WEBHOOK_SECRET=
-STRIPE_API_KEY=
-```
+2. Fill in the required values:
+
+    ```env
+    # Frontend
+    VITE_API_URL=http://127.0.0.1:8000
+    VITE_GITHUB_CLIENT_ID=
+
+    # Backend
+    MONGO_DB_URI=
+    OPENAI_KEY=
+    GITHUB_CLIENT_ID=
+    GITHUB_CLIENT_SECRET=
+    STRIPE_WEBHOOK_SECRET=
+    STRIPE_API_KEY=
+    ```
+
+> [!IMPORTANT]
+> When creating the GitHub OAuth App, set the Authorization callback URL to:  
+> `https://pbkbbpmpbidfjbcapgplbdogiljdechf.chromiumapp.org`  
+> This is required for Chrome extension authentication to work properly.
+
+> [!NOTE]
+> For help finding API keys or setting up services, refer to the linked platforms above.
 
 ### Installation
 
-1. Clone the repo:
+1. Clone the repository:
 
     ```bash
     git clone https://github.com/rezabrizi/LitCoach.git && cd LitCoach
     ```
 
-2. Set up Python environment:
+2. Set up Python virtual environment:
 
     ```bash
-    python -m venv venv && source venv/bin/activate  # or use conda
+    python3.12 -m venv venv && source venv/bin/activate
     ```
 
 3. Install dependencies:
@@ -50,25 +71,23 @@ STRIPE_API_KEY=
     poetry install
     ```
 
-4. Start the frontend server:
+4. Start servers:
 
     ```bash
-    npm run dev
+    npm run dev                        # Frontend
+    uvicorn api.app:app --reload      # Backend
     ```
 
-5. Start the backend server:
-
-    ```bash
-    uvicorn api.app:app --reload
-    ```
-
-6. Set up Stripe webhook:
+5. Start Stripe webhook listener:
 
     ```bash
     stripe listen --forward-to http://localhost:8000/stripe/webhook
     ```
 
-7. Load the extension:
-    - Go to `chrome://extensions/`
-    - Enable Developer Mode
-    - Click **Load unpacked** and select the `dist` folder.
+### Load the Extension
+
+1. Go to `chrome://extensions/`
+
+2. Enable Developer Mode
+
+3. Click Load unpacked and select the `dist` folder
