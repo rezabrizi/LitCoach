@@ -18,6 +18,11 @@ Make sure you have the following installed and set up:
 -   [GitHub OAuth App](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/creating-an-oauth-app)
 -   [Stripe Account](https://dashboard.stripe.com/register)
 
+> [!IMPORTANT]
+> When creating the GitHub OAuth App, set the Authorization callback URL to:  
+> `https://pbkbbpmpbidfjbcapgplbdogiljdechf.chromiumapp.org`  
+> This is required for Chrome extension authentication to work properly.
+
 ### Environment Setup
 
 1. Copy the example environment file:
@@ -41,11 +46,6 @@ Make sure you have the following installed and set up:
     STRIPE_WEBHOOK_SECRET=
     STRIPE_API_KEY=
     ```
-
-> [!IMPORTANT]
-> When creating the GitHub OAuth App, set the Authorization callback URL to:  
-> `https://pbkbbpmpbidfjbcapgplbdogiljdechf.chromiumapp.org`  
-> This is required for Chrome extension authentication to work properly.
 
 > [!NOTE]
 > For help finding API keys or setting up services, refer to the linked platforms above.
