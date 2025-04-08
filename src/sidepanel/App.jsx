@@ -61,8 +61,8 @@ function App() {
         open: false,
         alertMessage: null,
     });
-    const [responseStyle, setResponseStyle] = useState("normal");
-    const [modelName, setModelName] = useState("o3-mini");
+    const [responseStyle, setResponseStyle] = useState(null);
+    const [modelName, setModelName] = useState(null);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -76,17 +76,27 @@ function App() {
 
             setIsValidPage(currentTab?.url?.startsWith("https://leetcode.com/problems/") || false);
 
-            const data = await new Promise((resolve) => {
-                chrome.storage.sync.get(["user_id"], resolve);
-            });
+            const { user_id: storedUserID } = await new Promise((resolve) =>
+                chrome.storage.sync.get(["user_id"], resolve),
+            );
 
-            setUserID(data.user_id);
+            const { model_name: storedModelName } = await new Promise((resolve) =>
+                chrome.storage.sync.get(["model_name"], resolve),
+            );
+
+            const { response_style: storedResponseStyle } = await new Promise((resolve) =>
+                chrome.storage.sync.get(["response_style"], resolve),
+            );
+
+            const shuffled = [...SUGGESTIONS[storedResponseStyle]].sort(() => 0.5 - Math.random());
+            setSuggestions(shuffled.slice(0, 5));
+
+            setResponseStyle(storedResponseStyle || "normal");
+            setModelName(storedModelName || "o3-mini");
+            setUserID(storedUserID);
         };
 
         fetchData();
-
-        const shuffled = [...SUGGESTIONS[responseStyle]].sort(() => 0.5 - Math.random());
-        setSuggestions(shuffled.slice(0, 5));
 
         chrome.runtime.onMessage.addListener(updateIsValidPage);
         return () => {
@@ -121,10 +131,21 @@ function App() {
         }
     };
 
-    const handleResponseStyleChange = (value) => {
+    const handleResponseStyleChange = async (value) => {
         setResponseStyle(value);
+        await new Promise((resolve) => {
+            chrome.storage.sync.set({ response_style: value }, resolve);
+        });
+
         const shuffled = [...SUGGESTIONS[value]].sort(() => 0.5 - Math.random());
         setSuggestions(shuffled.slice(0, 5));
+    };
+
+    const handleModelChange = async (value) => {
+        setModelName(value);
+        await new Promise((resolve) => {
+            chrome.storage.sync.set({ model_name: value }, resolve);
+        });
     };
 
     const handleSendMessage = async () => {
@@ -147,7 +168,7 @@ function App() {
                 body: JSON.stringify({
                     problem_description: description,
                     context: messages,
-                    code,
+                    code: code,
                     prompt: input,
                     user_id: userID,
                     response_style: responseStyle,
@@ -248,7 +269,7 @@ function App() {
                     <Info className="h-5 w-5" />
                 </Button>
                 <div className="flex gap-2">
-                    <ModelSelector value={modelName} onValueChange={setModelName} />
+                    <ModelSelector value={modelName} onValueChange={handleModelChange} />
                     <ResponseStyleSelector value={responseStyle} onValueChange={handleResponseStyleChange} />
                 </div>
             </div>
