@@ -45,7 +45,7 @@ def generate_ai_assistance(request: AIHelp):
                 detail=f"Exceeded monthly limit. You can get AI assistance again on {next_use_time.isoformat()}",
             )
 
-    if request.response_style not in ["normal", "concise", "interview"]:
+    if request.response_style not in ["normal", "concise"]:
         raise HTTPException(
             status_code=400,
             detail="Invalid response style. Must be 'normal', 'concise', or 'interview'",

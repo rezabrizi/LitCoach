@@ -11,7 +11,6 @@ class Message(BaseModel):
 class ResponseStyle(str, Enum):
     normal = "normal"
     concise = "concise"
-    interview = "interview"
 
 
 class modelName(str, Enum):
