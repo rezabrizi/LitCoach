@@ -13,7 +13,7 @@ const MODELS = [
     {
         value: "o3-mini",
         label: "o3-mini",
-        description: "Fast and responsive, great for quick hints and step-by-step guidance",
+        description: "Exceptional STEM capabilities, best for debugging and code assistance",
     },
 ];
 

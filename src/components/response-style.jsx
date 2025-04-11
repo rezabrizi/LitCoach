@@ -12,12 +12,6 @@ const RESPONSE_STYLES = [
             "Provides detailed, mentor-like guidance with step-by-step explanations and optimization strategies while avoiding direct solutions",
     },
     {
-        value: "interview",
-        label: "Interview",
-        description:
-            "Simulates a technical interview by giving minimal hints, probing reasoning, and focusing on solution evaluation and complexity analysis",
-    },
-    {
         value: "concise",
         label: "Concise",
         description:

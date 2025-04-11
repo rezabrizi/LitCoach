@@ -14,37 +14,13 @@ import SyntaxHighlighter from "react-syntax-highlighter/dist/esm/default-highlig
 const OPTIONS_PAGE = "chrome-extension://pbkbbpmpbidfjbcapgplbdogiljdechf/src/options/index.html";
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 const MAX_CHAR_LIMIT = 275;
-const SUGGESTIONS = {
-    normal: [
-        "Help me optimize this code",
-        "Explain the time complexity",
-        "What's wrong with my approach?",
-        "How can I improve this solution?",
-        "Why is my solution not working?",
-        "Are there better solutions?",
-        "Can you explain the edge cases?",
-        "What is the time complexity?",
-    ],
-
-    interview: [
-        "Can you provide me a hint?",
-        "Are you okay with my current approach?",
-        "Do you have any feedback for me so far?",
-        "Would you like me to change my approach?",
-        "What should I focus on?",
-        "Any tips for optimization?",
-        "Do you have any follow-up questions?",
-    ],
-
-    concise: [
-        "Can you provide me a hint?",
-        "What are the main algorithms for this problem?",
-        "Optimal time complexity for this problem?",
-        "Can you give me pseudocode?",
-        "What are the key concepts?",
-        "Can anything be optimized?",
-    ],
-};
+const SUGGESTIONS = [
+    "What's a good starting point for this problem?",
+    "Can you explain this LeetCode challenge?",
+    "What's the key concept in this problem?",
+    "I'm stuck on this problem, can you guide me?",
+    "What is the time complexity of this problem?",
+];
 
 function App() {
     const { toast } = useToast();
@@ -55,7 +31,6 @@ function App() {
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [isValidPage, setIsValidPage] = useState(false);
-    const [suggestions, setSuggestions] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(true);
     const [premiumAlert, setPremiumAlert] = useState({
         open: false,
@@ -76,24 +51,13 @@ function App() {
 
             setIsValidPage(currentTab?.url?.startsWith("https://leetcode.com/problems/") || false);
 
-            const { user_id: storedUserID } = await new Promise((resolve) =>
-                chrome.storage.sync.get(["user_id"], resolve),
+            const { user_id, model_name, response_style } = await new Promise((resolve) =>
+                chrome.storage.sync.get(["user_id", "model_name", "response_style"], resolve),
             );
 
-            const { model_name: storedModelName } = await new Promise((resolve) =>
-                chrome.storage.sync.get(["model_name"], resolve),
-            );
-
-            const { response_style: storedResponseStyle } = await new Promise((resolve) =>
-                chrome.storage.sync.get(["response_style"], resolve),
-            );
-
-            const shuffled = [...SUGGESTIONS[storedResponseStyle]].sort(() => 0.5 - Math.random());
-            setSuggestions(shuffled.slice(0, 5));
-
-            setResponseStyle(storedResponseStyle || "normal");
-            setModelName(storedModelName || "o3-mini");
-            setUserID(storedUserID);
+            setResponseStyle(response_style || "normal");
+            setModelName(model_name || "o3-mini");
+            setUserID(user_id);
         };
 
         fetchData();
@@ -136,9 +100,6 @@ function App() {
         await new Promise((resolve) => {
             chrome.storage.sync.set({ response_style: value }, resolve);
         });
-
-        const shuffled = [...SUGGESTIONS[value]].sort(() => 0.5 - Math.random());
-        setSuggestions(shuffled.slice(0, 5));
     };
 
     const handleModelChange = async (value) => {
@@ -286,7 +247,7 @@ function App() {
 
                 {showSuggestions && (
                     <div className="absolute bottom-4 left-4 flex gap-2 flex-wrap">
-                        {suggestions.map((suggestion, index) => (
+                        {SUGGESTIONS.map((suggestion, index) => (
                             <Button
                                 key={index}
                                 variant="outline"
