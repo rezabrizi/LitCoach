@@ -15,11 +15,11 @@ const OPTIONS_PAGE = "chrome-extension://pbkbbpmpbidfjbcapgplbdogiljdechf/src/op
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 const MAX_CHAR_LIMIT = 275;
 const SUGGESTIONS = [
-    "What's a good starting point for this problem?",
-    "Can you explain this LeetCode challenge?",
-    "What's the key concept in this problem?",
-    "I'm stuck on this problem, can you guide me?",
-    "What is the time complexity of this problem?",
+    "What's a good starting point?",
+    "Can you explain the description?",
+    "What's the key concept?",
+    "Can you give me a hint?",
+    "What is the time complexity?",
 ];
 
 function App() {
@@ -74,7 +74,7 @@ function App() {
         }
     };
 
-    const getPageData = async () => {
+    const getLeetCodePageData = async () => {
         const [code, description] = await Promise.all([
             new Promise((resolve) => chrome.runtime.sendMessage({ action: "getEditorValue" }, resolve)),
             new Promise((resolve) => chrome.runtime.sendMessage({ action: "getProblemDescription" }, resolve)),
@@ -120,7 +120,7 @@ function App() {
             const assistantMessage = { role: "assistant", content: "" };
             setMessages((prev) => [...prev, userMessage, assistantMessage]);
 
-            const { code, description } = await getPageData();
+            const { code, description } = await getLeetCodePageData();
             abortControllerRef.current = new AbortController();
 
             const response = await fetch(`${API_URL}/ai/assistance`, {
