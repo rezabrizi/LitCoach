@@ -2,37 +2,28 @@ import { useState, useEffect } from "react";
 import { Button } from "@components/ui/button";
 import { useToast } from "@hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import { FACTS } from "@components/facts";
 import ReportIssueButton from "@components/report-issue";
 import PrivacyPolicyButton from "@components/privacy-policy";
 import axios from "axios";
 
 const GITHUB_CLIENT_ID = import.meta.env.VITE_GITHUB_CLIENT_ID;
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
-const FACTS = [
-    "DNA sequencing algorithms use suffix trees to efficiently find patterns in genomes.",
-    "Financial markets use Fenwick trees for real-time stock price aggregation and updates.",
-    "Air traffic control systems use interval trees to detect potential aircraft collisions.",
-    "Databases use B-Trees instead of binary trees to optimize disk reads and writes.",
-    "Cache eviction policies like LRU (Least Recently Used) rely on linked hash maps to track usage efficiently.",
-    "Ride-sharing apps use bipartite graph matching to optimally pair riders with drivers in real-time.",
-    "Music streaming services use locality-sensitive hashing (LSH) to identify similar songs for recommendations.",
-    "Computer vision algorithms use k-d trees to speed up nearest neighbor searches in image recognition.",
-    "Cybersecurity systems use Merkle trees to verify data integrity in blockchain transactions.",
-    "Video compression techniques use Huffman coding to reduce file sizes without quality loss.",
-    "Search engines use inverted indexes to quickly retrieve documents containing specific words.",
-    "Social networks use graph databases to efficiently manage and query relationships between users.",
-    "Recommendation systems use collaborative filtering to suggest products based on user behavior.",
-    "Natural language processing uses Markov chains to model and predict text sequences.",
-    "Robotics uses A* algorithm for pathfinding to navigate through obstacles efficiently.",
-];
 
 export const GitHubAuth = ({ children }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [currentFact, setCurrentFact] = useState(() => FACTS[Math.floor(Math.random() * FACTS.length)]);
     const { toast } = useToast();
 
     useEffect(() => {
         checkAuthentication();
+
+        const factInterval = setInterval(() => {
+            setCurrentFact(FACTS[Math.floor(Math.random() * FACTS.length)]);
+        }, 4500);
+
+        return () => clearInterval(factInterval);
     }, []);
 
     const checkAuthentication = async () => {
@@ -73,6 +64,7 @@ export const GitHubAuth = ({ children }) => {
             await new Promise((resolve) => {
                 chrome.storage.sync.set({ user_id: data.user_id }, resolve);
             });
+
             await checkAuthentication();
             chrome.runtime.openOptionsPage();
 
@@ -95,11 +87,8 @@ export const GitHubAuth = ({ children }) => {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center p-4 space-y-2">
                 <Loader2 className="animate-spin h-8 w-8" />
-
                 <div className="max-w-md mx-auto text-center">
-                    <p className="text-xs text-muted-foreground italic">
-                        {FACTS[Math.floor(Math.random() * FACTS.length)]}
-                    </p>
+                    <p className="text-xs text-muted-foreground italic">{currentFact}</p>
                 </div>
             </div>
         );
