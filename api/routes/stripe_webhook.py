@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Request
-from api.services import handle_webhook_event
+from api.payment import handle_webhook_event
 from api.db import update_premium_status
 
 router = APIRouter()

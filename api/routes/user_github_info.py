@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from api.db import resolve_user
-from api.services import get_next_billing_date, has_active_subscription
+from api.payment import get_next_billing_date, has_active_subscription
 from api.github import get_user_info_from_github, get_user_github_repos
 from api.config import logger
 

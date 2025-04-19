@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
-from api.services import create_checkout_session
+from api.payment import create_checkout_session
 from api.models import SubscribeRequest
 from api.db import resolve_user
 from api.config import logger

@@ -4,10 +4,11 @@ from api.config import get_settings
 
 from api.routes import (
     user_register_router,
-    user_info_router,
+    user_info_router,  # Legacy
     user_github_info_router,
     user_create_repo_router,
     user_leetcode_submission_router,
+    user_subscription_info_router,
     github_access_token_router,
     github_auth_router,  # Legacy
     subscription_subscribe_router,
@@ -51,6 +52,9 @@ app.include_router(user_create_repo_router)
 
 # /user/github/submission
 app.include_router(user_leetcode_submission_router)
+
+# /user/subscription/info
+app.include_router(user_subscription_info_router)
 
 
 # /subscription/subscribe

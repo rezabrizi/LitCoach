@@ -5,7 +5,7 @@ from openai import OpenAIError
 from api.models import AIHelp
 from api.db import update_user_tokens, resolve_user, reset_tokens_if_needed
 from api.ai_client import generate_chat_response, create_ai_chat_prompt
-from api.services import has_active_subscription
+from api.payment import has_active_subscription
 from api.config import settings, logger
 
 router = APIRouter()

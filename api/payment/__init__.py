@@ -1,4 +1,4 @@
-from .stripe import (
+from .payment import (
     has_active_subscription,
     get_next_billing_date,
     unsubscribe_user,

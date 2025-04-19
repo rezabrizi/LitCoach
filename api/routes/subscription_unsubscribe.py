@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from api.models import UnsubscribeRequest
-from api.services import unsubscribe_user
+from api.payment import unsubscribe_user
 from api.db import resolve_user, update_premium_status
 from api.config import logger
 

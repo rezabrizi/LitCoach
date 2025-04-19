@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
-from api.services import renew_subscription
+from api.payment import renew_subscription
 from api.models import SubscribeRequest
 from api.db import resolve_user, update_premium_status
 from api.config import logger
