@@ -1,4 +1,3 @@
-from .ai_client import AIClient, get_ai_prompt
 from .stripe import (
     has_active_subscription,
     get_next_billing_date,
@@ -9,8 +8,6 @@ from .stripe import (
 )
 
 __all__ = [
-    "AIClient",
-    "get_ai_prompt",
     "has_active_subscription",
     "get_next_billing_date",
     "unsubscribe_user",

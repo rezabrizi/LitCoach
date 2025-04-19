@@ -4,10 +4,10 @@ from fastapi.responses import StreamingResponse
 from openai import OpenAIError
 from api.models import AIHelp
 from api.db import update_user_tokens, resolve_user, reset_tokens_if_needed
-from api.services import get_ai_prompt, AIClient, has_active_subscription
+from api.ai_client import generate_chat_response, create_ai_chat_prompt
+from api.services import has_active_subscription
 from api.config import settings, logger
 
-openai_client = AIClient(openai_api_key=settings.OPENAI_KEY)
 router = APIRouter()
 
 MONTHLY_LIMIT = 200000
@@ -15,7 +15,7 @@ FIVE_HOUR_LIMIT = 20000
 
 
 @router.post("/ai/assistance")
-def generate_ai_assistance(request: AIHelp):
+def ai_assistance(request: AIHelp):
     user = resolve_user(request.user_id)
     if not user:
         raise HTTPException(
@@ -58,7 +58,7 @@ def generate_ai_assistance(request: AIHelp):
         )
 
     try:
-        prompt = get_ai_prompt(
+        prompt = create_ai_chat_prompt(
             problem=request.problem_description,
             chat_context=request.context,
             user_code=request.code,
@@ -66,8 +66,10 @@ def generate_ai_assistance(request: AIHelp):
             response_style=request.response_style,
         )
 
-        response = openai_client.call_chat_model(
-            messages=prompt, model_name=request.model_name
+        response = generate_chat_response(
+            openai_api_key=settings.OPENAI_API_KEY,
+            messages=prompt,
+            model_name=request.model_name,
         )
 
         def generate():
