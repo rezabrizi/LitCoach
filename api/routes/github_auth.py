@@ -13,7 +13,7 @@ from api.config import logger
 router = APIRouter()
 
 
-@router.post("/github")
+@router.post("/auth/github")
 def github_auth(request: GithubCode):
     try:
         access_token = resolve_github_access_token(request.code)

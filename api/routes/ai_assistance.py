@@ -14,7 +14,7 @@ MONTHLY_LIMIT = 200000
 FIVE_HOUR_LIMIT = 20000
 
 
-@router.post("/assistance")
+@router.post("/ai/assistance")
 def generate_ai_assistance(request: AIHelp):
     user = resolve_user(request.user_id)
     if not user:

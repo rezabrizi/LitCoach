@@ -8,7 +8,7 @@ from api.config import logger
 router = APIRouter()
 
 
-@router.post("/repo")
+@router.post("/user/github/repo")
 def create_repo(request: CreateRepo):
     try:
         user = resolve_user(request.user_id)

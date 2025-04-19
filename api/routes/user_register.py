@@ -12,7 +12,7 @@ from api.config import logger
 router = APIRouter()
 
 
-@router.post("api/users/register")
+@router.post("/user/register")
 def register_user(request: RegisterUser):
     try:
         # Check if user already exists with Google ID

@@ -12,7 +12,7 @@ from api.config import logger
 router = APIRouter()
 
 
-@router.get("/info")
+@router.get("/user/info")
 def user_info(user_id: str):
     try:
         user = resolve_user(user_id)

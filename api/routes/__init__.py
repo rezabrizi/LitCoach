@@ -1,56 +1,30 @@
-from fastapi import APIRouter
-
-from .github_auth import router as access_token_router
-from .create_repo import router as create_repo_router
-from .leetcode_submission import router as github_sync_router
-from .ai_assistance import router as ai_response_router
-from .stripe_webhook import router as stripe_webhook_router
-from .subscribe import router as subscribe_router
-from .unsubscribe import router as unsubscribe_router
-from .renew_subscription import router as renew_subscription_router
+from .user_register import router as user_register_router
 from .user_info import router as user_info_router
-from .register_user import router as register_user_router
+from .user_github_info import router as user_github_info_router
+from .user_create_repo import router as user_create_repo_router
+from .user_leetcode_submission import router as user_leetcode_submission_router
+
 from .github_access_token import router as github_access_token_router
-from .github_user_info import router as github_user_info_router
+from .github_auth import router as github_auth_router  # Legacy
 
-router = APIRouter()
+from .subscription_subscribe import router as subscription_subscribe_router
+from .subscription_unsubscribe import router as subscription_unsubscribe_router
+from .subscription_renew import router as subscription_renew_router
 
-# api/users/register
-router.include_router(register_user_router)
-
-# /api/github/user/info
-router.include_router(github_user_info_router)
-
-# /api/github/access_token
-router.include_router(github_access_token_router)
-
-# /auth/github
-router.include_router(access_token_router, prefix="/auth")
-
-# /ai/assistance
-router.include_router(ai_response_router, prefix="/ai")
-
-# /user/github/repo
-router.include_router(create_repo_router, prefix="/user/github")
-
-# /user/github/submission
-router.include_router(github_sync_router, prefix="/user/github")
-
-# /user/info
-router.include_router(user_info_router, prefix="/user")
-
-# /stripe/webhook
-router.include_router(stripe_webhook_router, prefix="/stripe")
-
-# /subscription/subscribe
-router.include_router(subscribe_router, prefix="/subscription")
-
-# /subscription/unsubscribe
-router.include_router(unsubscribe_router, prefix="/subscription")
-
-# /subscription/renew
-router.include_router(renew_subscription_router, prefix="/subscription")
+from .ai_assistance import router as ai_assistance_router
+from .stripe_webhook import router as stripe_webhook_router
 
 __all__ = [
-    "router",
+    "user_register_router",
+    "user_info_router",
+    "user_github_info_router",
+    "user_create_repo_router",
+    "user_leetcode_submission_router",
+    "github_access_token_router",
+    "github_auth_router",  # Legacy
+    "subscription_subscribe_router",
+    "subscription_unsubscribe_router",
+    "subscription_renew_router",
+    "ai_assistance_router",
+    "stripe_webhook_router",
 ]

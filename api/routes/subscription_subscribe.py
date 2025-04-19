@@ -1,26 +1,25 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
-from api.services import renew_subscription
+from api.services import create_checkout_session
 from api.models import SubscribeRequest
-from api.db import resolve_user, update_premium_status
+from api.db import resolve_user
 from api.config import logger
 
 router = APIRouter()
 
 
-@router.post("/renew")
+@router.post("/subscription/subscribe")
 def subscribe(request: SubscribeRequest):
     try:
         user = resolve_user(request.user_id)
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
-        renew_subscription(user.subscription_id)
-        update_premium_status(user.user_id, True)
+        url = create_checkout_session(user.user_id)
 
         return JSONResponse(
             status_code=200,
-            content={"message": "Subscription renewed successfully"},
+            content={"url": url},
         )
     except HTTPException as e:
         logger.error(e)

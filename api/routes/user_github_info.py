@@ -12,8 +12,8 @@ from api.config import logger
 router = APIRouter()
 
 
-@router.get("/github/user/info")
-def user_info(github_access_token: str, user_id: str):
+@router.get("/user/github/info")
+def handler(github_access_token: str, user_id: str):
     try:
         user = resolve_user(user_id)
         user_info = get_user_info_from_github(github_access_token)

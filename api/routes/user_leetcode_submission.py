@@ -41,7 +41,7 @@ LANGUAGE_EXTENSIONS = {
 }
 
 
-@router.post("/submission")
+@router.post("/user/github/submission")
 def leetcode_submission(request: LeetCodeSubmission):
     try:
         user = resolve_user(request.user_id)

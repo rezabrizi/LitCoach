@@ -1,19 +1,13 @@
-import uuid
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
-from api.db import (
-    resolve_user_by_github_id,
-    add_new_user,
-    update_user_access_token_and_uuid,
-)
-from api.services import resolve_github_access_token, get_user_info_from_github
+from api.services import resolve_github_access_token
 from api.models import GithubAccessTokenRequest
 from api.config import logger
 
 router = APIRouter()
 
 
-@router.post("/api/github/access_token")
+@router.post("/github/access-token")
 def github_access_token(request: GithubAccessTokenRequest):
     try:
         github_access_token = resolve_github_access_token(request.github_code)

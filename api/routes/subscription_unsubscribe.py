@@ -8,7 +8,7 @@ from api.config import logger
 router = APIRouter()
 
 
-@router.post("/unsubscribe")
+@router.post("/subscription/unsubscribe")
 def unsubscribe(request: UnsubscribeRequest):
     try:
         user = resolve_user(request.user_id)
