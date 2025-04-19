@@ -41,7 +41,7 @@ def health_check():
 app.include_router(user_register_router)
 
 # /user/info
-app.include_router(user_info_router)
+app.include_router(user_info_router)  # Legacy
 
 # /user/github/info
 app.include_router(user_github_info_router)

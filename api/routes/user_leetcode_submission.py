@@ -2,7 +2,8 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from api.models import LeetCodeSubmission
 from api.db import resolve_user
-from api.services import resolve_github_repo_id_to_repo_name, push_to_github
+from api.github import resolve_github_repo_id_to_repo_name, push_to_github
+
 from api.config import logger
 
 router = APIRouter()
@@ -42,7 +43,7 @@ LANGUAGE_EXTENSIONS = {
 
 
 @router.post("/user/github/submission")
-def leetcode_submission(request: LeetCodeSubmission):
+def user_github_submission(request: LeetCodeSubmission):
     try:
         user = resolve_user(request.user_id)
         if not user:
@@ -59,7 +60,6 @@ def leetcode_submission(request: LeetCodeSubmission):
         )
         readme_path = f"{folder_name}/README.md"
         extension = LANGUAGE_EXTENSIONS.get(request.lang.verboseName, "txt")
-        print(request.lang.verboseName)
         solution_path = f"{folder_name}/{request.question.titleSlug}.{extension}"
         solution_git_message = f"Time: {request.runtimeDisplay} ({request.runtimePercentile:.2f}%) Space: {request.memoryDisplay} ({request.memoryPercentile:.2f}%)"
         readme_content = f"""

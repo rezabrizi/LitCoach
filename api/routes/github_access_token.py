@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
-from api.services import resolve_github_access_token
+from api.github import resolve_github_access_token
 from api.models import GithubAccessTokenRequest
 from api.config import logger
 

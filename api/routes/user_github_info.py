@@ -1,19 +1,15 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from api.db import resolve_user
-from api.services import (
-    get_user_info_from_github,
-    get_user_github_repos,
-    get_next_billing_date,
-    has_active_subscription,
-)
+from api.services import get_next_billing_date, has_active_subscription
+from api.github import get_user_info_from_github, get_user_github_repos
 from api.config import logger
 
 router = APIRouter()
 
 
 @router.get("/user/github/info")
-def handler(github_access_token: str, user_id: str):
+def user_github_info(github_access_token: str, user_id: str):
     try:
         user = resolve_user(user_id)
         user_info = get_user_info_from_github(github_access_token)

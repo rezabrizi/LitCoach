@@ -16,7 +16,7 @@ from .stripe_webhook import router as stripe_webhook_router
 
 __all__ = [
     "user_register_router",
-    "user_info_router",
+    "user_info_router",  # Legacy
     "user_github_info_router",
     "user_create_repo_router",
     "user_leetcode_submission_router",

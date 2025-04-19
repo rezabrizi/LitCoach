@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
-from api.services import create_github_repo
+from api.github import create_github_repo
 from api.db import resolve_user
 from api.models import CreateRepo
 from api.config import logger
@@ -9,7 +9,7 @@ router = APIRouter()
 
 
 @router.post("/user/github/repo")
-def create_repo(request: CreateRepo):
+def user_github_repo(request: CreateRepo):
     try:
         user = resolve_user(request.user_id)
         if not user:

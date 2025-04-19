@@ -6,7 +6,7 @@ from api.db import (
     add_new_user,
     update_user_access_token_and_uuid,
 )
-from api.services import resolve_github_access_token, get_user_info_from_github
+from api.github import resolve_github_access_token, get_user_info_from_github
 from api.models import GithubCode
 from api.config import logger
 
@@ -14,7 +14,7 @@ router = APIRouter()
 
 
 @router.post("/auth/github")
-def github_auth(request: GithubCode):
+def auth_github(request: GithubCode):
     try:
         access_token = resolve_github_access_token(request.code)
         user_info = get_user_info_from_github(access_token)
