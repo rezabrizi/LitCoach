@@ -3,10 +3,10 @@ from typing import Optional
 
 
 class User(BaseModel):
-    user_id: str
-    github_id: int
-    email: Optional[str] = None
-    access_token: str
+    user_id: Optional[str] = None
+    google_user_id: Optional[str] = None
+    github_id: Optional[int] = None
+    access_token: Optional[str] = None
     has_premium: bool = False
     premium_expiry: Optional[str] = None
     tokens_used_monthly: int

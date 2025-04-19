@@ -17,6 +17,14 @@ def resolve_user(user_id: str) -> User | None:
     return User(**user_data)
 
 
+def resolve_user_by_google_id(google_user_id: str) -> User | None:
+    user_data = USERS_COLLECTION.find_one({"google_user_id": google_user_id})
+    if not user_data:
+        return None
+
+    return User(**user_data)
+
+
 def resolve_user_by_github_id(github_id: str) -> User | None:
     user_data = USERS_COLLECTION.find_one({"github_id": github_id})
     if not user_data:
@@ -38,6 +46,17 @@ def add_new_user(user_id: str, github_id: str, access_token: str):
             "tokens_used_in_past_5_hours": 0,
             "last_5_hour_cooldown_reset": account_creation_date,
         }
+    )
+
+
+def add_user_google_id(user_id: str, google_user_id: str):
+    user = resolve_user(user_id)
+    if not user:
+        return
+
+    USERS_COLLECTION.update_one(
+        {"user_id": user.user_id},
+        {"$set": {"google_user_id": google_user_id}},
     )
 
 

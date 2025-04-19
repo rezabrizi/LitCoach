@@ -9,8 +9,20 @@ from .subscribe import router as subscribe_router
 from .unsubscribe import router as unsubscribe_router
 from .renew_subscription import router as renew_subscription_router
 from .user_info import router as user_info_router
+from .register_user import router as register_user_router
+from .github_access_token import router as github_access_token_router
+from .github_user_info import router as github_user_info_router
 
 router = APIRouter()
+
+# api/users/register
+router.include_router(register_user_router)
+
+# /api/github/user/info
+router.include_router(github_user_info_router)
+
+# /api/github/access_token
+router.include_router(github_access_token_router)
 
 # /auth/github
 router.include_router(access_token_router, prefix="/auth")

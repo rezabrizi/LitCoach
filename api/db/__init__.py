@@ -6,6 +6,8 @@ from .database import (
     update_user_access_token_and_uuid,
     update_premium_status,
     reset_tokens_if_needed,
+    resolve_user_by_google_id,
+    add_user_google_id,
 )
 
 __all__ = [
@@ -16,4 +18,6 @@ __all__ = [
     "update_user_access_token_and_uuid",
     "update_premium_status",
     "reset_tokens_if_needed",
+    "resolve_user_by_google_id",
+    "add_user_google_id",
 ]
