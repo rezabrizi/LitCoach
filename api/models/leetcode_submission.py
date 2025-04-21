@@ -26,5 +26,7 @@ class LeetCodeSubmission(BaseModel):
     question: QuestionInfo
     runtimeError: Optional[str] = None
     compileError: Optional[str] = None
-    user_id: str
+    user_id: Optional[str] = None
+    google_user_id: Optional[str] = None
     github_repo_id: int
+    github_access_token: Optional[str] = None  # Optional for legacy users

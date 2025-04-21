@@ -9,8 +9,8 @@ DB = client["LITCOACH"]
 USERS_COLLECTION = DB["users"]
 
 
-def resolve_user(user_id: str) -> User | None:
-    user_data = USERS_COLLECTION.find_one({"user_id": user_id})
+def resolve_user_by_legacy_user_id(legacy_user_id: str) -> User | None:
+    user_data = USERS_COLLECTION.find_one({"user_id": legacy_user_id})
     if not user_data:
         return None
 
@@ -33,11 +33,14 @@ def resolve_user_by_github_id(github_id: str) -> User | None:
     return User(**user_data)
 
 
-def add_new_user(user_id: str, github_id: str, access_token: str):
+def add_new_user(
+    google_user_id: str, github_id: str, access_token: str, legacy_user_id: str = None
+):
     account_creation_date = datetime.now(timezone.utc).isoformat()
     USERS_COLLECTION.insert_one(
         {
-            "user_id": user_id,
+            "google_user_id": google_user_id,
+            "user_id": legacy_user_id,
             "github_id": github_id,
             "access_token": access_token,
             "has_premium": False,
@@ -49,8 +52,8 @@ def add_new_user(user_id: str, github_id: str, access_token: str):
     )
 
 
-def add_user_google_id(user_id: str, google_user_id: str):
-    user = resolve_user(user_id)
+def assign_google_id_to_user(legacy_user_id: str, google_user_id: str):
+    user = resolve_user_by_legacy_user_id(legacy_user_id)
     if not user:
         return
 
@@ -60,24 +63,41 @@ def add_user_google_id(user_id: str, google_user_id: str):
     )
 
 
-def update_user_tokens(user_id: str, new_tokens: int):
-    user = resolve_user(user_id)
+def update_user_tokens_usage(
+    token_used: int, legacy_user_id: str = None, google_user_id: str = None
+):
+    user = resolve_user_by_legacy_user_id(legacy_user_id) or resolve_user_by_google_id(
+        google_user_id
+    )
     if not user:
         return
 
-    user.tokens_used_in_past_5_hours += new_tokens
-    user.tokens_used_monthly += new_tokens
-    USERS_COLLECTION.update_one(
-        {"user_id": user.user_id},
-        {
-            "$set": {
-                "tokens_used_in_past_5_hours": user.tokens_used_in_past_5_hours,
-                "tokens_used_monthly": user.tokens_used_monthly,
-            }
-        },
-    )
+    user.tokens_used_in_past_5_hours += token_used
+    user.tokens_used_monthly += token_used
+
+    if legacy_user_id:
+        USERS_COLLECTION.update_one(
+            {"user_id": user.user_id},
+            {
+                "$set": {
+                    "tokens_used_in_past_5_hours": user.tokens_used_in_past_5_hours,
+                    "tokens_used_monthly": user.tokens_used_monthly,
+                }
+            },
+        )
+    elif google_user_id:
+        USERS_COLLECTION.update_one(
+            {"google_user_id": user.google_user_id},
+            {
+                "$set": {
+                    "tokens_used_in_past_5_hours": user.tokens_used_in_past_5_hours,
+                    "tokens_used_monthly": user.tokens_used_monthly,
+                }
+            },
+        )
 
 
+# Legacy
 def update_user_access_token_and_uuid(
     github_id: str, new_uuid: str, new_access_token: str
 ):
@@ -93,11 +113,17 @@ def update_user_access_token_and_uuid(
 
 def reset_tokens_if_needed(user: User):
     now = datetime.now(timezone.utc)
+    query = {}
+    if user.user_id:
+        query["user_id"] = user.user_id
+    elif user.google_user_id:
+        query["google_user_id"] = user.google_user_id
+
     if now - datetime.fromisoformat(user.last_monthly_token_reset) >= timedelta(
         days=30
     ):
         USERS_COLLECTION.update_one(
-            {"user_id": user.user_id},
+            query,
             {
                 "$set": {
                     "tokens_used_monthly": 0,
@@ -109,7 +135,7 @@ def reset_tokens_if_needed(user: User):
         hours=5
     ):
         USERS_COLLECTION.update_one(
-            {"user_id": user.user_id},
+            query,
             {
                 "$set": {
                     "tokens_used_in_past_5_hours": 0,
@@ -120,8 +146,9 @@ def reset_tokens_if_needed(user: User):
 
 
 def update_premium_status(
-    user_id: str,
     has_premium: bool,
+    legacy_user_id: str = None,
+    google_user_id: str = None,
     subscription_id: str = None,
 ):
     data = {
@@ -131,12 +158,28 @@ def update_premium_status(
     if subscription_id:
         data["subscription_id"] = subscription_id
 
-    USERS_COLLECTION.update_one(
-        {"user_id": user_id},
-        {"$set": data},
-    )
+    if legacy_user_id:
+        USERS_COLLECTION.update_one(
+            {"user_id": legacy_user_id},
+            {"$set": data},
+        )
+    elif google_user_id:
+        USERS_COLLECTION.update_one(
+            {"google_user_id": google_user_id},
+            {"$set": data},
+        )
 
 
-def get_user_subscription_id(user_id: str):
-    user = USERS_COLLECTION.find_one({"user_id": user_id})
-    return user.get("subscription_id") if user else None
+def get_user_subscription_id(
+    legacy_user_id: str = None, google_user_id: str = None
+) -> str | None:
+    if legacy_user_id:
+        return USERS_COLLECTION.find_one({"user_id": legacy_user_id}).get(
+            "subscription_id"
+        )
+    elif google_user_id:
+        return USERS_COLLECTION.find_one({"google_user_id": google_user_id}).get(
+            "subscription_id"
+        )
+    else:
+        return None

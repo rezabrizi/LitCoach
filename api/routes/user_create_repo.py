@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from api.github import create_github_repo
-from api.db import resolve_user
+from api.db import resolve_user_by_legacy_user_id, resolve_user_by_google_id
 from api.models import CreateRepo
 from api.config import logger
 
@@ -11,15 +11,18 @@ router = APIRouter()
 @router.post("/user/github/repo")
 def user_github_repo(request: CreateRepo):
     try:
-        user = resolve_user(request.user_id)
+        user = resolve_user_by_legacy_user_id(
+            request.user_id
+        ) or resolve_user_by_google_id(request.google_user_id)
         if not user:
             raise HTTPException(status_code=403, details="User not found")
 
         repo_id = create_github_repo(
             repo_name=request.repo_name,
-            access_token=user.access_token,
+            access_token=user.access_token or request.github_access_token,
             tags=["data-structures-and-algorithms", "leetcode-solutions", "litcoach"],
         )
+
         return JSONResponse(
             content={"message": "Repository created successfully", "repo_id": repo_id},
             status_code=201,

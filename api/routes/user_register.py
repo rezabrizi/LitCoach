@@ -1,10 +1,10 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from api.db import (
-    resolve_user,
+    resolve_user_by_legacy_user_id,
     add_new_user,
     resolve_user_by_google_id,
-    add_user_google_id,
+    assign_google_id_to_user,
 )
 from api.models import RegisterUser
 from api.config import logger
@@ -13,7 +13,7 @@ router = APIRouter()
 
 
 @router.post("/user/register")
-def register_user(request: RegisterUser):
+def user_register(request: RegisterUser):
     try:
         # Check if user already exists with Google ID
         user = resolve_user_by_google_id(request.google_user_id)
@@ -23,9 +23,9 @@ def register_user(request: RegisterUser):
             )
 
         # Try to find and migrate existing user
-        user = resolve_user(request.old_user_id)
+        user = resolve_user_by_legacy_user_id(request.old_user_id)
         if user:
-            add_user_google_id(request.old_user_id, request.google_user_id)
+            assign_google_id_to_user(request.old_user_id, request.google_user_id)
             return JSONResponse(
                 content={"message": "User migrated successfully"}, status_code=200
             )

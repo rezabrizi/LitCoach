@@ -1,16 +1,16 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from api.github import resolve_github_access_token
-from api.models import GithubAccessTokenRequest
+from api.models import GithubCode
 from api.config import logger
 
 router = APIRouter()
 
 
 @router.post("/github/access-token")
-def github_access_token(request: GithubAccessTokenRequest):
+def github_access_token(request: GithubCode):
     try:
-        github_access_token = resolve_github_access_token(request.github_code)
+        github_access_token = resolve_github_access_token(request.code)
 
         return JSONResponse(
             content={

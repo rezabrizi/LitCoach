@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
-from api.db import resolve_user
+from api.db import resolve_user_by_legacy_user_id
 from api.payment import get_next_billing_date, has_active_subscription
 from api.config import logger
 
@@ -10,7 +10,7 @@ router = APIRouter()
 @router.get("/user/subscription/info")
 def user_subscription_info(user_id: str):
     try:
-        user = resolve_user(user_id)
+        user = resolve_user_by_legacy_user_id(user_id)
         if not user:
             raise HTTPException(404, detail="User not found")
 

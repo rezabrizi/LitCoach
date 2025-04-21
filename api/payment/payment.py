@@ -33,12 +33,17 @@ def get_next_billing_date(subscription_id: str) -> str:
         raise HTTPException(status_code=500, detail=str(e))
 
 
-def unsubscribe_user(user_id: str, subscription_id: str):
+def unsubscribe_user(
+    subscription_id: str, legacy_user_id: str = None, google_user_id: str = None
+):
     try:
         stripe.Subscription.modify(
             subscription_id,
             cancel_at_period_end=True,
-            metadata={"user_id": user_id},
+            metadata={
+                "user_id": legacy_user_id,
+                "google_user_id": google_user_id,
+            },
         )
     except stripe.error.InvalidRequestError:
         raise HTTPException(status_code=400, detail="Invalid subscription ID")
@@ -55,7 +60,9 @@ def renew_subscription(subscription_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-def create_checkout_session(user_id: str) -> str:
+def create_checkout_session(
+    legacy_user_id: str = None, google_user_id: str = None
+) -> str:
     try:
         session = stripe.checkout.Session.create(
             payment_method_types=["card"],
@@ -76,7 +83,10 @@ def create_checkout_session(user_id: str) -> str:
             mode="subscription",
             success_url="https://leetcode.com/problems/two-sum",
             cancel_url="https://leetcode.com/problems/two-sum",
-            metadata={"user_id": str(user_id)},
+            metadata={
+                "user_id": legacy_user_id,
+                "google_user_id": google_user_id,
+            },
         )
 
         return session.url

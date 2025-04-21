@@ -2,8 +2,13 @@ from datetime import datetime, timedelta
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 from openai import OpenAIError
-from api.models import AIHelp
-from api.db import update_user_tokens, resolve_user, reset_tokens_if_needed
+from api.models import AIAssistance
+from api.db import (
+    update_user_tokens_usage,
+    resolve_user_by_legacy_user_id,
+    reset_tokens_if_needed,
+    resolve_user_by_google_id,
+)
 from api.ai_client import generate_chat_response, create_ai_chat_prompt
 from api.payment import has_active_subscription
 from api.config import settings, logger
@@ -15,8 +20,10 @@ FIVE_HOUR_LIMIT = 20000
 
 
 @router.post("/ai/assistance")
-def ai_assistance(request: AIHelp):
-    user = resolve_user(request.user_id)
+def ai_assistance(request: AIAssistance):
+    user = resolve_user_by_legacy_user_id(request.user_id) or resolve_user_by_google_id(
+        request.google_user_id
+    )
     if not user:
         raise HTTPException(
             status_code=404,
@@ -24,7 +31,9 @@ def ai_assistance(request: AIHelp):
         )
 
     reset_tokens_if_needed(user)
-    user = resolve_user(request.user_id)
+    user = resolve_user_by_legacy_user_id(request.user_id) or resolve_user_by_google_id(
+        request.google_user_id
+    )
 
     if not user.has_premium and not has_active_subscription(user.subscription_id):
         if user.tokens_used_in_past_5_hours >= FIVE_HOUR_LIMIT:
@@ -67,7 +76,7 @@ def ai_assistance(request: AIHelp):
         )
 
         response = generate_chat_response(
-            openai_api_key=settings.OPENAI_API_KEY,
+            openai_api_key=settings.OPENAI_KEY,
             messages=prompt,
             model_name=request.model_name,
         )
@@ -83,7 +92,11 @@ def ai_assistance(request: AIHelp):
                     total_prompt_tokens += chunk.usage.prompt_tokens
 
             total_tokens = total_completion_tokens * 4 + total_prompt_tokens
-            update_user_tokens(user.user_id, total_tokens)
+            update_user_tokens_usage(
+                legacy_user_id=request.user_id,
+                google_user_id=request.google_user_id,
+                tokens_used=total_tokens,
+            )
 
         return StreamingResponse(generate(), media_type="text/event-stream")
 

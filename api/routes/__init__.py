@@ -1,5 +1,5 @@
 from .user_register import router as user_register_router
-from .user_info import router as user_info_router
+from .user_info import router as user_info_router  # Legacy
 from .user_github_info import router as user_github_info_router
 from .user_create_repo import router as user_create_repo_router
 from .user_leetcode_submission import router as user_leetcode_submission_router

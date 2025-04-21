@@ -13,16 +13,17 @@ class ResponseStyle(str, Enum):
     concise = "concise"
 
 
-class modelName(str, Enum):
+class ModelName(str, Enum):
     gpt_4o = "gpt-4o"
     o3_mini = "o3-mini"
 
 
-class AIHelp(BaseModel):
+class AIAssistance(BaseModel):
     problem_description: str
     context: Optional[List[Message]]
     code: str
     prompt: str
-    user_id: str
+    user_id: Optional[str] = None
+    google_user_id: Optional[str] = None
     response_style: Optional[ResponseStyle] = ResponseStyle.normal
-    model_name: Optional[modelName] = modelName.gpt_4o
+    model_name: Optional[ModelName] = ModelName.gpt_4o

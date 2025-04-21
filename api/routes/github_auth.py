@@ -13,6 +13,7 @@ from api.config import logger
 router = APIRouter()
 
 
+# Legacy
 @router.post("/auth/github")
 def auth_github(request: GithubCode):
     try:

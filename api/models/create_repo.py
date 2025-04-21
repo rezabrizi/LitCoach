@@ -3,6 +3,7 @@ from typing import Optional
 
 
 class CreateRepo(BaseModel):
-    user_id: str
+    user_id: Optional[str] = None
+    google_user_id: Optional[str] = None
     repo_name: str
-    access_token: Optional[str] = None  # Optional for legacy users
+    github_access_token: Optional[str] = None  # Optional for legacy users
