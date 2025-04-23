@@ -14,6 +14,7 @@ import { Input } from "@components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
 import { useToast } from "@hooks/use-toast";
 import { Loader2, Settings2, Plus, GitPullRequestArrow } from "lucide-react";
+import DisconnectGitHubAccount from "@components/disconnect-github-account";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 const GITHUB_CLIENT_ID = import.meta.env.VITE_GITHUB_CLIENT_ID;
@@ -35,7 +36,8 @@ const repoFormSchema = z.object({
 const GitHubSubmissionSync = () => {
     const { toast } = useToast();
     const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isDataLoading, setIsDataLoading] = useState(true);
+    const [isActionLoading, setIsActionLoading] = useState(false);
     const [syncEnabled, setSyncEnabled] = useState(false);
     const [creatingRepo, setCreatingRepo] = useState(false);
     const [selectedRepo, setSelectedRepo] = useState({ id: null, name: "" });
@@ -53,7 +55,7 @@ const GitHubSubmissionSync = () => {
 
     const checkGitHubAuth = useCallback(async () => {
         try {
-            setIsLoading(true);
+            setIsDataLoading(true);
             const response = await new Promise((resolve) => {
                 chrome.runtime.sendMessage({ action: "isGitHubAuthenticated" }, (res) => resolve(res));
             });
@@ -89,12 +91,12 @@ const GitHubSubmissionSync = () => {
             console.error("Authentication check failed", error);
             setIsAuthenticated(false);
         } finally {
-            setIsLoading(false);
+            setIsDataLoading(false);
         }
     }, []);
 
     const handleGitHubAuth = useCallback(async () => {
-        setIsLoading(true);
+        setIsActionLoading(true);
         const redirectURL = chrome.identity.getRedirectURL();
         const authUrl = `https://github.com/login/oauth/authorize?client_id=${GITHUB_CLIENT_ID}&redirect_uri=${redirectURL}&scope=read:user%20repo`;
 
@@ -124,7 +126,7 @@ const GitHubSubmissionSync = () => {
                 variant: "destructive",
             });
         } finally {
-            setIsLoading(false);
+            setIsActionLoading(false);
         }
     }, [checkGitHubAuth, toast]);
 
@@ -187,7 +189,7 @@ const GitHubSubmissionSync = () => {
         checkGitHubAuth();
     }, [checkGitHubAuth]);
 
-    if (isLoading) {
+    if (isDataLoading) {
         return (
             <Card className="flex justify-center p-6">
                 <Loader2 className="animate-spin h-8 w-8" />
@@ -214,10 +216,16 @@ const GitHubSubmissionSync = () => {
                         className="w-full"
                         size="sm"
                         variant="outline"
-                        disabled={isLoading}
+                        disabled={isActionLoading}
                     >
-                        <img src="/github_octocat.svg" alt="GitHub Logo" className="h-4 w-4" />
-                        {isLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : "Sign in with GitHub"}
+                        {isActionLoading ? (
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        ) : (
+                            <>
+                                <img src="/github_octocat.svg" alt="GitHub Logo" className="h-4 w-4" />
+                                Sign in with GitHub
+                            </>
+                        )}
                     </Button>
                 </CardContent>
             </Card>
@@ -227,12 +235,17 @@ const GitHubSubmissionSync = () => {
     return (
         <Card>
             <CardHeader className={syncEnabled ? "pb-3" : "pb-5"}>
-                <div className="flex items-center space-x-3 border-b border-gray-200 pb-3">
-                    <Avatar>
-                        <AvatarImage src={userData.avatarUrl} />
-                        <AvatarFallback>{userData.githubName?.[0]}</AvatarFallback>
-                    </Avatar>
-                    <CardTitle>{userData.githubName}</CardTitle>
+                <div className="flex items-center justify-between border-b border-gray-200 pb-3">
+                    <div className="flex items-center space-x-3">
+                        <Avatar>
+                            <AvatarImage src={userData.avatarUrl} />
+                            <AvatarFallback>{userData.githubName?.[0]}</AvatarFallback>
+                        </Avatar>
+                        <CardTitle>{userData.githubName}</CardTitle>
+                    </div>
+                    <div>
+                        <DisconnectGitHubAccount />
+                    </div>
                 </div>
                 <div className="flex items-center justify-between space-x-3 pt-1">
                     <p className="text-sm text-muted-foreground">
@@ -313,7 +326,7 @@ const GitHubSubmissionSync = () => {
                                             <Loader2 className="w-4 h-4 animate-spin" />
                                         ) : (
                                             <>
-                                                <Plus className="h-4 w-4 mr-2" />
+                                                <Plus className="h-4 w-4" />
                                                 Create Repository
                                             </>
                                         )}

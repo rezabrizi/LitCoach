@@ -2,6 +2,12 @@ import axios from "axios";
 
 console.log("Background script running!");
 
+chrome.runtime.onInstalled.addListener((details) => {
+    if (details.reason === chrome.runtime.OnInstalledReason.INSTALL) {
+        chrome.runtime.setUninstallURL("https://forms.gle/p2Qv8c7uJSgpK6zB7");
+    }
+});
+
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 const LEETCODE_PROBLEM_URL = "https://leetcode.com/problems/";
 const LEETCODE_GRAPHQL_URL = "https://leetcode.com/graphql";

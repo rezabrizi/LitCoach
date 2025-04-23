@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from api.github import create_github_repo
-from api.db import resolve_user_by_legacy_user_id, resolve_user_by_google_id
+from api.db import resolve_user_by_legacy_user_id
 from api.models import CreateRepo
 from api.config import logger
 
