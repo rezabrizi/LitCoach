@@ -15,8 +15,8 @@ from api.config import settings, logger
 
 router = APIRouter()
 
-MONTHLY_LIMIT = 200000
-FIVE_HOUR_LIMIT = 20000
+MONTHLY_LIMIT = 150000
+FIVE_HOUR_LIMIT = 15000
 
 
 @router.post("/ai/assistance")
@@ -24,6 +24,7 @@ def ai_assistance(request: AIAssistance):
     user = resolve_user_by_legacy_user_id(request.user_id) or resolve_user_by_google_id(
         request.google_user_id
     )
+
     if not user:
         raise HTTPException(
             status_code=404,

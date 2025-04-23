@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from api.db import (
     resolve_user_by_legacy_user_id,
-    add_new_user,
+    add_new_user_v2,
     resolve_user_by_google_id,
     assign_google_id_to_user,
 )
@@ -31,8 +31,8 @@ def user_register(request: RegisterUser):
             )
 
         # Create new user if not found
-        add_new_user(
-            google_user_id=request.google_user_id, github_id=None, access_token=None
+        add_new_user_v2(
+            google_user_id=request.google_user_id,
         )
         return JSONResponse(
             content={"message": "User added successfully"}, status_code=201

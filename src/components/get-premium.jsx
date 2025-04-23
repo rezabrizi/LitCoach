@@ -15,7 +15,7 @@ import axios from "axios";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
-function GetPremiumPopUp({ userID, isOpen, message, onClose }) {
+function GetPremiumPopUp({ googleUserID, isOpen, message, onClose }) {
     const { toast } = useToast();
     const [formattedMessage, setFormattedMessage] = useState(message);
 
@@ -41,7 +41,9 @@ function GetPremiumPopUp({ userID, isOpen, message, onClose }) {
 
     const handleSubscribe = async () => {
         try {
-            const { data } = await axios.post(`${API_URL}/subscription/subscribe`, { user_id: userID });
+            const { data } = await axios.post(`${API_URL}/subscription/subscribe`, {
+                google_user_id: googleUserID,
+            });
             window.open(data.url, "_blank", "noopener,noreferrer");
         } catch (error) {
             console.error("Failed to process subscription request", error);

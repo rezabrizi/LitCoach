@@ -11,13 +11,19 @@ router = APIRouter()
 @router.post("/user/github/repo")
 def user_github_repo(request: CreateRepo):
     try:
-        user = resolve_user_by_legacy_user_id(request.user_id)
-        if not user:
-            raise HTTPException(status_code=403, details="User not found")
+        user = None
+        if request.user_id:
+            user = resolve_user_by_legacy_user_id(request.user_id)
+            if not user:
+                raise HTTPException(status_code=404, detail="User not found")
+
+        access_token = user.access_token if user else request.github_access_token
+        if not access_token:
+            raise HTTPException(status_code=400, detail="Access token is required")
 
         repo_id = create_github_repo(
             repo_name=request.repo_name,
-            access_token=user.access_token or request.github_access_token,
+            access_token=access_token,
             tags=["data-structures-and-algorithms", "leetcode-solutions", "litcoach"],
         )
 

@@ -39,6 +39,7 @@ LANGUAGE_EXTENSIONS = {
     "MS SQL Server": "sql",
     "Oracle": "sql",
     "PostgreSQL": "sql",
+    "Bash": "sh",
 }
 
 

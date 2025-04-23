@@ -25,5 +25,5 @@ class AIAssistance(BaseModel):
     prompt: str
     user_id: Optional[str] = None
     google_user_id: Optional[str] = None
-    response_style: Optional[ResponseStyle] = ResponseStyle.normal
-    model_name: Optional[ModelName] = ModelName.gpt_4o
+    response_style: Optional[ResponseStyle] = ResponseStyle.concise
+    model_name: Optional[ModelName] = ModelName.o3_mini

@@ -4,10 +4,9 @@ import { ScrollArea } from "@components/ui/scroll-area";
 import { Input } from "@components/ui/input";
 import InvalidPage from "@components/invalid-page";
 import GetPremiumPopUp from "@components/get-premium";
-import ResponseStyleSelector from "@components/response-style";
-import ModelSelector from "@components/ai_model";
 import { useToast } from "@hooks/use-toast";
 import { Info, Send, StopCircle, Loader2 } from "lucide-react";
+import ReportIssueButton from "@components/report-issue";
 import ReactMarkdown from "react-markdown";
 import SyntaxHighlighter from "react-syntax-highlighter/dist/esm/default-highlight";
 
@@ -26,7 +25,7 @@ function App() {
     const { toast } = useToast();
     const messagesEndRef = useRef(null);
     const abortControllerRef = useRef(null);
-    const [userID, setUserID] = useState(null);
+    const [googleUserID, setGoogleUserID] = useState(null);
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -36,8 +35,6 @@ function App() {
         open: false,
         alertMessage: null,
     });
-    const [responseStyle, setResponseStyle] = useState(null);
-    const [modelName, setModelName] = useState(null);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -51,13 +48,11 @@ function App() {
 
             setIsValidPage(currentTab?.url?.startsWith("https://leetcode.com/problems/") || false);
 
-            const { user_id, model_name, response_style } = await new Promise((resolve) =>
-                chrome.storage.sync.get(["user_id", "model_name", "response_style"], resolve),
+            const { google_user_id } = await new Promise((resolve) =>
+                chrome.storage.sync.get(["google_user_id"], resolve),
             );
 
-            setResponseStyle(response_style || "normal");
-            setModelName(model_name || "o3-mini");
-            setUserID(user_id);
+            setGoogleUserID(google_user_id);
         };
 
         fetchData();
@@ -66,7 +61,7 @@ function App() {
         return () => {
             chrome.runtime.onMessage.removeListener(updateIsValidPage);
         };
-    }, [responseStyle]);
+    }, []);
 
     const updateIsValidPage = (message) => {
         if (message.isLeetCodeProblem !== undefined) {
@@ -95,20 +90,6 @@ function App() {
         }
     };
 
-    const handleResponseStyleChange = async (value) => {
-        setResponseStyle(value);
-        await new Promise((resolve) => {
-            chrome.storage.sync.set({ response_style: value }, resolve);
-        });
-    };
-
-    const handleModelChange = async (value) => {
-        setModelName(value);
-        await new Promise((resolve) => {
-            chrome.storage.sync.set({ model_name: value }, resolve);
-        });
-    };
-
     const handleSendMessage = async () => {
         if (!input.trim() || isLoading) return;
 
@@ -131,9 +112,7 @@ function App() {
                     context: messages,
                     code: code,
                     prompt: input,
-                    user_id: userID,
-                    response_style: responseStyle,
-                    model_name: modelName,
+                    google_user_id: googleUserID,
                 }),
                 signal: abortControllerRef.current.signal,
             });
@@ -223,92 +202,91 @@ function App() {
         );
     };
 
-    const content = (
-        <div className="h-screen flex flex-col">
-            <div className="p-2 border-b flex justify-between">
-                <Button variant="ghost" size="icon" onClick={() => window.open(OPTIONS_PAGE)}>
-                    <Info className="h-5 w-5" />
-                </Button>
-                <div className="flex gap-2">
-                    <ModelSelector value={modelName} onValueChange={handleModelChange} />
-                    <ResponseStyleSelector value={responseStyle} onValueChange={handleResponseStyleChange} />
+    if (isValidPage) {
+        return (
+            <div className="h-screen flex flex-col">
+                <div className="p-2 border-b flex justify-between items-center">
+                    <Button variant="ghost" size="icon" onClick={() => window.open(OPTIONS_PAGE)}>
+                        <Info className="h-5 w-5" />
+                    </Button>
+                    <ReportIssueButton />
                 </div>
-            </div>
 
-            <div className="flex-1 overflow-hidden relative">
-                <ScrollArea className="h-full px-4">
-                    <div className="py-2 space-y-4">
-                        {messages.map((message, index) => (
-                            <MessageBubble key={index} message={message} index={index} />
-                        ))}
-                        <div ref={messagesEndRef} />
-                    </div>
-                </ScrollArea>
+                <div className="flex-1 overflow-hidden relative">
+                    <ScrollArea className="h-full px-4">
+                        <div className="py-2 space-y-4">
+                            {messages.map((message, index) => (
+                                <MessageBubble key={index} message={message} index={index} />
+                            ))}
+                            <div ref={messagesEndRef} />
+                        </div>
+                    </ScrollArea>
 
-                {showSuggestions && (
-                    <div className="absolute bottom-4 left-4 flex gap-2 flex-wrap">
-                        {SUGGESTIONS.map((suggestion, index) => (
-                            <Button
-                                key={index}
-                                variant="outline"
-                                size="sm"
-                                className="text-sm hover:bg-muted"
-                                onClick={() => {
-                                    setInput(suggestion);
-                                    setShowSuggestions(false);
-                                }}
-                            >
-                                {suggestion}
-                            </Button>
-                        ))}
-                    </div>
-                )}
-            </div>
-
-            <div className="border-t">
-                <div className="p-4 flex gap-2">
-                    <Input
-                        placeholder={"Ask a question..."}
-                        value={input}
-                        onChange={handleInputChange}
-                        onKeyDown={(e) => {
-                            if (e.key === "Enter" && !e.shiftKey) {
-                                e.preventDefault();
-                                handleSendMessage();
-                            }
-                        }}
-                        disabled={isLoading}
-                        className="flex-1"
-                    />
-                    {isLoading ? (
-                        <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => {
-                                abortControllerRef.current?.abort();
-                                setIsLoading(false);
-                            }}
-                        >
-                            <StopCircle className="h-5 w-5" />
-                        </Button>
-                    ) : (
-                        <Button size="icon" disabled={!input.trim()} onClick={handleSendMessage}>
-                            <Send className="h-5 w-5" />
-                        </Button>
+                    {showSuggestions && (
+                        <div className="absolute bottom-4 left-4 flex gap-2 flex-wrap">
+                            {SUGGESTIONS.map((suggestion, index) => (
+                                <Button
+                                    key={index}
+                                    variant="outline"
+                                    size="sm"
+                                    className="text-sm hover:bg-muted"
+                                    onClick={() => {
+                                        setInput(suggestion);
+                                        setShowSuggestions(false);
+                                    }}
+                                >
+                                    {suggestion}
+                                </Button>
+                            ))}
+                        </div>
                     )}
                 </div>
+
+                <div className="border-t">
+                    <div className="p-4 flex gap-2">
+                        <Input
+                            placeholder={"Ask a question..."}
+                            value={input}
+                            onChange={handleInputChange}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter" && !e.shiftKey) {
+                                    e.preventDefault();
+                                    handleSendMessage();
+                                }
+                            }}
+                            disabled={isLoading}
+                            className="flex-1"
+                        />
+                        {isLoading ? (
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => {
+                                    abortControllerRef.current?.abort();
+                                    setIsLoading(false);
+                                }}
+                            >
+                                <StopCircle className="h-5 w-5" />
+                            </Button>
+                        ) : (
+                            <Button size="icon" disabled={!input.trim()} onClick={handleSendMessage}>
+                                <Send className="h-5 w-5" />
+                            </Button>
+                        )}
+                    </div>
+                </div>
+
+                <GetPremiumPopUp
+                    googleUserID={googleUserID}
+                    isOpen={premiumAlert.open}
+                    message={premiumAlert.alertMessage}
+                    onClose={() => setPremiumAlert({ open: false })}
+                />
             </div>
+        );
+    }
 
-            <GetPremiumPopUp
-                userID={userID}
-                isOpen={premiumAlert.open}
-                message={premiumAlert.alertMessage}
-                onClose={() => setPremiumAlert({ open: false })}
-            />
-        </div>
-    );
-
-    return isValidPage ? content : <InvalidPage />;
+    return <InvalidPage />;
 }
 
 export default App;
