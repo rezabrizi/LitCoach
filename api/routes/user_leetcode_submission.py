@@ -46,13 +46,19 @@ LANGUAGE_EXTENSIONS = {
 @router.post("/user/github/submission")
 def user_github_submission(request: LeetCodeSubmission):
     try:
-        user = resolve_user_by_legacy_user_id(request.user_id)
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
+        user = None
+        if request.user_id:
+            user = resolve_user_by_legacy_user_id(request.user_id)
+            if not user:
+                raise HTTPException(status_code=404, detail="User not found")
+
+        access_token = user.access_token if user else request.github_access_token
+        if not access_token:
+            raise HTTPException(status_code=400, detail="Access token is required")
 
         repo = resolve_github_repo_id_to_repo_name(
             repo_id=request.github_repo_id,
-            access_token=user.access_token or request.github_access_token,
+            access_token=access_token,
         )
         if not repo:
             raise HTTPException(status_code=404, detail="GitHub repository not found")
@@ -76,7 +82,7 @@ def user_github_submission(request: LeetCodeSubmission):
             commit_message=f"Problem description for {request.question.title}",
             owner_name=repo["owner"],
             repo_name=repo["name"],
-            access_token=user.access_token or request.github_access_token,
+            access_token=access_token,
         )
 
         push_to_github(
@@ -85,7 +91,7 @@ def user_github_submission(request: LeetCodeSubmission):
             commit_message=solution_git_message,
             owner_name=repo["owner"],
             repo_name=repo["name"],
-            access_token=user.access_token or request.github_access_token,
+            access_token=access_token,
         )
 
         return JSONResponse(
