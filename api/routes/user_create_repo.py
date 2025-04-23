@@ -11,9 +11,7 @@ router = APIRouter()
 @router.post("/user/github/repo")
 def user_github_repo(request: CreateRepo):
     try:
-        user = resolve_user_by_legacy_user_id(
-            request.user_id
-        ) or resolve_user_by_google_id(request.google_user_id)
+        user = resolve_user_by_legacy_user_id(request.user_id)
         if not user:
             raise HTTPException(status_code=403, details="User not found")
 

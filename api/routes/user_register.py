@@ -31,7 +31,9 @@ def user_register(request: RegisterUser):
             )
 
         # Create new user if not found
-        add_new_user(user_id=request.google_user_id, github_id=None, access_token=None)
+        add_new_user(
+            google_user_id=request.google_user_id, github_id=None, access_token=None
+        )
         return JSONResponse(
             content={"message": "User added successfully"}, status_code=201
         )

@@ -116,8 +116,8 @@ async function fetchSubmissionDetails(submissionId) {
 // Monitor for submission result changes
 chrome.tabs.onUpdated.addListener((_, changeInfo, tab) => {
     if (tab.url?.startsWith(LEETCODE_PROBLEM_URL) && changeInfo.status === "complete") {
-        chrome.storage.sync.get(["selected_repo_id", "user_id"], async (data) => {
-            if (!data.selected_repo_id || !data.user_id) return;
+        chrome.storage.sync.get(["sync_enabled", "selected_repo_id", "github_access_token"], async (data) => {
+            if (!data.sync_enabled || !data.selected_repo_id || !data.github_access_token) return;
 
             const submissionMatch = tab.url.match(/submissions\/(\d+)/);
             if (submissionMatch) {
@@ -148,8 +148,8 @@ chrome.tabs.onUpdated.addListener((_, changeInfo, tab) => {
                 try {
                     await axios.post(`${API_URL}/user/github/submission`, {
                         ...details,
-                        user_id: data.user_id,
                         github_repo_id: data.selected_repo_id,
+                        github_access_token: data.github_access_token,
                     });
                     console.log("Successfully submitted problem to user's selected github repo");
                 } catch (error) {
@@ -160,20 +160,22 @@ chrome.tabs.onUpdated.addListener((_, changeInfo, tab) => {
     }
 });
 
-// Check if the user is authenticated with GitHub
+// Check if the user has Github sync
 chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
-    if (message.action === "isAuthenticated") {
-        chrome.storage.sync.get(["user_id"], async (stored) => {
-            if (!stored.user_id) return sendResponse(false);
+    if (message.action === "isGitHubAuthenticated") {
+        chrome.storage.sync.get(["github_access_token"], async (stored) => {
+            if (!stored.github_access_token) return sendResponse(false);
 
             try {
-                const { data } = await axios.get(`${API_URL}/user/info`, {
-                    params: { user_id: stored.user_id },
+                const { data } = await axios.get(`${API_URL}/user/github/info`, {
+                    params: {
+                        github_access_token: stored.github_access_token,
+                    },
                 });
-                await chrome.storage.sync.set({ user_data: data });
+                await chrome.storage.sync.set({ github_user_data: data });
                 sendResponse(true);
             } catch (error) {
-                console.error("User may not be authenticated", error);
+                console.error("User may not be authenticated with GitHub", error);
                 sendResponse(false);
             }
         });

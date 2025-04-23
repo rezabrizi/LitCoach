@@ -12,7 +12,11 @@ const { version, description } = JSON.parse(fs.readFileSync("package.json", "utf
 const manifest = {
     manifest_version: 3,
     name: "LitCoach",
-    permissions: ["sidePanel", "tabs", "scripting", "activeTab", "storage", "identity"],
+    oauth2: {
+        client_id: "883873953277-b3qo34v2o0tnhpe8uiprt10uguv8nog1.apps.googleusercontent.com",
+        scopes: ["openid"],
+    },
+    permissions: ["sidePanel", "tabs", "scripting", "activeTab", "storage", "identity", "identity.email"],
     icons: {
         16: "icon16.png",
         32: "icon32.png",

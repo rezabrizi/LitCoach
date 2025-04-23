@@ -18,32 +18,54 @@ import { useToast } from "@hooks/use-toast";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
-function SubscriptionCard({ userID }) {
+function SubscriptionCard() {
     const { toast } = useToast();
-    const [isLoading, setIsLoading] = useState(false);
+    const [isDataLoading, setIsDataLoading] = useState(true);
+    const [isActionLoading, setIsActionLoading] = useState(false);
     const [userData, setUserData] = useState({
+        google_user_id: null,
         hasPremium: false,
         billingDate: null,
     });
 
     useEffect(() => {
         const fetchUserData = async () => {
-            const storage = await new Promise((resolve) => {
-                chrome.storage.sync.get(["user_data"], resolve);
-            });
-            setUserData({
-                hasPremium: storage.user_data.has_premium,
-                billingDate: storage.user_data.billing_date,
-            });
+            setIsDataLoading(true);
+            try {
+                const { google_user_id } = await new Promise((resolve) => {
+                    chrome.storage.sync.get(["google_user_id"], resolve);
+                });
+
+                const response = await axios.get(`${API_URL}/user/subscription/info`, {
+                    params: { google_user_id: google_user_id },
+                });
+
+                setUserData({
+                    google_user_id: google_user_id,
+                    hasPremium: response.data.has_premium,
+                    billingDate: response.data.billing_date,
+                });
+            } catch (error) {
+                console.error("Failed to fetch subscription data", error);
+                toast({
+                    title: "Error",
+                    description: "Could not load subscription information",
+                    variant: "destructive",
+                });
+            } finally {
+                setIsDataLoading(false);
+            }
         };
 
         fetchUserData();
-    }, []);
+    }, [toast]);
 
     const handleSubscribe = async () => {
         try {
-            setIsLoading(true);
-            const response = await axios.post(`${API_URL}/subscription/subscribe`, { user_id: userID });
+            setIsActionLoading(true);
+            const response = await axios.post(`${API_URL}/subscription/subscribe`, {
+                google_user_id: userData.google_user_id,
+            });
             window.location.href = response.data.url;
         } catch (error) {
             console.error("Failed to process subscription request", error);
@@ -52,18 +74,21 @@ function SubscriptionCard({ userID }) {
                 description: "Could not process subscription request",
                 variant: "destructive",
             });
-        } finally {
-            setIsLoading(false);
+            setIsActionLoading(false);
         }
     };
 
     const handleUnsubscribe = async () => {
         try {
-            setIsLoading(true);
-            await axios.post(`${API_URL}/subscription/unsubscribe`, { user_id: userID });
+            setIsActionLoading(true);
+            await axios.post(`${API_URL}/subscription/unsubscribe`, { google_user_id: userData.google_user_id });
             setUserData({
                 ...userData,
                 hasPremium: false,
+            });
+            toast({
+                title: "Sorry To See You Go",
+                description: "Your subscription has been canceled",
             });
         } catch (error) {
             console.error("Failed to process cancellation request", error);
@@ -73,17 +98,21 @@ function SubscriptionCard({ userID }) {
                 variant: "destructive",
             });
         } finally {
-            setIsLoading(false);
+            setIsActionLoading(false);
         }
     };
 
     const handleRenew = async () => {
         try {
-            setIsLoading(true);
-            await axios.post(`${API_URL}/subscription/renew`, { user_id: userID });
+            setIsActionLoading(true);
+            await axios.post(`${API_URL}/subscription/renew`, { google_user_id: userData.google_user_id });
             setUserData({
                 ...userData,
                 hasPremium: true,
+            });
+            toast({
+                title: "Success",
+                description: "Your subscription has been renewed",
             });
         } catch (error) {
             console.error("Failed to process renewal request", error);
@@ -93,27 +122,36 @@ function SubscriptionCard({ userID }) {
                 variant: "destructive",
             });
         } finally {
-            setIsLoading(false);
+            setIsActionLoading(false);
         }
     };
 
+    if (isDataLoading) {
+        return (
+            <Card className="flex justify-center p-6">
+                <Loader2 className="animate-spin h-8 w-8" />
+            </Card>
+        );
+    }
+
     if (userData.hasPremium) {
         return (
-            <Card className="w-full border-blue-200">
+            <Card className="border-blue-200">
                 <CardHeader className="pb-3">
                     <CardTitle className="text-lg flex items-center">
                         <Crown className="w-5 h-5 text-blue-500 mr-2" />
                         Premium Active
                     </CardTitle>
                     <CardDescription>
-                        Next billing date: {new Date(userData.billingDate).toLocaleDateString()}
+                        Next billing date:{" "}
+                        {userData.billingDate ? new Date(userData.billingDate).toLocaleDateString() : "Loading..."}
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <AlertDialog>
                         <AlertDialogTrigger asChild>
-                            <Button variant="outline" size="sm" className="w-full" disabled={isLoading}>
-                                {isLoading ? (
+                            <Button variant="outline" size="sm" className="w-full" disabled={isActionLoading}>
+                                {isActionLoading ? (
                                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                                 ) : (
                                     "Cancel Subscription"
@@ -143,7 +181,7 @@ function SubscriptionCard({ userID }) {
 
     if (userData.billingDate) {
         return (
-            <Card className="w-full border-amber-200">
+            <Card className="border-amber-200">
                 <CardHeader className="pb-3">
                     <CardTitle className="text-lg flex items-center">
                         <Crown className="w-5 h-5 text-amber-500 mr-2" />
@@ -159,9 +197,9 @@ function SubscriptionCard({ userID }) {
                         onClick={handleRenew}
                         className="w-full"
                         size="sm"
-                        disabled={isLoading}
+                        disabled={isActionLoading}
                     >
-                        {isLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : "Renew Premium"}
+                        {isActionLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : "Renew Premium"}
                     </Button>
                 </CardContent>
             </Card>
@@ -169,7 +207,7 @@ function SubscriptionCard({ userID }) {
     }
 
     return (
-        <Card className="w-full border-amber-200">
+        <Card className="border-amber-200">
             <CardHeader className="pb-2">
                 <CardTitle className="text-lg flex items-center">
                     <Crown className="w-5 h-5 text-amber-500 mr-2" />
@@ -189,9 +227,9 @@ function SubscriptionCard({ userID }) {
                     onClick={handleSubscribe}
                     className="w-full"
                     size="sm"
-                    disabled={isLoading}
+                    disabled={isActionLoading}
                 >
-                    {isLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : "Get Premium"}
+                    {isActionLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : "Get Premium"}
                 </Button>
             </CardContent>
         </Card>

@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from "react";
 import { Button } from "@components/ui/button";
 import { Loader2 } from "lucide-react";
 import ReportIssueButton from "@components/report-issue";
-import PrivacyPolicyButton from "@components/privacy-policy";
 import { useToast } from "@hooks/use-toast";
 import axios from "axios";
 
@@ -19,14 +18,19 @@ const getGoogleUserInfo = () =>
         });
     });
 
-const getStoredUserId = () =>
+const storeGoogleUserID = (googleUserId) =>
     new Promise((resolve) => {
-        chrome.storage.sync.get(["user_id"], (result) => resolve(result.user_id));
+        chrome.storage.sync.set({ google_user_id: googleUserId }, () => resolve());
     });
 
-const setStoredUserId = (userId) =>
+const getStoredGoogleUserID = () =>
     new Promise((resolve) => {
-        chrome.storage.sync.set({ user_id: userId }, resolve);
+        chrome.storage.sync.get(["google_user_id"], (result) => resolve(result.google_user_id));
+    });
+
+const getStoredLegacyID = () =>
+    new Promise((resolve) => {
+        chrome.storage.sync.get(["user_id"], (result) => resolve(result.user_id));
     });
 
 export const GoogleAuth = ({ children }) => {
@@ -37,15 +41,22 @@ export const GoogleAuth = ({ children }) => {
     const handleGoogleAuth = useCallback(async () => {
         setIsLoading(true);
         try {
-            const { id: googleUserId } = await getGoogleUserInfo();
-            const storedUserId = await getStoredUserId();
+            const googleInfo = await getGoogleUserInfo();
+            const googleUserId = googleInfo.id;
+            const storedGoogleUserId = await getStoredGoogleUserID();
+            const storedUserId = await getStoredLegacyID();
 
-            await axios.post(`${API_URL}/user`, {
+            if (googleUserId && googleUserId === storedGoogleUserId) {
+                setIsAuthenticated(true);
+                return;
+            }
+
+            await axios.post(`${API_URL}/user/register`, {
                 google_user_id: googleUserId,
-                old_user_id: storedUserId || null,
+                old_user_id: storedUserId || null, // For legacy users to migrate
             });
 
-            await setStoredUserId(googleUserId);
+            await storeGoogleUserID(googleUserId);
             setIsAuthenticated(true);
         } catch (err) {
             console.error("Authentication error:", err);
@@ -84,7 +95,6 @@ export const GoogleAuth = ({ children }) => {
 
                 <div>
                     <ReportIssueButton />
-                    <PrivacyPolicyButton />
                 </div>
             </div>
         );
