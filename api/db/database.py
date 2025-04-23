@@ -64,7 +64,7 @@ def assign_google_id_to_user(legacy_user_id: str, google_user_id: str):
 
 
 def update_user_tokens_usage(
-    token_used: int, legacy_user_id: str = None, google_user_id: str = None
+    tokens_used: int, legacy_user_id: str = None, google_user_id: str = None
 ):
     user = resolve_user_by_legacy_user_id(legacy_user_id) or resolve_user_by_google_id(
         google_user_id
@@ -72,8 +72,8 @@ def update_user_tokens_usage(
     if not user:
         return
 
-    user.tokens_used_in_past_5_hours += token_used
-    user.tokens_used_monthly += token_used
+    user.tokens_used_in_past_5_hours += tokens_used
+    user.tokens_used_monthly += tokens_used
 
     if legacy_user_id:
         USERS_COLLECTION.update_one(
