@@ -42,6 +42,9 @@ function App() {
 
     useEffect(() => {
         const fetchData = async () => {
+            const response = await fetch(`${API_URL}/health`);
+            if (!response.ok) throw new Error("Failed to ping the server");
+
             const [currentTab] = await new Promise((resolve) => {
                 chrome.tabs.query({ active: true, currentWindow: true }, resolve);
             });
