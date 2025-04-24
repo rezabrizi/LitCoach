@@ -46,6 +46,7 @@ def add_new_user(
     google_user_id: str = None,
 ):
     account_creation_date = datetime.now(timezone.utc).isoformat()
+    insert_fields = None
 
     if google_user_id:
         filter_query = {"google_user_id": google_user_id}
