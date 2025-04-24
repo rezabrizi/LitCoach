@@ -2,32 +2,37 @@
 
 # LitCoach
 
-LitCoach is a Chrome extension that provides real-time feedback on LeetCode problems and automatically syncs your solutions to a GitHub repository—making it easy to track your progress.
+LitCoach is a Chrome extension that gives you real-time feedback on LeetCode problems and automatically syncs your solutions to GitHub—making it easy to track your progress and showcase activity while you prep for interviews.
 
 [![Chrome Web Store](https://img.shields.io/badge/Featured_on-Chrome_Web_Store-cce7e8?style=for-the-badge)](https://chromewebstore.google.com/detail/profstats-ut-dallas/doilmgfedjlpepeaolcfpdmkehecdaff)
 
 ![LitCoach Diagram](assets/diagram.png)  
 _Image from gitdiagram.com_
 
-## 📦 Prerequisites
+## Local Development
 
-Ensure you have the following installed and set up **before** proceeding:
+Ensure you have the following installed and set up before proceeding:
 
 - [Node.js](https://nodejs.org/)
+
 - [Python 3.12+](https://www.python.org/downloads/)
+
 - [Poetry](https://python-poetry.org/docs/#installation)
+
 - [Stripe CLI](https://stripe.com/docs/stripe-cli)
+
 - [MongoDB Atlas](https://www.mongodb.com/atlas/database)
+
 - [OpenAI API Key](https://platform.openai.com/account/api-keys)
+
 - [GitHub OAuth App](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/creating-an-oauth-app)
+
 - [Stripe Account](https://dashboard.stripe.com/register)
 
 > [!IMPORTANT]
 > When creating the **GitHub OAuth App**, set the **Authorization callback URL** to:  
 > `https://pbkbbpmpbidfjbcapgplbdogiljdechf.chromiumapp.org`
 > This is required for authentication to work inside the Chrome Extension.
-
-## ⚙️ Environment Setup
 
 1. Clone the repository:
 
@@ -61,48 +66,47 @@ Ensure you have the following installed and set up **before** proceeding:
 > [!NOTE]
 > Need help finding these values? Use the links in the **Prerequisites** section above.
 
-## 🛠 Installation & Running Locally
-
-1. Create a Python virtual environment (using Python 3.12):
+3. Create a Python virtual environment (using Python 3.12):
 
     ```bash
     python3.12 -m venv venv
     source venv/bin/activate  # On Windows, use: venv\Scripts\activate
     ```
 
-2. Install backend dependencies with Poetry:
+4. Install backend dependencies with Poetry:
 
     ```bash
     poetry install
     ```
 
-3. Install frontend dependencies:
+5. Install frontend dependencies:
 
     ```bash
     npm install
     ```
 
-4. Start the backend server:
+6. Start the backend server:
 
     ```bash
     uvicorn api.app:app --reload
     ```
 
-5. Start the frontend development server:
+7. Start the frontend development server:
 
     ```bash
     npm run dev
     ```
 
-6. Start the Stripe webhook listener:
+8. Start the Stripe webhook listener:
 
     ```bash
     stripe listen --forward-to http://localhost:8000/stripe/webhook
     ```
 
-## 🧩 Load the Extension in Chrome
+9. Open Chrome and go to: `chrome://extensions/`
 
-1. Open Chrome and go to: `chrome://extensions/`
-2. Toggle **Developer Mode** on (top right).
-3. Click **"Load unpacked"**.
-4. Select the `dist` folder from the repo.
+10. Toggle **Developer Mode** on (top right)
+
+11. Click **"Load unpacked"**
+
+12. Select the `dist` folder from the repo
