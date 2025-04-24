@@ -40,13 +40,23 @@ def resolve_user_by_github_id(github_id: str) -> User | None:
 
 
 def add_new_user(
-    google_user_id: str, github_id: str, access_token: str, legacy_user_id: str = None
+    github_id: str,
+    access_token: str,
+    legacy_user_id: str,
+    google_user_id: str = None,
 ):
     account_creation_date = datetime.now(timezone.utc).isoformat()
-    USERS_COLLECTION.insert_one(
+
+    if google_user_id:
+        filter_query = {"google_user_id": google_user_id}
+        # new users will have a legacy_user_id to keep consistency with the old system, but it will be never utlized
+        insert_fields = {"google_user_id": google_user_id, "user_id": legacy_user_id}
+    else:
+        filter_query = {"user_id": legacy_user_id}
+        insert_fields = {"user_id": legacy_user_id}
+
+    insert_fields.update(
         {
-            "google_user_id": google_user_id,
-            "user_id": legacy_user_id,
             "github_id": github_id,
             "access_token": access_token,
             "has_premium": False,
@@ -57,22 +67,8 @@ def add_new_user(
         }
     )
 
-
-def add_new_user_v2(google_user_id: str):
-    account_creation_date = datetime.now(timezone.utc).isoformat()
     USERS_COLLECTION.update_one(
-        {"google_user_id": google_user_id},
-        {
-            "$setOnInsert": {
-                "google_user_id": google_user_id,
-                "has_premium": False,
-                "tokens_used_monthly": 0,
-                "last_monthly_token_reset": account_creation_date,
-                "tokens_used_in_past_5_hours": 0,
-                "last_5_hour_cooldown_reset": account_creation_date,
-            }
-        },
-        upsert=True,
+        filter_query, {"$setOnInsert": insert_fields}, upsert=True
     )
 
 

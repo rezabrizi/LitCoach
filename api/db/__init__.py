@@ -8,7 +8,6 @@ from .database import (
     reset_tokens_if_needed,
     resolve_user_by_google_id,
     assign_google_id_to_user,
-    add_new_user_v2,
 )
 
 __all__ = [
@@ -21,5 +20,4 @@ __all__ = [
     "reset_tokens_if_needed",
     "resolve_user_by_google_id",
     "assign_google_id_to_user",
-    "add_new_user_v2",
 ]

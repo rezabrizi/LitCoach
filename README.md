@@ -1,5 +1,3 @@
-
-
 # LitCoach
 
 LitCoach is a Chrome extension that gives you real-time feedback on LeetCode problems and automatically syncs your solutions to GitHub—making it easy to track your progress and showcase activity while you prep for interviews.
@@ -13,21 +11,21 @@ _Image from gitdiagram.com_
 
 Ensure you have the following installed and set up before proceeding:
 
-- [Node.js](https://nodejs.org/)
+-   [Node.js](https://nodejs.org/)
 
-- [Python 3.12+](https://www.python.org/downloads/)
+-   [Python 3.12+](https://www.python.org/downloads/)
 
-- [Poetry](https://python-poetry.org/docs/#installation)
+-   [Poetry](https://python-poetry.org/docs/#installation)
 
-- [Stripe CLI](https://stripe.com/docs/stripe-cli)
+-   [Stripe CLI](https://stripe.com/docs/stripe-cli)
 
-- [MongoDB Atlas](https://www.mongodb.com/atlas/database)
+-   [MongoDB Atlas](https://www.mongodb.com/atlas/database)
 
-- [OpenAI API Key](https://platform.openai.com/account/api-keys)
+-   [OpenAI API Key](https://platform.openai.com/account/api-keys)
 
-- [GitHub OAuth App](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/creating-an-oauth-app)
+-   [GitHub OAuth App](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/creating-an-oauth-app)
 
-- [Stripe Account](https://dashboard.stripe.com/register)
+-   [Stripe Account](https://dashboard.stripe.com/register)
 
 > [!IMPORTANT]
 > When creating the **GitHub OAuth App**, set the **Authorization callback URL** to:  
