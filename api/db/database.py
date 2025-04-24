@@ -60,15 +60,19 @@ def add_new_user(
 
 def add_new_user_v2(google_user_id: str):
     account_creation_date = datetime.now(timezone.utc).isoformat()
-    USERS_COLLECTION.insert_one(
+    USERS_COLLECTION.update_one(
+        {"google_user_id": google_user_id},
         {
-            "google_user_id": google_user_id,
-            "has_premium": False,
-            "tokens_used_monthly": 0,
-            "last_monthly_token_reset": account_creation_date,
-            "tokens_used_in_past_5_hours": 0,
-            "last_5_hour_cooldown_reset": account_creation_date,
-        }
+            "$setOnInsert": {
+                "google_user_id": google_user_id,
+                "has_premium": False,
+                "tokens_used_monthly": 0,
+                "last_monthly_token_reset": account_creation_date,
+                "tokens_used_in_past_5_hours": 0,
+                "last_5_hour_cooldown_reset": account_creation_date,
+            }
+        },
+        upsert=True,
     )
 
 
