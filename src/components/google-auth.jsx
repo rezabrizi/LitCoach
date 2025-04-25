@@ -86,6 +86,9 @@ export const GoogleAuth = ({ children }) => {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center p-4">
                 <Loader2 className="animate-spin h-8 w-8" />
+                <p className="text-sm font-light text-muted-foreground mt-2">
+                    Getting everything ready...
+                </p>
             </div>
         );
     }
@@ -101,9 +104,7 @@ export const GoogleAuth = ({ children }) => {
                     Sign in with Google
                 </Button>
 
-                <div>
-                    <ReportIssueButton />
-                </div>
+                <ReportIssueButton />
             </div>
         );
     }

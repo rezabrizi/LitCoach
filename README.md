@@ -64,47 +64,47 @@ Ensure you have the following installed and set up before proceeding:
 > [!NOTE]
 > Need help finding these values? Use the links in the **Prerequisites** section above.
 
-3. Create a Python virtual environment (using Python 3.12):
+4. Create a Python virtual environment (using Python 3.12):
 
     ```bash
     python3.12 -m venv venv
     source venv/bin/activate  # On Windows, use: venv\Scripts\activate
     ```
 
-4. Install backend dependencies with Poetry:
+5. Install backend dependencies with Poetry:
 
     ```bash
     poetry install
     ```
 
-5. Install frontend dependencies:
+6. Install frontend dependencies:
 
     ```bash
     npm install
     ```
 
-6. Start the backend server:
+7. Start the backend server:
 
     ```bash
     uvicorn api.app:app --reload
     ```
 
-7. Start the frontend development server:
+8. Start the frontend development server:
 
     ```bash
     npm run dev
     ```
 
-8. Start the Stripe webhook listener:
+9. Start the Stripe webhook listener:
 
     ```bash
     stripe listen --forward-to http://localhost:8000/stripe/webhook
     ```
 
-9. Open Chrome and go to: `chrome://extensions/`
+10. Open Chrome and go to: `chrome://extensions/`
 
-10. Toggle **Developer Mode** on (top right)
+11. Toggle **Developer Mode** on (top right)
 
-11. Click **"Load unpacked"**
+12. Click **"Load unpacked"**
 
-12. Select the `dist` folder from the repo
+13. Select the `dist` folder from the repo
