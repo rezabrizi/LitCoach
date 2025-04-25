@@ -33,6 +33,11 @@ const getStoredLegacyID = () =>
         chrome.storage.sync.get(["user_id"], (result) => resolve(result.user_id));
     });
 
+const removeStoredLegacyID = () =>
+    new Promise((resolve) => {
+        chrome.storage.sync.remove(["user_id"], () => resolve());
+    });
+
 export const GoogleAuth = ({ children }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
@@ -57,6 +62,9 @@ export const GoogleAuth = ({ children }) => {
             });
 
             await storeGoogleUserID(googleUserId);
+            if (storedUserId) {
+                await removeStoredLegacyID();
+            }
             setIsAuthenticated(true);
         } catch (err) {
             console.error("Authentication error:", err);

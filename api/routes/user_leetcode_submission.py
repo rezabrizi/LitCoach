@@ -47,7 +47,7 @@ LANGUAGE_EXTENSIONS = {
 def user_github_submission(request: LeetCodeSubmission):
     try:
         user = None
-        if request.user_id:
+        if request.user_id and not request.github_access_token:
             user = resolve_user_by_legacy_user_id(request.user_id)
             if not user:
                 raise HTTPException(status_code=404, detail="User not found")
