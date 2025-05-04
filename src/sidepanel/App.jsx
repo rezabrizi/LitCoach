@@ -159,12 +159,11 @@ function App() {
     const MessageBubble = ({ message, index }) => {
         const isLastMessage = index === messages.length - 1;
         return (
-            <div className={`flex ${message.role === "user" ? "justify-end" : "justify-start"} mb-4`}>
+            <div className={`flex ${message.role === "user" && "justify-end"} mb-4`}>
                 <div
-                    className={`max-w-[80%] rounded-lg p-3 ${
-                        message.role === "user"
-                            ? "bg-primary text-primary-foreground shadow-sm"
-                            : "bg-muted shadow-sm"
+                    className={`p-3 ${
+                        message.role === "user" &&
+                        "rounded-lg max-w-[80%] bg-primary text-primary-foreground shadow-sm"
                     }`}
                 >
                     {message.role === "assistant" && !message.content && isLoading && isLastMessage ? (

@@ -47,6 +47,25 @@ export const GoogleAuth = ({ children }) => {
         setIsLoading(true);
         try {
             const googleInfo = await getGoogleUserInfo();
+
+            if (!googleInfo.id) {
+                // Fallback to interactive login if not logged in
+                await new Promise((resolve, reject) => {
+                    chrome.identity.getAuthToken({ interactive: true }, (token) => {
+                        if (chrome.runtime.lastError || !token) {
+                            reject(chrome.runtime.lastError || new Error("Could not obtain token"));
+                        } else {
+                            resolve(token);
+                        }
+                    });
+                });
+
+                // Retry getting profile info after interactive login
+                const retryInfo = await getGoogleUserInfo();
+                if (!retryInfo.id) throw new Error("Still no Google user ID after login");
+                googleInfo.id = retryInfo.id;
+            }
+
             const googleUserId = googleInfo.id;
             const storedGoogleUserId = await getStoredGoogleUserID();
             const storedUserId = await getStoredLegacyID();
@@ -86,9 +105,7 @@ export const GoogleAuth = ({ children }) => {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center p-4">
                 <Loader2 className="animate-spin h-8 w-8" />
-                <p className="text-sm font-light text-muted-foreground mt-2">
-                    Getting everything ready...
-                </p>
+                <p className="text-sm font-light text-muted-foreground mt-2">Getting everything ready...</p>
             </div>
         );
     }

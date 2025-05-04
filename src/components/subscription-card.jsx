@@ -128,8 +128,8 @@ function SubscriptionCard() {
 
     if (isDataLoading) {
         return (
-            <Card className="flex justify-center p-6">
-                <Loader2 className="animate-spin h-8 w-8" />
+            <Card className="border-amber-200/40 animate-pulse">
+                <CardHeader>Loading subscription info...</CardHeader>
             </Card>
         );
     }

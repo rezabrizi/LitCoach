@@ -191,8 +191,8 @@ const GitHubSubmissionSync = () => {
 
     if (isDataLoading) {
         return (
-            <Card className="flex justify-center p-6">
-                <Loader2 className="animate-spin h-8 w-8" />
+            <Card className="animate-pulse">
+                <CardHeader>Loading GitHub Sync Info...</CardHeader>
             </Card>
         );
     }
