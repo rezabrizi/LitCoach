@@ -4,8 +4,18 @@ LitCoach is a Chrome extension that gives you real-time feedback on LeetCode pro
 
 [![Chrome Web Store](https://img.shields.io/badge/Featured_on-Chrome_Web_Store-cce7e8?style=for-the-badge)](https://chromewebstore.google.com/detail/profstats-ut-dallas/doilmgfedjlpepeaolcfpdmkehecdaff)
 
+![Marquee-Promo-Tile](assets/Marquee-Promo-Tile.png)
+
+![Preview-Screenshot-1](assets/Preview-Screenshot-1.png)
+
+![Preview-Screenshot-2](assets/Preview-Screenshot-2.png)
+
+![Preview-Screenshot-3](assets/Preview-Screenshot-3.png)
+
 ![LitCoach Diagram](assets/diagram.png)  
 _Image from gitdiagram.com_
+
+Our privcy policy can be found [here](privacy-policy.md).
 
 ## Local Development
 
