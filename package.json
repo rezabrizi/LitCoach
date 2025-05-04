@@ -2,7 +2,7 @@
     "name": "litcoach",
     "description": "Provides AI-powered assistance on LeetCode and automatically syncs your successful submissions to GitHub",
     "private": true,
-    "version": "0.0.9",
+    "version": "0.1.0",
     "type": "module",
     "scripts": {
         "start": "concurrently \"npm run dev\" \"npm run api\"",
