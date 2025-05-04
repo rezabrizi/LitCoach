@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Button } from "@components/ui/button";
 import { Loader2 } from "lucide-react";
 import ReportIssueButton from "@components/report-issue";
+import PrivacyPolicyButton from "@components/privacy-policy";
 import { useToast } from "@hooks/use-toast";
 import axios from "axios";
 
@@ -120,8 +121,10 @@ export const GoogleAuth = ({ children }) => {
                     <img src="/google.svg" alt="Google Logo" className="mr-1 h-4 w-4" />
                     Sign in with Google
                 </Button>
-
-                <ReportIssueButton />
+                <div>
+                    <PrivacyPolicyButton />
+                    <ReportIssueButton />
+                </div>
             </div>
         );
     }

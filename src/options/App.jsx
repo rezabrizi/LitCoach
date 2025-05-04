@@ -1,6 +1,7 @@
 import GitHubSubmissionSync from "@components/github-submission-sync";
 import SubscriptionCard from "@components/subscription-card";
 import ReportIssueButton from "@components/report-issue";
+import PrivacyPolicyButton from "@components/privacy-policy";
 
 const App = () => {
     return (
@@ -8,7 +9,10 @@ const App = () => {
             <div className="space-y-4 flex flex-col w-full max-w-lg">
                 <GitHubSubmissionSync />
                 <SubscriptionCard />
-                <ReportIssueButton />
+                <div className="mx-auto">
+                    <ReportIssueButton />
+                    <PrivacyPolicyButton />
+                </div>
             </div>
         </div>
     );
