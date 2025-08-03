@@ -191,6 +191,17 @@ def update_premium_status(
         )
 
 
+def update_premium_status_by_subscription_id(subscription_id: str, has_premium: bool):
+    user = USERS_COLLECTION.find_one({"subscription_id": subscription_id})
+    if not user:
+        return
+
+    USERS_COLLECTION.update_one(
+        {"subscription_id": subscription_id},
+        {"$set": {"has_premium": has_premium}},
+    )
+
+
 def get_user_subscription_id(
     legacy_user_id: str = None, google_user_id: str = None
 ) -> str | None:

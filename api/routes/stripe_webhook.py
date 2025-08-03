@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Request
 from api.payment import handle_webhook_event
-from api.db import update_premium_status
+from api.db import update_premium_status, update_premium_status_by_subscription_id
 
 router = APIRouter()
 
@@ -36,3 +36,12 @@ async def stripe_webhook(request: Request):
                 google_user_id=google_user_id,
                 has_premium=False,
             )
+
+    elif event["type"] == "customer.subscription.updated":
+        subscription = event["data"]["object"]
+        user_id = subscription.get("metadata", {}).get("user_id")
+        cancel_at_period_end = subscription.get("cancel_at_period_end", False)
+        update_premium_status_by_subscription_id(
+            subscription_id=subscription.get("id"),
+            has_premium=not cancel_at_period_end,
+        )

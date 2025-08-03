@@ -14,6 +14,7 @@ from api.routes import (
     subscription_renew_router,
     ai_assistance_router,
     stripe_webhook_router,
+    subscription_manage_router,
 )
 
 app = FastAPI()
@@ -71,3 +72,6 @@ app.include_router(ai_assistance_router)
 
 # /stripe/webhook
 app.include_router(stripe_webhook_router)
+
+# /subscription/manage
+app.include_router(subscription_manage_router)

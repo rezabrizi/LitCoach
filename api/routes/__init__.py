@@ -13,6 +13,8 @@ from .subscription_renew import router as subscription_renew_router
 from .ai_assistance import router as ai_assistance_router
 from .stripe_webhook import router as stripe_webhook_router
 
+from .subscription_manage import router as subscription_manage_router
+
 __all__ = [
     "user_register_router",
     "user_github_info_router",
@@ -25,4 +27,5 @@ __all__ = [
     "subscription_renew_router",
     "ai_assistance_router",
     "stripe_webhook_router",
+    "subscription_manage_router",
 ]
