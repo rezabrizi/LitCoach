@@ -4,13 +4,11 @@ from api.config import get_settings
 
 from api.routes import (
     user_register_router,
-    user_info_router,  # Legacy
     user_github_info_router,
     user_create_repo_router,
     user_leetcode_submission_router,
     user_subscription_info_router,
     github_access_token_router,
-    github_auth_router,  # Legacy
     subscription_subscribe_router,
     subscription_unsubscribe_router,
     subscription_renew_router,
@@ -41,9 +39,6 @@ def health_check():
 # /user/register
 app.include_router(user_register_router)
 
-# /user/info
-app.include_router(user_info_router)  # Legacy
-
 # /user/github/info
 app.include_router(user_github_info_router)
 
@@ -69,9 +64,6 @@ app.include_router(subscription_renew_router)
 
 # /github/access-token
 app.include_router(github_access_token_router)
-
-# /auth/github
-app.include_router(github_auth_router)  # Legacy
 
 
 # /ai/assistance
