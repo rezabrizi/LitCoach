@@ -1,7 +1,13 @@
+# TODO: Make the customer portal URL an environment variable
+
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from api.db import resolve_user_by_google_id
-from api.payment import has_active_subscription, create_checkout_session
+from api.payment import (
+    has_active_subscription,
+    create_checkout_session,
+    get_next_billing_date,
+)
 from api.config import logger
 
 router = APIRouter()
@@ -18,7 +24,9 @@ def subscription_manage(google_user_id: str):
             return JSONResponse(
                 status_code=200,
                 content={
-                    "customer_portal_url": "https://billing.stripe.com/p/login/test_cNi6oHb8n9jL1JJgzH3Je00",
+                    "customer_portal_url": "https://billing.stripe.com/p/login/cNi6oHb8n9jL1JJgzH3Je00",
+                    "next_billing_date": get_next_billing_date(user.subscription_id),
+                    "has_premium": user.has_premium,
                 },
             )
 
