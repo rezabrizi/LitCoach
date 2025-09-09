@@ -65,7 +65,6 @@ export const GoogleAuth = ({ children }) => {
             console.error("Error fetching Google user info:", error);
         }
 
-
         if (!googleInfo || !googleInfo.id) {
             try {
                 await googleInteractiveLogin();
