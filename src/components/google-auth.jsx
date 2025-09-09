@@ -19,6 +19,17 @@ const getGoogleUserInfo = () =>
         });
     });
 
+const googleInteractiveLogin = () =>
+    new Promise((resolve, reject) => {
+        chrome.identity.getAuthToken({ interactive: true }, (token) => {
+            if (chrome.runtime.lastError || !token) {
+                reject(chrome.runtime.lastError || new Error("Could not obtain token"));
+            } else {
+                resolve(token);
+            }
+        });
+    });
+
 const storeGoogleUserID = (googleUserId) =>
     new Promise((resolve) => {
         chrome.storage.sync.set({ google_user_id: googleUserId }, () => resolve());
@@ -41,41 +52,47 @@ const removeStoredLegacyID = () =>
 
 export const GoogleAuth = ({ children }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
 
     const handleGoogleAuth = useCallback(async () => {
         setIsLoading(true);
+        let googleInfo = null;
+
         try {
-            const googleInfo = await getGoogleUserInfo();
+            googleInfo = await getGoogleUserInfo();
+        } catch (error) {
+            console.error("Error fetching Google user info:", error);
+        }
 
-            if (!googleInfo.id) {
-                // Fallback to interactive login if not logged in
-                await new Promise((resolve, reject) => {
-                    chrome.identity.getAuthToken({ interactive: true }, (token) => {
-                        if (chrome.runtime.lastError || !token) {
-                            reject(chrome.runtime.lastError || new Error("Could not obtain token"));
-                        } else {
-                            resolve(token);
-                        }
-                    });
+
+        if (!googleInfo || !googleInfo.id) {
+            try {
+                await googleInteractiveLogin();
+                googleInfo = await getGoogleUserInfo();
+            } catch (error) {
+                console.error("Interactive login failed:", error);
+                toast({
+                    title: "Authentication Failed",
+                    description: "Could not sign in with Google. Try again manually.",
+                    variant: "destructive",
                 });
-
-                // Retry getting profile info after interactive login
-                const retryInfo = await getGoogleUserInfo();
-                if (!retryInfo.id) throw new Error("Still no Google user ID after login");
-                googleInfo.id = retryInfo.id;
-            }
-
-            const googleUserId = googleInfo.id;
-            const storedGoogleUserId = await getStoredGoogleUserID();
-            const storedUserId = await getStoredLegacyID();
-
-            if (googleUserId && googleUserId === storedGoogleUserId) {
-                setIsAuthenticated(true);
+                setIsLoading(false);
                 return;
             }
+        }
 
+        const googleUserId = googleInfo.id;
+        const storedGoogleUserId = await getStoredGoogleUserID();
+        const storedUserId = await getStoredLegacyID();
+
+        if (googleUserId && googleUserId === storedGoogleUserId) {
+            setIsAuthenticated(true);
+            setIsLoading(false);
+            return;
+        }
+
+        try {
             await axios.post(`${API_URL}/user/register`, {
                 google_user_id: googleUserId,
                 old_user_id: storedUserId || null, // For legacy users to migrate
